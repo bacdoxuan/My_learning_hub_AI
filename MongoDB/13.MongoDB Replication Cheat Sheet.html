@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Cheat Sheet #13 - Replication</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #ecf0f1;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(52,152,219,0.3);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #3498db;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #3498db;
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #3498db;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-bool {
+      color: #ff7b72;
+    }
+    .code-prop {
+      color: #7ee787;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(52,152,219,0.2), rgba(41,128,185,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #3498db;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(52,152,219,0.2);
+      color: #3498db;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-blue {
+      background: rgba(33,150,243,0.2);
+      color: #64b5f6;
+    }
+    .tag-green {
+      background: rgba(76,175,80,0.2);
+      color: #81c784;
+    }
+    .tag-orange {
+      background: rgba(255,152,0,0.2);
+      color: #ffb74d;
+    }
+    .tag-red {
+      background: rgba(244,67,54,0.2);
+      color: #e57373;
+    }
+    .tag-purple {
+      background: rgba(156,39,176,0.2);
+      color: #ce93d8;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(33,150,243,0.1);
+      border-left: 3px solid #2196f3;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(244,67,54,0.1);
+      border-left: 3px solid #f44336;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(76,175,80,0.1);
+      border-left: 3px solid #4caf50;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .section-title {
+      color: #3498db;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(52,152,219,0.3);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .comparison-table th {
+      background: rgba(52,152,219,0.2);
+      color: #3498db;
+    }
+    .comparison-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .example-box {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .example-title {
+      color: #3498db;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
+    .topology-diagram {
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 15px 0;
+      text-align: center;
+    }
+    .node {
+      display: inline-block;
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: #fff;
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin: 10px;
+      font-weight: bold;
+      min-width: 120px;
+    }
+    .node.primary {
+      background: linear-gradient(135deg, #27ae60, #229954);
+      box-shadow: 0 0 20px rgba(39,174,96,0.5);
+    }
+    .node.secondary {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+    }
+    .node.arbiter {
+      background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+    }
+    .arrow {
+      display: inline-block;
+      color: #3498db;
+      font-size: 1.5em;
+      margin: 0 10px;
+    }
+    .member-type {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 15px 0;
+    }
+    .member-card {
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      border-top: 3px solid;
+    }
+    .member-card.primary { border-color: #27ae60; }
+    .member-card.secondary { border-color: #3498db; }
+    .member-card.arbiter { border-color: #95a5a6; }
+    .member-card.hidden { border-color: #e67e22; }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+    @media (max-width: 768px) {
+      .member-type {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🍃 MongoDB Cheat Sheet #13</h1>
+      <div class="subtitle">Replication - Replica Sets</div>
+      <div class="badge">🔄 High Availability • Automatic Failover • Data Redundancy</div>
+    </div>
+
+    <!-- Replication Overview -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🔄</span>
+          <span class="card-title">Replica Set Overview</span>
+        </div>
+        <div class="highlight">
+          <strong>Replica Set</strong> là nhóm MongoDB instances duy trì cùng một data set, cung cấp <strong>redundancy</strong> và <strong>high availability</strong>
+        </div>
+        
+        <div class="topology-diagram">
+          <div class="node primary">PRIMARY</div>
+          <div class="arrow">⟷</div>
+          <div class="node secondary">SECONDARY</div>
+          <div class="arrow">⟷</div>
+          <div class="node secondary">SECONDARY</div>
+          <div style="margin-top: 20px; font-size: 0.9em; opacity: 0.8;">
+            Replication Flow: PRIMARY → SECONDARY (async)
+          </div>
+        </div>
+
+        <table class="comparison-table">
+          <tr>
+            <th>Feature</th>
+            <th>Description</th>
+            <th>Benefit</th>
+          </tr>
+          <tr>
+            <td><strong>High Availability</strong></td>
+            <td>Automatic failover khi Primary down</td>
+            <td>Minimize downtime</td>
+          </tr>
+          <tr>
+            <td><strong>Data Redundancy</strong></td>
+            <td>Multiple copies của data</td>
+            <td>Protect against data loss</td>
+          </tr>
+          <tr>
+            <td><strong>Read Scaling</strong></td>
+            <td>Distribute reads to secondaries</td>
+            <td>Increase read throughput</td>
+          </tr>
+          <tr>
+            <td><strong>Disaster Recovery</strong></td>
+            <td>Backup từ secondary members</td>
+            <td>No impact on primary</td>
+          </tr>
+          <tr>
+            <td><strong>Zero Downtime Maintenance</strong></td>
+            <td>Rolling upgrades/maintenance</td>
+            <td>Continuous availability</td>
+          </tr>
+        </table>
+
+        <div class="info-box">
+          💡 <strong>Minimum Recommendation:</strong> 3-member replica set (1 Primary + 2 Secondaries) hoặc (1 Primary + 1 Secondary + 1 Arbiter)
+        </div>
+      </div>
+    </div>
+
+    <!-- Member Types -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">👥</span>
+          <span class="card-title">Replica Set Member Types</span>
+        </div>
+        
+        <div class="member-type">
+          <div class="member-card primary">
+            <div style="font-size: 2em; margin-bottom: 10px;">👑</div>
+            <strong style="color: #27ae60; font-size: 1.2em;">PRIMARY</strong>
+            <div style="margin-top: 10px; font-size: 0.9em;">
+              <div class="list-item">Receives all writes</div>
+              <div class="list-item">Reads by default</div>
+              <div class="list-item">Only one per replica set</div>
+              <div class="list-item">Can vote in elections</div>
+            </div>
+          </div>
+          
+          <div class="member-card secondary">
+            <div style="font-size: 2em; margin-bottom: 10px;">📋</div>
+            <strong style="color: #3498db; font-size: 1.2em;">SECONDARY</strong>
+            <div style="margin-top: 10px; font-size: 0.9em;">
+              <div class="list-item">Replicates data from Primary</div>
+              <div class="list-item">Can serve reads (if configured)</div>
+              <div class="list-item">Can become Primary</div>
+              <div class="list-item">Can vote in elections</div>
+            </div>
+          </div>
+          
+          <div class="member-card arbiter">
+            <div style="font-size: 2em; margin-bottom: 10px;">⚖️</div>
+            <strong style="color: #95a5a6; font-size: 1.2em;">ARBITER</strong>
+            <div style="margin-top: 10px; font-size: 0.9em;">
+              <div class="list-item">No data replication</div>
+              <div class="list-item">Only votes in elections</div>
+              <div class="list-item">Minimal resources</div>
+              <div class="list-item">Cannot become Primary</div>
+            </div>
+          </div>
+          
+          <div class="member-card hidden">
+            <div style="font-size: 2em; margin-bottom: 10px;">🔒</div>
+            <strong style="color: #e67e22; font-size: 1.2em;">HIDDEN</strong>
+            <div style="margin-top: 10px; font-size: 0.9em;">
+              <div class="list-item">Replicates data</div>
+              <div class="list-item">Invisible to applications</div>
+              <div class="list-item">Can vote in elections</div>
+              <div class="list-item">Used for backups/analytics</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-title">Member Configurations</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Configuration</th>
+            <th>Setting</th>
+            <th>Use Case</th>
+          </tr>
+          <tr>
+            <td><strong>Priority</strong></td>
+            <td><code>priority: 0-1000</code></td>
+            <td>Control election preference (0 = never primary)</td>
+          </tr>
+          <tr>
+            <td><strong>Votes</strong></td>
+            <td><code>votes: 0 or 1</code></td>
+            <td>Participate in elections (max 7 voting members)</td>
+          </tr>
+          <tr>
+            <td><strong>Hidden</strong></td>
+            <td><code>hidden: true</code></td>
+            <td>Invisible to apps, for backups/analytics</td>
+          </tr>
+          <tr>
+            <td><strong>Delayed</strong></td>
+            <td><code>slaveDelay: seconds</code></td>
+            <td>Delayed replica for disaster recovery</td>
+          </tr>
+          <tr>
+            <td><strong>Arbiter</strong></td>
+            <td><code>arbiterOnly: true</code></td>
+            <td>Voting member without data</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Setup Replica Set -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🚀</span>
+          <span class="card-title">Setup Replica Set</span>
+        </div>
+        
+        <div class="section-title">Step 1: Start MongoDB Instances</div>
+        <div class="code-block">
+          <span class="code-comment"># Start 3 mongod instances on different ports</span><br><br>
+          
+          <span class="code-comment"># Member 1 (Primary candidate)</span><br>
+          mongod --replSet rs0 --port 27017 --dbpath /data/db1<br><br>
+          
+          <span class="code-comment"># Member 2 (Secondary)</span><br>
+          mongod --replSet rs0 --port 27018 --dbpath /data/db2<br><br>
+          
+          <span class="code-comment"># Member 3 (Secondary)</span><br>
+          mongod --replSet rs0 --port 27019 --dbpath /data/db3
+        </div>
+
+        <div class="section-title">Step 2: Initiate Replica Set</div>
+        <div class="code-block">
+          <span class="code-comment">// Connect to one instance</span><br>
+          mongosh --port 27017<br><br>
+          
+          <span class="code-comment">// Initiate replica set</span><br>
+          rs.<span class="code-method">initiate</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">_id</span>: <span class="code-string">"rs0"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">members</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">0</span>, <span class="code-prop">host</span>: <span class="code-string">"localhost:27017"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span>, <span class="code-prop">host</span>: <span class="code-string">"localhost:27018"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">2</span>, <span class="code-prop">host</span>: <span class="code-string">"localhost:27019"</span> }<br>
+          &nbsp;&nbsp;]<br>
+          })
+        </div>
+
+        <div class="section-title">Step 3: Verify Status</div>
+        <div class="code-block">
+          <span class="code-comment">// Check replica set status</span><br>
+          rs.<span class="code-method">status</span>()<br><br>
+          
+          <span class="code-comment">// Check configuration</span><br>
+          rs.<span class="code-method">conf</span>()
+        </div>
+
+        <div class="tip-box">
+          ✅ Wait 10-30 seconds for election to complete. Prompt will show <code>rs0:PRIMARY></code>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚙️</span>
+          <span class="card-title">Production Configuration</span>
+        </div>
+        
+        <div class="section-title">mongod.conf for Replica Set</div>
+        <div class="code-block">
+          <span class="code-comment"># /etc/mongod.conf</span><br><br>
+          
+          replication:<br>
+          &nbsp;&nbsp;replSetName: <span class="code-string">"rs0"</span><br><br>
+          
+          net:<br>
+          &nbsp;&nbsp;port: <span class="code-number">27017</span><br>
+          &nbsp;&nbsp;bindIp: <span class="code-string">"0.0.0.0"</span>  <span class="code-comment"># Or specific IPs</span><br><br>
+          
+          storage:<br>
+          &nbsp;&nbsp;dbPath: <span class="code-string">"/var/lib/mongodb"</span><br>
+          &nbsp;&nbsp;journal:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;enabled: <span class="code-bool">true</span><br><br>
+          
+          security:<br>
+          &nbsp;&nbsp;authorization: enabled<br>
+          &nbsp;&nbsp;keyFile: <span class="code-string">"/etc/mongodb-keyfile"</span>
+        </div>
+
+        <div class="section-title">Create Keyfile (Authentication)</div>
+        <div class="code-block">
+          <span class="code-comment"># Generate keyfile</span><br>
+          openssl rand -base64 756 > /etc/mongodb-keyfile<br>
+          chmod 400 /etc/mongodb-keyfile<br>
+          chown mongodb:mongodb /etc/mongodb-keyfile<br><br>
+          
+          <span class="code-comment"># Copy same keyfile to all members</span>
+        </div>
+
+        <div class="section-title">Connection String</div>
+        <div class="code-block">
+          <span class="code-comment">// Application connection string</span><br>
+          mongodb://user:pass@host1:27017,host2:27017,host3:27017/<br>
+          &nbsp;&nbsp;?replicaSet=rs0&authSource=admin
+        </div>
+
+        <div class="warning-box">
+          ⚠️ All replica set members must have the same keyfile for internal authentication
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Replica Set -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔧</span>
+          <span class="card-title">Manage Members</span>
+        </div>
+        
+        <div class="section-title">Add Member</div>
+        <div class="code-block">
+          <span class="code-comment">// Add new secondary member</span><br>
+          rs.<span class="code-method">add</span>(<span class="code-string">"localhost:27020"</span>)<br><br>
+          
+          <span class="code-comment">// Add with configuration</span><br>
+          rs.<span class="code-method">add</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">host</span>: <span class="code-string">"localhost:27020"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">priority</span>: <span class="code-number">0.5</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">votes</span>: <span class="code-number">1</span><br>
+          })
+        </div>
+
+        <div class="section-title">Add Arbiter</div>
+        <div class="code-block">
+          <span class="code-comment">// Add arbiter (voting only, no data)</span><br>
+          rs.<span class="code-method">addArb</span>(<span class="code-string">"localhost:27021"</span>)
+        </div>
+
+        <div class="section-title">Remove Member</div>
+        <div class="code-block">
+          <span class="code-comment">// Remove member from replica set</span><br>
+          rs.<span class="code-method">remove</span>(<span class="code-string">"localhost:27020"</span>)
+        </div>
+
+        <div class="section-title">Reconfigure Member</div>
+        <div class="code-block">
+          <span class="code-comment">// Get current config</span><br>
+          cfg = rs.<span class="code-method">conf</span>()<br><br>
+          
+          <span class="code-comment">// Modify member settings</span><br>
+          cfg.members[<span class="code-number">1</span>].priority = <span class="code-number">2</span><br>
+          cfg.members[<span class="code-number">1</span>].hidden = <span class="code-bool">true</span><br><br>
+          
+          <span class="code-comment">// Apply new config</span><br>
+          rs.<span class="code-method">reconfig</span>(cfg)
+        </div>
+
+        <div class="warning-box">
+          ⚠️ <code>rs.reconfig()</code> có thể trigger election. Use <code>rs.reconfig(cfg, {force: true})</code> nếu cần force.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">Monitor Replica Set</span>
+        </div>
+        
+        <div class="section-title">Check Status</div>
+        <div class="code-block">
+          <span class="code-comment">// Detailed status</span><br>
+          rs.<span class="code-method">status</span>()<br><br>
+          
+          <span class="code-comment">// Key fields:</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-prop">set</span>: <span class="code-string">"rs0"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">members</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"localhost:27017"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">stateStr</span>: <span class="code-string">"PRIMARY"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">health</span>: <span class="code-number">1</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">optime</span>: {...}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;]<br>
+          }
+        </div>
+
+        <div class="section-title">Check Replication Lag</div>
+        <div class="code-block">
+          <span class="code-comment">// Print replication info</span><br>
+          rs.<span class="code-method">printReplicationInfo</span>()<br><br>
+          
+          <span class="code-comment">// Print secondary replication info</span><br>
+          rs.<span class="code-method">printSecondaryReplicationInfo</span>()
+        </div>
+
+        <div class="section-title">Check if Primary</div>
+        <div class="code-block">
+          <span class="code-comment">// Check if current node is primary</span><br>
+          db.<span class="code-method">isMaster</span>()<br><br>
+          
+          <span class="code-comment">// Returns:</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-prop">ismaster</span>: <span class="code-bool">true</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">primary</span>: <span class="code-string">"localhost:27017"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">hosts</span>: [<span class="code-string">"localhost:27017"</span>, ...],<br>
+          &nbsp;&nbsp;<span class="code-prop">setName</span>: <span class="code-string">"rs0"</span><br>
+          }
+        </div>
+
+        <div class="section-title">View Oplog</div>
+        <div class="code-block">
+          <span class="code-comment">// View oplog entries</span><br>
+          <span class="code-keyword">use</span> local<br>
+          db.oplog.rs.<span class="code-method">find</span>().<span class="code-method">sort</span>({ <span class="code-prop">$natural</span>: <span class="code-number">-1</span> }).<span class="code-method">limit</span>(<span class="code-number">10</span>)
+        </div>
+      </div>
+    </div>
+
+    <!-- Elections & Failover -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🗳️</span>
+          <span class="card-title">Elections & Failover</span>
+        </div>
+        <div class="highlight">
+          Khi Primary không available, replica set tự động elect Secondary mới làm Primary
+        </div>
+        
+        <div class="section-title">Election Process</div>
+        <div class="example-box">
+          <strong>1. Primary Failure Detection</strong><br>
+          <div style="margin: 10px 0;">
+            • Heartbeat timeout (default 10s)<br>
+            • Members detect Primary unavailable
+          </div>
+          
+          <strong>2. Election Triggered</strong><br>
+          <div style="margin: 10px 0;">
+            • Eligible members request votes<br>
+            • Member with highest priority preferred
+          </div>
+          
+          <strong>3. Voting</strong><br>
+          <div style="margin: 10px 0;">
+            • Majority votes required (n/2 + 1)<br>
+            • Member with most recent data wins
+          </div>
+          
+          <strong>4. New Primary Elected</strong><br>
+          <div style="margin: 10px 0;">
+            • Winning member becomes PRIMARY<br>
+            • Accepts writes immediately
+          </div>
+        </div>
+
+        <div class="section-title">Manual Failover (Stepdown)</div>
+        <div class="code-block">
+          <span class="code-comment">// Force primary to step down</span><br>
+          rs.<span class="code-method">stepDown</span>(<span class="code-number">60</span>)  <span class="code-comment">// Step down for 60 seconds</span><br><br>
+          
+          <span class="code-comment">// Immediate stepdown (force)</span><br>
+          rs.<span class="code-method">stepDown</span>(<span class="code-number">0</span>, <span class="code-number">0</span>)
+        </div>
+
+        <div class="section-title">Freeze Member</div>
+        <div class="code-block">
+          <span class="code-comment">// Prevent member from becoming primary</span><br>
+          rs.<span class="code-method">freeze</span>(<span class="code-number">120</span>)  <span class="code-comment">// Freeze for 120 seconds</span><br><br>
+          
+          <span class="code-comment">// Unfreeze</span><br>
+          rs.<span class="code-method">freeze</span>(<span class="code-number">0</span>)
+        </div>
+
+        <div class="tip-box">
+          ✅ <strong>Election Time:</strong> Typically 10-30 seconds. Applications should implement retry logic.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚖️</span>
+          <span class="card-title">Priority & Voting</span>
+        </div>
+        
+        <div class="section-title">Set Member Priority</div>
+        <div class="code-block">
+          <span class="code-comment">// Higher priority = preferred for primary</span><br>
+          cfg = rs.<span class="code-method">conf</span>()<br>
+          cfg.members[<span class="code-number">0</span>].priority = <span class="code-number">2</span>  <span class="code-comment">// High priority</span><br>
+          cfg.members[<span class="code-number">1</span>].priority = <span class="code-number">1</span>  <span class="code-comment">// Normal</span><br>
+          cfg.members[<span class="code-number">2</span>].priority = <span class="code-number">0</span>  <span class="code-comment">// Never primary</span><br>
+          rs.<span class="code-method">reconfig</span>(cfg)
+        </div>
+
+        <div class="section-title">Priority Examples</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Priority</th>
+            <th>Meaning</th>
+            <th>Use Case</th>
+          </tr>
+          <tr>
+            <td><code>0</code></td>
+            <td>Never becomes primary</td>
+            <td>Analytics, backup nodes</td>
+          </tr>
+          <tr>
+            <td><code>1</code></td>
+            <td>Default priority</td>
+            <td>Normal members</td>
+          </tr>
+          <tr>
+            <td><code>2-1000</code></td>
+            <td>Higher priority</td>
+            <td>Preferred primary (better hardware)</td>
+          </tr>
+        </table>
+
+        <div class="section-title">Voting Configuration</div>
+        <div class="code-block">
+          <span class="code-comment">// Max 7 voting members in replica set</span><br>
+          cfg = rs.<span class="code-method">conf</span>()<br>
+          cfg.members[<span class="code-number">3</span>].votes = <span class="code-number">0</span>  <span class="code-comment">// Non-voting member</span><br>
+          rs.<span class="code-method">reconfig</span>(cfg)
+        </div>
+
+        <div class="warning-box">
+          ⚠️ Replica set can have max <strong>50 members</strong> but only <strong>7 voting members</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Read Preference -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📖</span>
+          <span class="card-title">Read Preference</span>
+        </div>
+        <div class="highlight">
+          Control where reads are directed in replica set
+        </div>
+        
+        <div class="section-title">Read Preference Modes</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Mode</th>
+            <th>Behavior</th>
+            <th>Use Case</th>
+          </tr>
+          <tr>
+            <td><span class="tag-green tag">primary</span></td>
+            <td>Read from primary only</td>
+            <td>Default, strong consistency</td>
+          </tr>
+          <tr>
+            <td><span class="tag-blue tag">primaryPreferred</span></td>
+            <td>Primary if available, else secondary</td>
+            <td>High availability</td>
+          </tr>
+          <tr>
+            <td><span class="tag-orange tag">secondary</span></td>
+            <td>Read from secondary only</td>
+            <td>Offload reads, analytics</td>
+          </tr>
+          <tr>
+            <td><span class="tag-orange tag">secondaryPreferred</span></td>
+            <td>Secondary if available, else primary</td>
+            <td>Read scaling</td>
+          </tr>
+          <tr>
+            <td><span class="tag-purple tag">nearest</span></td>
+            <td>Lowest network latency</td>
+            <td>Geo-distributed apps</td>
+          </tr>
+        </table>
+
+        <div class="section-title">Set Read Preference (mongosh)</div>
+        <div class="code-block">
+          <span class="code-comment">// Enable reading from secondaries</span><br>
+          db.<span class="code-method">getMongo</span>().<span class="code-method">setReadPref</span>(<span class="code-string">"secondary"</span>)<br><br>
+          
+          <span class="code-comment">// With tag sets</span><br>
+          db.<span class="code-method">getMongo</span>().<span class="code-method">setReadPref</span>(<span class="code-string">"nearest"</span>, [<br>
+          &nbsp;&nbsp;{ <span class="code-prop">datacenter</span>: <span class="code-string">"east"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-prop">datacenter</span>: <span class="code-string">"west"</span> }<br>
+          ])
+        </div>
+
+        <div class="warning-box">
+          ⚠️ Reading from secondaries có thể return stale data (eventual consistency)
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔗</span>
+          <span class="card-title">Read Preference in Drivers</span>
+        </div>
+        
+        <div class="section-title">Node.js</div>
+        <div class="code-block">
+          <span class="code-keyword">const</span> { MongoClient, ReadPreference } = <span class="code-keyword">require</span>(<span class="code-string">'mongodb'</span>);<br><br>
+          
+          <span class="code-comment">// Connection level</span><br>
+          <span class="code-keyword">const</span> client = <span class="code-keyword">new</span> MongoClient(uri, {<br>
+          &nbsp;&nbsp;<span class="code-prop">readPreference</span>: ReadPreference.SECONDARY<br>
+          });<br><br>
+          
+          <span class="code-comment">// Query level</span><br>
+          db.collection(<span class="code-string">'users'</span>).<span class="code-method">find</span>()<br>
+          &nbsp;&nbsp;.<span class="code-method">readPref</span>(ReadPreference.SECONDARY_PREFERRED);
+        </div>
+
+        <div class="section-title">Python</div>
+        <div class="code-block">
+          <span class="code-keyword">from</span> pymongo <span class="code-keyword">import</span> MongoClient, ReadPreference<br><br>
+          
+          <span class="code-comment"># Connection level</span><br>
+          client = MongoClient(<br>
+          &nbsp;&nbsp;uri,<br>
+          &nbsp;&nbsp;read_preference=ReadPreference.SECONDARY<br>
+          )<br><br>
+          
+          <span class="code-comment"># Collection level</span><br>
+          collection = db.users.with_options(<br>
+          &nbsp;&nbsp;read_preference=ReadPreference.NEAREST<br>
+          )
+        </div>
+
+        <div class="section-title">Connection String</div>
+        <div class="code-block">
+          <span class="code-comment">// In connection string</span><br>
+          mongodb://host1,host2,host3/<br>
+          &nbsp;&nbsp;?replicaSet=rs0<br>
+          &nbsp;&nbsp;&readPreference=secondaryPreferred
+        </div>
+      </div>
+    </div>
+
+    <!-- Write Concern -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">✍️</span>
+          <span class="card-title">Write Concern</span>
+        </div>
+        <div class="highlight">
+          Control acknowledgment level for write operations
+        </div>
+        
+        <div class="section-title">Write Concern Levels</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Level</th>
+            <th>Behavior</th>
+            <th>Trade-off</th>
+          </tr>
+          <tr>
+            <td><code>w: 0</code></td>
+            <td>No acknowledgment</td>
+            <td>⚡ Fastest, ⚠️ No guarantee</td>
+          </tr>
+          <tr>
+            <td><code>w: 1</code></td>
+            <td>Primary acknowledges (default)</td>
+            <td>⚡ Fast, ⚠️ May lose data if primary fails</td>
+          </tr>
+          <tr>
+            <td><code>w: 2, 3...</code></td>
+            <td>Primary + N secondaries</td>
+            <td>⚖️ Balanced</td>
+          </tr>
+          <tr>
+            <td><code>w: "majority"</code></td>
+            <td>Majority of members</td>
+            <td>✅ Durable, 🐢 Slower</td>
+          </tr>
+        </table>
+
+        <div class="section-title">Write Concern Options</div>
+        <div class="code-block">
+          <span class="code-comment">// Write concern with options</span><br>
+          db.users.<span class="code-method">insertOne</span>(doc, {<br>
+          &nbsp;&nbsp;<span class="code-prop">writeConcern</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">w</span>: <span class="code-string">"majority"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">j</span>: <span class="code-bool">true</span>,         <span class="code-comment">// Journal</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">wtimeout</span>: <span class="code-number">5000</span>   <span class="code-comment">// Timeout (ms)</span><br>
+          &nbsp;&nbsp;}<br>
+          })
+        </div>
+
+        <div class="section-title">Set Default Write Concern</div>
+        <div class="code-block">
+          <span class="code-comment">// Set default for replica set</span><br>
+          cfg = rs.<span class="code-method">conf</span>()<br>
+          cfg.settings = {<br>
+          &nbsp;&nbsp;<span class="code-prop">getLastErrorDefaults</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">w</span>: <span class="code-string">"majority"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">wtimeout</span>: <span class="code-number">5000</span><br>
+          &nbsp;&nbsp;}<br>
+          }<br>
+          rs.<span class="code-method">reconfig</span>(cfg)
+        </div>
+
+        <div class="tip-box">
+          ✅ <strong>Recommendation:</strong> Use <code>w: "majority"</code> for critical data
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔐</span>
+          <span class="card-title">Read & Write Concerns Together</span>
+        </div>
+        
+        <div class="section-title">Consistency Levels</div>
+        <div class="example-box">
+          <strong>Strong Consistency</strong>
+          <div class="code-block" style="margin: 10px 0;">
+            readPreference: <span class="code-string">"primary"</span><br>
+            readConcern: <span class="code-string">"majority"</span><br>
+            writeConcern: { w: <span class="code-string">"majority"</span> }
+          </div>
+          <div style="font-size: 0.9em; margin-top: 5px;">
+            ✅ Guaranteed consistency<br>
+            🐢 Slower performance
+          </div>
+        </div>
+
+        <div class="example-box">
+          <strong>Eventual Consistency</strong>
+          <div class="code-block" style="margin: 10px 0;">
+            readPreference: <span class="code-string">"secondary"</span><br>
+            readConcern: <span class="code-string">"local"</span><br>
+            writeConcern: { w: <span class="code-number">1</span> }
+          </div>
+          <div style="font-size: 0.9em; margin-top: 5px;">
+            ⚡ Fast performance<br>
+            ⚠️ May read stale data
+          </div>
+        </div>
+
+        <div class="section-title">Causal Consistency</div>
+        <div class="code-block">
+          <span class="code-comment">// Node.js with sessions</span><br>
+          <span class="code-keyword">const</span> session = client.<span class="code-method">startSession</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">causalConsistency</span>: <span class="code-bool">true</span><br>
+          });<br><br>
+          
+          <span class="code-comment">// Reads see own writes</span><br>
+          <span class="code-keyword">await</span> collection.<span class="code-method">insertOne</span>(doc, { session });<br>
+          <span class="code-keyword">const</span> result = <span class="code-keyword">await</span> collection.<span class="code-method">findOne</span>({ _id }, { session });
+        </div>
+      </div>
+    </div>
+
+    <!-- Oplog & Replication Lag -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📜</span>
+          <span class="card-title">Oplog (Operations Log)</span>
+        </div>
+        <div class="highlight">
+          Capped collection lưu trữ tất cả operations để replicate
+        </div>
+        
+        <div class="section-title">Oplog Size</div>
+        <div class="code-block">
+          <span class="code-comment">// Check oplog size</span><br>
+          <span class="code-keyword">use</span> local<br>
+          db.oplog.rs.<span class="code-method">stats</span>().<span class="code-prop">maxSize</span><br><br>
+          
+          <span class="code-comment">// Check oplog time window</span><br>
+          rs.<span class="code-method">printReplicationInfo</span>()<br><br>
+          
+          <span class="code-comment">// Output:</span><br>
+          configured oplog size: <span class="code-number">1024</span>MB<br>
+          log length start to end: <span class="code-number">3600</span>s (<span class="code-number">1</span>h)<br>
+          oplog first event time: ...
+        </div>
+
+        <div class="section-title">Resize Oplog</div>
+        <div class="code-block">
+          <span class="code-comment">// Resize oplog (MongoDB 4.0+)</span><br>
+          db.<span class="code-method">adminCommand</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">replSetResizeOplog</span>: <span class="code-number">1</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">size</span>: <span class="code-number">2048</span>  <span class="code-comment">// 2GB</span><br>
+          })
+        </div>
+
+        <div class="section-title">Oplog Sizing Guidelines</div>
+        <div class="list-item">Default: 5% of free disk space</div>
+        <div class="list-item">Minimum: 1GB (990MB on 64-bit)</div>
+        <div class="list-item">Recommendation: 12-24 hours of operations</div>
+        <div class="list-item">High write workload: Larger oplog</div>
+
+        <div class="warning-box">
+          ⚠️ Nếu secondary lag > oplog window, phải resync toàn bộ data
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⏱️</span>
+          <span class="card-title">Replication Lag</span>
+        </div>
+        
+        <div class="section-title">Check Replication Lag</div>
+        <div class="code-block">
+          <span class="code-comment">// Check lag for all secondaries</span><br>
+          rs.<span class="code-method">printSecondaryReplicationInfo</span>()<br><br>
+          
+          <span class="code-comment">// Output:</span><br>
+          source: localhost:27018<br>
+          &nbsp;&nbsp;syncedTo: ...<br>
+          &nbsp;&nbsp;<span class="code-number">0</span> secs (<span class="code-number">0</span> hrs) behind the primary<br><br>
+          
+          source: localhost:27019<br>
+          &nbsp;&nbsp;syncedTo: ...<br>
+          &nbsp;&nbsp;<span class="code-number">5</span> secs (<span class="code-number">0.001</span> hrs) behind the primary
+        </div>
+
+        <div class="section-title">Causes of Replication Lag</div>
+        <div class="list-item">Network latency between members</div>
+        <div class="list-item">Secondary hardware slower than primary</div>
+        <div class="list-item">High write load on primary</div>
+        <div class="list-item">Long-running operations on secondary</div>
+        <div class="list-item">Insufficient oplog size</div>
+
+        <div class="section-title">Reduce Replication Lag</div>
+        <div class="list-item">Upgrade secondary hardware</div>
+        <div class="list-item">Improve network bandwidth</div>
+        <div class="list-item">Increase oplog size</div>
+        <div class="list-item">Avoid long-running queries on secondaries</div>
+        <div class="list-item">Use write concern wisely</div>
+
+        <div class="tip-box">
+          ✅ Monitor replication lag regularly. Alert if > 10 seconds.
+        </div>
+      </div>
+    </div>
+
+    <!-- Maintenance & Best Practices -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🔧</span>
+          <span class="card-title">Maintenance & Best Practices</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+          <div>
+            <div class="section-title">✅ Deployment</div>
+            <div class="list-item">Minimum 3 members (odd number)</div>
+            <div class="list-item">Deploy across availability zones</div>
+            <div class="list-item">Use same MongoDB version</div>
+            <div class="list-item">Enable authentication (keyfile)</div>
+            <div class="list-item">Configure appropriate oplog size</div>
+            <div class="list-item">Set member priorities strategically</div>
+          </div>
+          
+          <div>
+            <div class="section-title">✅ Monitoring</div>
+            <div class="list-item">Monitor replication lag</div>
+            <div class="list-item">Check member health regularly</div>
+            <div class="list-item">Alert on election events</div>
+            <div class="list-item">Monitor oplog window</div>
+            <div class="list-item">Track write concern timeouts</div>
+            <div class="list-item">Use MongoDB Cloud Manager/Atlas</div>
+          </div>
+          
+          <div>
+            <div class="section-title">✅ Operations</div>
+            <div class="list-item">Rolling upgrades (no downtime)</div>
+            <div class="list-item">Backup from secondary members</div>
+            <div class="list-item">Test failover regularly</div>
+            <div class="list-item">Document runbooks</div>
+            <div class="list-item">Plan for network partitions</div>
+            <div class="list-item">Implement retry logic in apps</div>
+          </div>
+        </div>
+
+        <div class="section-title">Rolling Maintenance</div>
+        <div class="example-box">
+          <div class="example-title">Zero-Downtime Upgrade Process:</div>
+          <div style="margin-top: 10px;">
+            <strong>1.</strong> Upgrade secondary members one by one<br>
+            <strong>2.</strong> Wait for each to catch up (check lag)<br>
+            <strong>3.</strong> Step down primary: <code>rs.stepDown()</code><br>
+            <strong>4.</strong> Upgrade old primary (now secondary)<br>
+            <strong>5.</strong> Verify all members healthy
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">📚</span>
+          <span class="card-title">Quick Reference - Replica Set Commands</span>
+        </div>
+        <table class="comparison-table">
+          <tr>
+            <th>Task</th>
+            <th>Command</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td>Initiate</td>
+            <td><code>rs.initiate(config)</code></td>
+            <td>Initialize replica set</td>
+          </tr>
+          <tr>
+            <td>Status</td>
+            <td><code>rs.status()</code></td>
+            <td>View replica set status</td>
+          </tr>
+          <tr>
+            <td>Configuration</td>
+            <td><code>rs.conf()</code></td>
+            <td>View configuration</td>
+          </tr>
+          <tr>
+            <td>Add Member</td>
+            <td><code>rs.add("host:port")</code></td>
+            <td>Add new member</td>
+          </tr>
+          <tr>
+            <td>Add Arbiter</td>
+            <td><code>rs.addArb("host:port")</code></td>
+            <td>Add arbiter</td>
+          </tr>
+          <tr>
+            <td>Remove Member</td>
+            <td><code>rs.remove("host:port")</code></td>
+            <td>Remove member</td>
+          </tr>
+          <tr>
+            <td>Reconfigure</td>
+            <td><code>rs.reconfig(cfg)</code></td>
+            <td>Apply new configuration</td>
+          </tr>
+          <tr>
+            <td>Step Down</td>
+            <td><code>rs.stepDown(seconds)</code></td>
+            <td>Force primary to step down</td>
+          </tr>
+          <tr>
+            <td>Freeze</td>
+            <td><code>rs.freeze(seconds)</code></td>
+            <td>Prevent becoming primary</td>
+          </tr>
+          <tr>
+            <td>Is Master</td>
+            <td><code>db.isMaster()</code></td>
+            <td>Check if primary</td>
+          </tr>
+          <tr>
+            <td>Replication Info</td>
+            <td><code>rs.printReplicationInfo()</code></td>
+            <td>Oplog information</td>
+          </tr>
+          <tr>
+            <td>Secondary Info</td>
+            <td><code>rs.printSecondaryReplicationInfo()</code></td>
+            <td>Replication lag</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>📚 MongoDB Cheat Sheet Series | Part 13 of 16</p>
+      <p>Created with Monica AI | December 2024</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Cheat Sheet #3 - DDL (Data Definition Language)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #fff;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(102,126,234,0.3);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #667eea;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #667eea;
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #667eea;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-bool {
+      color: #ff7b72;
+    }
+    .code-prop {
+      color: #7ee787;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #667eea;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(102,126,234,0.2);
+      color: #667eea;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-green {
+      background: rgba(46,204,113,0.2);
+      color: #2ecc71;
+    }
+    .tag-red {
+      background: rgba(231,76,60,0.2);
+      color: #e74c3c;
+    }
+    .tag-orange {
+      background: rgba(243,156,18,0.2);
+      color: #f39c12;
+    }
+    .tag-cyan {
+      background: rgba(26,188,156,0.2);
+      color: #1abc9c;
+    }
+    .tag-purple {
+      background: rgba(155,89,182,0.2);
+      color: #9b59b6;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(52,152,219,0.1);
+      border-left: 3px solid #3498db;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(231,76,60,0.1);
+      border-left: 3px solid #e74c3c;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(46,204,113,0.1);
+      border-left: 3px solid #2ecc71;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .section-title {
+      color: #667eea;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(102,126,234,0.3);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .comparison-table th {
+      background: rgba(102,126,234,0.2);
+      color: #667eea;
+    }
+    .comparison-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .sql-mongo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .sql-box {
+      background: rgba(231,76,60,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      border-top: 3px solid #e74c3c;
+    }
+    .sql-box-title {
+      color: #e74c3c;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 0.85em;
+    }
+    .mongo-box {
+      background: rgba(46,204,113,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      border-top: 3px solid #2ecc71;
+    }
+    .mongo-box-title {
+      color: #2ecc71;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 0.85em;
+    }
+    .mini-code {
+      background: #0d1117;
+      padding: 8px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 0.8em;
+      overflow-x: auto;
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .schema-visual {
+      background: #0d1117;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 15px 0;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🍃 MongoDB Cheat Sheet #3</h1>
+      <div class="subtitle">DDL - Data Definition Language</div>
+      <div class="badge">🏗️ Database & Collection Management</div>
+    </div>
+
+    <!-- SQL vs MongoDB DDL -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🔄</span>
+          <span class="card-title">So Sánh: SQL DDL vs MongoDB DDL</span>
+        </div>
+        <table class="comparison-table">
+          <tr>
+            <th>SQL DDL</th>
+            <th>MongoDB Equivalent</th>
+            <th>Ghi chú</th>
+          </tr>
+          <tr>
+            <td><code>CREATE DATABASE</code></td>
+            <td><code>use dbName</code></td>
+            <td>Tự động tạo khi insert đầu tiên</td>
+          </tr>
+          <tr>
+            <td><code>DROP DATABASE</code></td>
+            <td><code>db.dropDatabase()</code></td>
+            <td>Xóa toàn bộ database</td>
+          </tr>
+          <tr>
+            <td><code>CREATE TABLE</code></td>
+            <td><code>db.createCollection()</code></td>
+            <td>Tùy chọn - tự động tạo khi insert</td>
+          </tr>
+          <tr>
+            <td><code>DROP TABLE</code></td>
+            <td><code>db.collection.drop()</code></td>
+            <td>Xóa collection và indexes</td>
+          </tr>
+          <tr>
+            <td><code>TRUNCATE TABLE</code></td>
+            <td><code>db.collection.deleteMany({})</code></td>
+            <td>Xóa tất cả documents, giữ collection</td>
+          </tr>
+          <tr>
+            <td><code>ALTER TABLE</code></td>
+            <td><span class="tag-orange tag">Không cần</span></td>
+            <td>Schema flexible - thêm field tự do</td>
+          </tr>
+          <tr>
+            <td><code>RENAME TABLE</code></td>
+            <td><code>db.collection.renameCollection()</code></td>
+            <td>Đổi tên collection</td>
+          </tr>
+          <tr>
+            <td><code>CREATE INDEX</code></td>
+            <td><code>db.collection.createIndex()</code></td>
+            <td>Tạo index</td>
+          </tr>
+          <tr>
+            <td><code>DROP INDEX</code></td>
+            <td><code>db.collection.dropIndex()</code></td>
+            <td>Xóa index</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Database Operations -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🗄️</span>
+          <span class="card-title">Database Operations</span>
+        </div>
+        
+        <div class="section-title">📋 Xem Databases</div>
+        <div class="code-block">
+          <span class="code-comment">// Liệt kê tất cả databases</span><br>
+          <span class="code-keyword">show</span> dbs<br>
+          <span class="code-keyword">show</span> databases<br><br>
+          
+          <span class="code-comment">// Hoặc dùng method</span><br>
+          db.<span class="code-method">adminCommand</span>({ listDatabases: <span class="code-number">1</span> })
+        </div>
+
+        <div class="section-title">➕ Tạo / Chọn Database</div>
+        <div class="code-block">
+          <span class="code-comment">// Chọn database (tạo mới nếu chưa tồn tại)</span><br>
+          <span class="code-keyword">use</span> myDatabase<br><br>
+          
+          <span class="code-comment">// Xem database hiện tại</span><br>
+          db<br>
+          db.<span class="code-method">getName</span>()
+        </div>
+        <div class="info-box">
+          💡 Database chỉ thực sự được tạo khi có document đầu tiên được insert vào collection.
+        </div>
+
+        <div class="section-title">🗑️ Xóa Database</div>
+        <div class="code-block">
+          <span class="code-comment">// Chọn database cần xóa trước</span><br>
+          <span class="code-keyword">use</span> myDatabase<br><br>
+          
+          <span class="code-comment">// Xóa database hiện tại</span><br>
+          db.<span class="code-method">dropDatabase</span>()
+        </div>
+        <div class="warning-box">
+          ⚠️ <strong>CẢNH BÁO:</strong> dropDatabase() xóa vĩnh viễn tất cả collections và data!
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">Database Statistics & Info</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Thống kê database</span><br>
+          db.<span class="code-method">stats</span>()<br><br>
+          
+          <span class="code-comment">// Output:</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-prop">"db"</span>: <span class="code-string">"myDatabase"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">"collections"</span>: <span class="code-number">5</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">"views"</span>: <span class="code-number">0</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">"objects"</span>: <span class="code-number">10000</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">"avgObjSize"</span>: <span class="code-number">256</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">"dataSize"</span>: <span class="code-number">2560000</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">"storageSize"</span>: <span class="code-number">1048576</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">"indexes"</span>: <span class="code-number">8</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">"indexSize"</span>: <span class="code-number">524288</span><br>
+          }
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Server status</span><br>
+          db.<span class="code-method">serverStatus</span>()<br><br>
+          
+          <span class="code-comment">// Host info</span><br>
+          db.<span class="code-method">hostInfo</span>()<br><br>
+          
+          <span class="code-comment">// Version</span><br>
+          db.<span class="code-method">version</span>()
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Profiling level</span><br>
+          db.<span class="code-method">getProfilingLevel</span>()<br>
+          db.<span class="code-method">setProfilingLevel</span>(<span class="code-number">1</span>, { slowms: <span class="code-number">100</span> })
+        </div>
+      </div>
+    </div>
+
+    <!-- Collection Operations -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📁</span>
+          <span class="card-title">Collection - Tạo & Xem</span>
+        </div>
+        
+        <div class="section-title">📋 Xem Collections</div>
+        <div class="code-block">
+          <span class="code-comment">// Liệt kê collections</span><br>
+          <span class="code-keyword">show</span> collections<br>
+          <span class="code-keyword">show</span> tables<br><br>
+          
+          <span class="code-comment">// Dùng method</span><br>
+          db.<span class="code-method">getCollectionNames</span>()<br><br>
+          
+          <span class="code-comment">// Chi tiết hơn</span><br>
+          db.<span class="code-method">getCollectionInfos</span>()
+        </div>
+
+        <div class="section-title">➕ Tạo Collection</div>
+        <div class="code-block">
+          <span class="code-comment">// Cách 1: Tạo ngầm định (implicit)</span><br>
+          db.users.<span class="code-method">insertOne</span>({ name: <span class="code-string">"John"</span> })<br>
+          <span class="code-comment">// → Collection "users" tự động được tạo</span>
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Cách 2: Tạo tường minh (explicit)</span><br>
+          db.<span class="code-method">createCollection</span>(<span class="code-string">"products"</span>)<br><br>
+          
+          <span class="code-comment">// Với options</span><br>
+          db.<span class="code-method">createCollection</span>(<span class="code-string">"logs"</span>, {<br>
+          &nbsp;&nbsp;<span class="code-prop">capped</span>: <span class="code-bool">true</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">size</span>: <span class="code-number">5242880</span>,      <span class="code-comment">// 5MB</span><br>
+          &nbsp;&nbsp;<span class="code-prop">max</span>: <span class="code-number">5000</span>            <span class="code-comment">// max documents</span><br>
+          })
+        </div>
+
+        <div class="tip-box">
+          ✅ Dùng <code>createCollection()</code> khi cần: Capped collection, Schema validation, hoặc custom options.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔧</span>
+          <span class="card-title">Collection - Sửa & Xóa</span>
+        </div>
+        
+        <div class="section-title">✏️ Đổi Tên Collection</div>
+        <div class="code-block">
+          <span class="code-comment">// Đổi tên trong cùng database</span><br>
+          db.oldName.<span class="code-method">renameCollection</span>(<span class="code-string">"newName"</span>)<br><br>
+          
+          <span class="code-comment">// Với dropTarget (ghi đè nếu tồn tại)</span><br>
+          db.oldName.<span class="code-method">renameCollection</span>(<span class="code-string">"newName"</span>, <span class="code-bool">true</span>)
+        </div>
+
+        <div class="section-title">🗑️ Xóa Collection</div>
+        <div class="code-block">
+          <span class="code-comment">// Xóa collection (và tất cả indexes)</span><br>
+          db.users.<span class="code-method">drop</span>()<br><br>
+          
+          <span class="code-comment">// Kiểm tra trước khi xóa</span><br>
+          <span class="code-keyword">if</span> (db.<span class="code-method">getCollectionNames</span>().<span class="code-method">includes</span>(<span class="code-string">"users"</span>)) {<br>
+          &nbsp;&nbsp;db.users.<span class="code-method">drop</span>()<br>
+          }
+        </div>
+
+        <div class="section-title">🧹 Xóa Tất Cả Documents (TRUNCATE)</div>
+        <div class="code-block">
+          <span class="code-comment">// Xóa tất cả documents, giữ collection & indexes</span><br>
+          db.users.<span class="code-method">deleteMany</span>({})<br><br>
+          
+          <span class="code-comment">// Hoặc (deprecated)</span><br>
+          db.users.<span class="code-method">remove</span>({})
+        </div>
+        
+        <div class="sql-mongo">
+          <div class="sql-box">
+            <div class="sql-box-title">SQL</div>
+            <div class="mini-code">TRUNCATE TABLE users;</div>
+          </div>
+          <div class="mongo-box">
+            <div class="mongo-box-title">MongoDB</div>
+            <div class="mini-code">db.users.deleteMany({})</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Capped Collection -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔄</span>
+          <span class="card-title">Capped Collection</span>
+        </div>
+        <div class="highlight">
+          Collection có kích thước cố định, tự động xóa documents cũ nhất khi đầy (FIFO)
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Tạo Capped Collection</span><br>
+          db.<span class="code-method">createCollection</span>(<span class="code-string">"logs"</span>, {<br>
+          &nbsp;&nbsp;<span class="code-prop">capped</span>: <span class="code-bool">true</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">size</span>: <span class="code-number">10485760</span>,     <span class="code-comment">// 10MB (required)</span><br>
+          &nbsp;&nbsp;<span class="code-prop">max</span>: <span class="code-number">10000</span>           <span class="code-comment">// max 10000 docs (optional)</span><br>
+          })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Kiểm tra collection có phải capped</span><br>
+          db.logs.<span class="code-method">isCapped</span>()<br><br>
+          
+          <span class="code-comment">// Convert collection thường → capped</span><br>
+          db.<span class="code-method">runCommand</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">convertToCapped</span>: <span class="code-string">"mycollection"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">size</span>: <span class="code-number">10485760</span><br>
+          })
+        </div>
+
+        <div class="flex-row">
+          <span class="tag-green tag">✓ Insert nhanh</span>
+          <span class="tag-green tag">✓ Đọc theo thứ tự insert</span>
+          <span class="tag-green tag">✓ Tự động cleanup</span>
+        </div>
+        <div class="flex-row">
+          <span class="tag-red tag">✗ Không thể delete</span>
+          <span class="tag-red tag">✗ Không thể update size</span>
+          <span class="tag-red tag">✗ Không thể shard</span>
+        </div>
+
+        <div class="info-box">
+          💡 <strong>Use cases:</strong> Logging, caching, real-time analytics, message queues
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⏰</span>
+          <span class="card-title">TTL Collection (Time-To-Live)</span>
+        </div>
+        <div class="highlight">
+          Tự động xóa documents sau một khoảng thời gian
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Tạo TTL Index - xóa sau 3600 giây (1 giờ)</span><br>
+          db.sessions.<span class="code-method">createIndex</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">createdAt</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-prop">expireAfterSeconds</span>: <span class="code-number">3600</span> }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Document sẽ tự động bị xóa sau 1 giờ</span><br>
+          db.sessions.<span class="code-method">insertOne</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">userId</span>: <span class="code-string">"user123"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">token</span>: <span class="code-string">"abc..."</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">createdAt</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>()<br>
+          })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// TTL với expireAt field cụ thể</span><br>
+          db.events.<span class="code-method">createIndex</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">expireAt</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-prop">expireAfterSeconds</span>: <span class="code-number">0</span> }<br>
+          )<br><br>
+          
+          <span class="code-comment">// Xóa vào thời điểm cụ thể</span><br>
+          db.events.<span class="code-method">insertOne</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">event</span>: <span class="code-string">"sale"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">expireAt</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>(<span class="code-string">"2024-12-31"</span>)<br>
+          })
+        </div>
+
+        <div class="info-box">
+          💡 <strong>Use cases:</strong> Sessions, cache, temporary data, logs rotation
+        </div>
+      </div>
+    </div>
+
+    <!-- Schema Validation -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">✅</span>
+          <span class="card-title">Schema Validation ($jsonSchema)</span>
+        </div>
+        <div class="highlight">
+          Định nghĩa rules để validate documents khi insert/update - Giữ data integrity
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px;">
+          <div>
+            <div class="section-title">🆕 Tạo Collection với Validation</div>
+            <div class="code-block">
+              db.<span class="code-method">createCollection</span>(<span class="code-string">"users"</span>, {<br>
+              &nbsp;&nbsp;<span class="code-prop">validator</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$jsonSchema</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">bsonType</span>: <span class="code-string">"object"</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">required</span>: [<span class="code-string">"name"</span>, <span class="code-string">"email"</span>, <span class="code-string">"age"</span>],<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">properties</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">name</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">bsonType</span>: <span class="code-string">"string"</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">description</span>: <span class="code-string">"Tên - required string"</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">email</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">bsonType</span>: <span class="code-string">"string"</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">pattern</span>: <span class="code-string">"^.+@.+$"</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">age</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">bsonType</span>: <span class="code-string">"int"</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">minimum</span>: <span class="code-number">0</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">maximum</span>: <span class="code-number">150</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;},<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">status</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">enum</span>: [<span class="code-string">"active"</span>, <span class="code-string">"inactive"</span>, <span class="code-string">"pending"</span>]<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+              &nbsp;&nbsp;},<br>
+              &nbsp;&nbsp;<span class="code-prop">validationLevel</span>: <span class="code-string">"strict"</span>,<br>
+              &nbsp;&nbsp;<span class="code-prop">validationAction</span>: <span class="code-string">"error"</span><br>
+              })
+            </div>
+          </div>
+          
+          <div>
+            <div class="section-title">✏️ Thêm/Sửa Validation cho Collection có sẵn</div>
+            <div class="code-block">
+              db.<span class="code-method">runCommand</span>({<br>
+              &nbsp;&nbsp;<span class="code-prop">collMod</span>: <span class="code-string">"users"</span>,<br>
+              &nbsp;&nbsp;<span class="code-prop">validator</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$jsonSchema</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">bsonType</span>: <span class="code-string">"object"</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">required</span>: [<span class="code-string">"name"</span>, <span class="code-string">"email"</span>],<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">properties</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-comment">// ... schema definition</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+              &nbsp;&nbsp;},<br>
+              &nbsp;&nbsp;<span class="code-prop">validationLevel</span>: <span class="code-string">"moderate"</span><br>
+              })
+            </div>
+
+            <div class="section-title">📋 Xem Validation Rules</div>
+            <div class="code-block">
+              db.<span class="code-method">getCollectionInfos</span>({ name: <span class="code-string">"users"</span> })
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation Options -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚙️</span>
+          <span class="card-title">Validation Level & Action</span>
+        </div>
+        
+        <div class="section-title">validationLevel</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Level</th>
+            <th>Mô tả</th>
+          </tr>
+          <tr>
+            <td><span class="tag-green tag">strict</span></td>
+            <td>Validate tất cả inserts và updates (default)</td>
+          </tr>
+          <tr>
+            <td><span class="tag-orange tag">moderate</span></td>
+            <td>Chỉ validate documents đã valid trước đó</td>
+          </tr>
+          <tr>
+            <td><span class="tag-red tag">off</span></td>
+            <td>Tắt validation</td>
+          </tr>
+        </table>
+
+        <div class="section-title">validationAction</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Action</th>
+            <th>Mô tả</th>
+          </tr>
+          <tr>
+            <td><span class="tag-red tag">error</span></td>
+            <td>Reject document không valid (default)</td>
+          </tr>
+          <tr>
+            <td><span class="tag-orange tag">warn</span></td>
+            <td>Cho phép insert nhưng log warning</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📝</span>
+          <span class="card-title">$jsonSchema Properties</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Các bsonType phổ biến</span><br>
+          <span class="code-string">"string"</span>, <span class="code-string">"int"</span>, <span class="code-string">"long"</span>, <span class="code-string">"double"</span>,<br>
+          <span class="code-string">"decimal"</span>, <span class="code-string">"bool"</span>, <span class="code-string">"date"</span>, <span class="code-string">"objectId"</span>,<br>
+          <span class="code-string">"array"</span>, <span class="code-string">"object"</span>, <span class="code-string">"null"</span>, <span class="code-string">"number"</span>
+        </div>
+
+        <table class="comparison-table">
+          <tr>
+            <th>Property</th>
+            <th>Mô tả</th>
+          </tr>
+          <tr>
+            <td><code>bsonType</code></td>
+            <td>Kiểu dữ liệu BSON</td>
+          </tr>
+          <tr>
+            <td><code>required</code></td>
+            <td>Array các field bắt buộc</td>
+          </tr>
+          <tr>
+            <td><code>properties</code></td>
+            <td>Định nghĩa schema cho từng field</td>
+          </tr>
+          <tr>
+            <td><code>enum</code></td>
+            <td>Giới hạn giá trị cho phép</td>
+          </tr>
+          <tr>
+            <td><code>minimum/maximum</code></td>
+            <td>Giới hạn số</td>
+          </tr>
+          <tr>
+            <td><code>minLength/maxLength</code></td>
+            <td>Giới hạn độ dài string</td>
+          </tr>
+          <tr>
+            <td><code>pattern</code></td>
+            <td>Regex pattern cho string</td>
+          </tr>
+          <tr>
+            <td><code>description</code></td>
+            <td>Mô tả field</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Views -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">👁️</span>
+          <span class="card-title">Views (Read-Only)</span>
+        </div>
+        <div class="highlight">
+          Virtual collection dựa trên aggregation pipeline - không lưu data
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Tạo View</span><br>
+          db.<span class="code-method">createView</span>(<br>
+          &nbsp;&nbsp;<span class="code-string">"activeUsers"</span>,        <span class="code-comment">// view name</span><br>
+          &nbsp;&nbsp;<span class="code-string">"users"</span>,               <span class="code-comment">// source collection</span><br>
+          &nbsp;&nbsp;[                         <span class="code-comment">// pipeline</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-keyword">$match</span>: { status: <span class="code-string">"active"</span> } },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-keyword">$project</span>: { name: <span class="code-number">1</span>, email: <span class="code-number">1</span> } }<br>
+          &nbsp;&nbsp;]<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Sử dụng View như collection thường</span><br>
+          db.activeUsers.<span class="code-method">find</span>()<br>
+          db.activeUsers.<span class="code-method">findOne</span>({ name: <span class="code-string">"John"</span> })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Xóa View</span><br>
+          db.activeUsers.<span class="code-method">drop</span>()
+        </div>
+
+        <div class="flex-row">
+          <span class="tag-green tag">✓ Read-only</span>
+          <span class="tag-green tag">✓ Real-time data</span>
+          <span class="tag-green tag">✓ Security layer</span>
+          <span class="tag-red tag">✗ Không thể write</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">Collection Statistics</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Thống kê collection</span><br>
+          db.users.<span class="code-method">stats</span>()<br><br>
+          
+          <span class="code-comment">// Output quan trọng:</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-prop">"ns"</span>: <span class="code-string">"mydb.users"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">"count"</span>: <span class="code-number">10000</span>,         <span class="code-comment">// số documents</span><br>
+          &nbsp;&nbsp;<span class="code-prop">"size"</span>: <span class="code-number">2560000</span>,        <span class="code-comment">// data size (bytes)</span><br>
+          &nbsp;&nbsp;<span class="code-prop">"avgObjSize"</span>: <span class="code-number">256</span>,     <span class="code-comment">// avg doc size</span><br>
+          &nbsp;&nbsp;<span class="code-prop">"storageSize"</span>: <span class="code-number">1048576</span>, <span class="code-comment">// allocated</span><br>
+          &nbsp;&nbsp;<span class="code-prop">"nindexes"</span>: <span class="code-number">3</span>,         <span class="code-comment">// số indexes</span><br>
+          &nbsp;&nbsp;<span class="code-prop">"totalIndexSize"</span>: <span class="code-number">524288</span><br>
+          }
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Đếm documents</span><br>
+          db.users.<span class="code-method">countDocuments</span>({})<br>
+          db.users.<span class="code-method">countDocuments</span>({ status: <span class="code-string">"active"</span> })<br><br>
+          
+          <span class="code-comment">// Estimated count (nhanh hơn)</span><br>
+          db.users.<span class="code-method">estimatedDocumentCount</span>()
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <span class="card-title">Quick Reference - DDL Commands</span>
+        </div>
+        <table class="comparison-table">
+          <tr>
+            <th>Mục đích</th>
+            <th>Command</th>
+          </tr>
+          <tr>
+            <td>Xem databases</td>
+            <td><code>show dbs</code></td>
+          </tr>
+          <tr>
+            <td>Chọn/Tạo database</td>
+            <td><code>use dbName</code></td>
+          </tr>
+          <tr>
+            <td>Xóa database</td>
+            <td><code>db.dropDatabase()</code></td>
+          </tr>
+          <tr>
+            <td>Xem collections</td>
+            <td><code>show collections</code></td>
+          </tr>
+          <tr>
+            <td>Tạo collection</td>
+            <td><code>db.createCollection("name")</code></td>
+          </tr>
+          <tr>
+            <td>Xóa collection</td>
+            <td><code>db.collection.drop()</code></td>
+          </tr>
+          <tr>
+            <td>Đổi tên collection</td>
+            <td><code>db.col.renameCollection("newName")</code></td>
+          </tr>
+          <tr>
+            <td>Truncate (xóa data)</td>
+            <td><code>db.collection.deleteMany({})</code></td>
+          </tr>
+          <tr>
+            <td>Tạo capped collection</td>
+            <td><code>db.createCollection("name", {capped:true, size:...})</code></td>
+          </tr>
+          <tr>
+            <td>Tạo TTL index</td>
+            <td><code>db.col.createIndex({field:1}, {expireAfterSeconds:...})</code></td>
+          </tr>
+          <tr>
+            <td>Tạo view</td>
+            <td><code>db.createView("viewName", "source", [pipeline])</code></td>
+          </tr>
+          <tr>
+            <td>Thêm validation</td>
+            <td><code>db.runCommand({collMod:"col", validator:{...}})</code></td>
+          </tr>
+          <tr>
+            <td>Xem stats</td>
+            <td><code>db.collection.stats()</code></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>📚 MongoDB Cheat Sheet Series | Part 3 of 16</p>
+      <p>Created with Monica AI | December 2024</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Cheat Sheet #2 - Kiểu Dữ Liệu</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f39c12 0%, #e74c3c 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #fff;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(243,156,18,0.2);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f39c12;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #f39c12;
+    }
+    .type-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .type-table th, .type-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .type-table th {
+      background: rgba(243,156,18,0.2);
+      color: #f39c12;
+    }
+    .type-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #f39c12;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-bool {
+      color: #ff7b72;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(243,156,18,0.2), rgba(231,76,60,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #f39c12;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(243,156,18,0.2);
+      color: #f39c12;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-blue {
+      background: rgba(52,152,219,0.2);
+      color: #3498db;
+    }
+    .tag-green {
+      background: rgba(46,204,113,0.2);
+      color: #2ecc71;
+    }
+    .tag-purple {
+      background: rgba(155,89,182,0.2);
+      color: #9b59b6;
+    }
+    .tag-red {
+      background: rgba(231,76,60,0.2);
+      color: #e74c3c;
+    }
+    .tag-cyan {
+      background: rgba(26,188,156,0.2);
+      color: #1abc9c;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(52,152,219,0.1);
+      border-left: 3px solid #3498db;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(231,76,60,0.1);
+      border-left: 3px solid #e74c3c;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(46,204,113,0.1);
+      border-left: 3px solid #2ecc71;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .type-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75em;
+      font-weight: bold;
+    }
+    .bson-id {
+      background: #e74c3c;
+      color: white;
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .section-title {
+      color: #f39c12;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(243,156,18,0.3);
+    }
+    .mini-table {
+      width: 100%;
+      font-size: 0.85em;
+      margin: 10px 0;
+    }
+    .mini-table td {
+      padding: 5px 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .mini-table td:first-child {
+      color: #f39c12;
+      font-weight: bold;
+      width: 40%;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🍃 MongoDB Cheat Sheet #2</h1>
+      <div class="subtitle">Kiểu Dữ Liệu (Data Types)</div>
+      <div class="badge">📊 18+ BSON Types</div>
+    </div>
+
+    <!-- Tổng quan BSON Types -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">📋</span>
+          <span class="card-title">Tổng Quan BSON Data Types</span>
+        </div>
+        <table class="type-table">
+          <tr>
+            <th>Type</th>
+            <th>Number</th>
+            <th>Alias</th>
+            <th>Mô tả</th>
+            <th>Ví dụ</th>
+          </tr>
+          <tr>
+            <td><span class="tag-green tag">String</span></td>
+            <td>2</td>
+            <td>"string"</td>
+            <td>Chuỗi UTF-8</td>
+            <td><code>"Hello World"</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag-blue tag">Int32</span></td>
+            <td>16</td>
+            <td>"int"</td>
+            <td>Số nguyên 32-bit</td>
+            <td><code>NumberInt(123)</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag-blue tag">Int64</span></td>
+            <td>18</td>
+            <td>"long"</td>
+            <td>Số nguyên 64-bit</td>
+            <td><code>NumberLong(123456789)</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag-blue tag">Double</span></td>
+            <td>1</td>
+            <td>"double"</td>
+            <td>Số thực 64-bit IEEE 754</td>
+            <td><code>3.14159</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag-purple tag">Decimal128</span></td>
+            <td>19</td>
+            <td>"decimal"</td>
+            <td>Số thập phân chính xác cao</td>
+            <td><code>NumberDecimal("9.99")</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag-red tag">Boolean</span></td>
+            <td>8</td>
+            <td>"bool"</td>
+            <td>true hoặc false</td>
+            <td><code>true</code>, <code>false</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag tag">Date</span></td>
+            <td>9</td>
+            <td>"date"</td>
+            <td>Milliseconds từ Unix epoch</td>
+            <td><code>ISODate("2024-12-24")</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag-cyan tag">ObjectId</span></td>
+            <td>7</td>
+            <td>"objectId"</td>
+            <td>12-byte unique identifier</td>
+            <td><code>ObjectId("...")</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag-purple tag">Array</span></td>
+            <td>4</td>
+            <td>"array"</td>
+            <td>Mảng các giá trị</td>
+            <td><code>[1, 2, 3]</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag-purple tag">Object</span></td>
+            <td>3</td>
+            <td>"object"</td>
+            <td>Embedded document</td>
+            <td><code>{key: value}</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag-red tag">Null</span></td>
+            <td>10</td>
+            <td>"null"</td>
+            <td>Giá trị null</td>
+            <td><code>null</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag tag">Binary</span></td>
+            <td>5</td>
+            <td>"binData"</td>
+            <td>Dữ liệu nhị phân</td>
+            <td><code>BinData(0, "...")</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag tag">Timestamp</span></td>
+            <td>17</td>
+            <td>"timestamp"</td>
+            <td>Internal MongoDB timestamp</td>
+            <td><code>Timestamp()</code></td>
+          </tr>
+          <tr>
+            <td><span class="tag-cyan tag">Regex</span></td>
+            <td>11</td>
+            <td>"regex"</td>
+            <td>Regular Expression</td>
+            <td><code>/pattern/i</code></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- String -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📝</span>
+          <span class="card-title">String</span>
+        </div>
+        <div class="highlight">
+          Kiểu dữ liệu phổ biến nhất - Chuỗi ký tự UTF-8
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Khai báo String</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-string">"name"</span>: <span class="code-string">"Nguyễn Văn A"</span>,<br>
+          &nbsp;&nbsp;<span class="code-string">"email"</span>: <span class="code-string">"test@email.com"</span>,<br>
+          &nbsp;&nbsp;<span class="code-string">"description"</span>: <span class="code-string">"Đây là mô tả"</span><br>
+          }
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Query với String</span><br>
+          db.users.<span class="code-method">find</span>({ name: <span class="code-string">"John"</span> })<br><br>
+          <span class="code-comment">// Regex search</span><br>
+          db.users.<span class="code-method">find</span>({ name: <span class="code-string">/^Nguyễn/</span> })<br><br>
+          <span class="code-comment">// Case-insensitive</span><br>
+          db.users.<span class="code-method">find</span>({ name: <span class="code-string">/john/i</span> })
+        </div>
+        <div class="info-box">
+          💡 String trong MongoDB phải là UTF-8 valid. Max size của một document là 16MB.
+        </div>
+      </div>
+
+      <!-- Numbers -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔢</span>
+          <span class="card-title">Numbers (Int32, Int64, Double)</span>
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Integer 32-bit (-2³¹ to 2³¹-1)</span><br>
+          { <span class="code-string">"age"</span>: <span class="code-method">NumberInt</span>(<span class="code-number">25</span>) }<br><br>
+          
+          <span class="code-comment">// Integer 64-bit (-2⁶³ to 2⁶³-1)</span><br>
+          { <span class="code-string">"bigNum"</span>: <span class="code-method">NumberLong</span>(<span class="code-number">9007199254740993</span>) }<br><br>
+          
+          <span class="code-comment">// Double (mặc định cho số thập phân)</span><br>
+          { <span class="code-string">"price"</span>: <span class="code-number">19.99</span> }<br>
+          { <span class="code-string">"pi"</span>: <span class="code-number">3.14159265359</span> }
+        </div>
+        <table class="mini-table">
+          <tr><td>Int32</td><td>±2.1 tỷ</td></tr>
+          <tr><td>Int64</td><td>±9.2 × 10¹⁸</td></tr>
+          <tr><td>Double</td><td>15-17 chữ số có nghĩa</td></tr>
+        </table>
+        <div class="warning-box">
+          ⚠️ JavaScript mặc định dùng Double. Dùng NumberInt()/NumberLong() để chỉ định rõ.
+        </div>
+      </div>
+    </div>
+
+    <!-- Decimal128 & Boolean -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">💰</span>
+          <span class="card-title">Decimal128 (High Precision)</span>
+        </div>
+        <div class="highlight">
+          Dùng cho tính toán tài chính - độ chính xác cao
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Decimal128 - 34 chữ số có nghĩa</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-string">"price"</span>: <span class="code-method">NumberDecimal</span>(<span class="code-string">"19.99"</span>),<br>
+          &nbsp;&nbsp;<span class="code-string">"tax"</span>: <span class="code-method">NumberDecimal</span>(<span class="code-string">"0.0825"</span>),<br>
+          &nbsp;&nbsp;<span class="code-string">"total"</span>: <span class="code-method">NumberDecimal</span>(<span class="code-string">"21.6391750"</span>)<br>
+          }
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// So sánh Double vs Decimal128</span><br>
+          <span class="code-comment">// Double: 0.1 + 0.2 = 0.30000000000000004</span><br>
+          <span class="code-comment">// Decimal128: 0.1 + 0.2 = 0.3 ✓</span>
+        </div>
+        <div class="tip-box">
+          ✅ Luôn dùng Decimal128 cho tiền tệ, tài chính, và các phép tính cần độ chính xác cao.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">✅</span>
+          <span class="card-title">Boolean & Null</span>
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Boolean</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-string">"isActive"</span>: <span class="code-bool">true</span>,<br>
+          &nbsp;&nbsp;<span class="code-string">"isDeleted"</span>: <span class="code-bool">false</span>,<br>
+          &nbsp;&nbsp;<span class="code-string">"isVerified"</span>: <span class="code-bool">true</span><br>
+          }
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Null - giá trị không tồn tại</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-string">"middleName"</span>: <span class="code-keyword">null</span>,<br>
+          &nbsp;&nbsp;<span class="code-string">"deletedAt"</span>: <span class="code-keyword">null</span><br>
+          }
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Query Boolean</span><br>
+          db.users.<span class="code-method">find</span>({ isActive: <span class="code-bool">true</span> })<br><br>
+          <span class="code-comment">// Query Null</span><br>
+          db.users.<span class="code-method">find</span>({ middleName: <span class="code-keyword">null</span> })<br><br>
+          <span class="code-comment">// Kiểm tra field tồn tại</span><br>
+          db.users.<span class="code-method">find</span>({ middleName: { <span class="code-keyword">$exists</span>: <span class="code-bool">true</span> } })
+        </div>
+      </div>
+    </div>
+
+    <!-- Date & Timestamp -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📅</span>
+          <span class="card-title">Date</span>
+        </div>
+        <div class="highlight">
+          Lưu trữ thời gian dưới dạng milliseconds từ Unix Epoch (1/1/1970)
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Các cách tạo Date</span><br><br>
+          <span class="code-comment">// 1. ISODate (khuyên dùng)</span><br>
+          { <span class="code-string">"createdAt"</span>: <span class="code-method">ISODate</span>(<span class="code-string">"2024-12-24T10:30:00Z"</span>) }<br><br>
+          
+          <span class="code-comment">// 2. new Date()</span><br>
+          { <span class="code-string">"createdAt"</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>() }<br><br>
+          
+          <span class="code-comment">// 3. Date từ string</span><br>
+          { <span class="code-string">"createdAt"</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>(<span class="code-string">"2024-12-24"</span>) }<br><br>
+          
+          <span class="code-comment">// 4. Date từ timestamp</span><br>
+          { <span class="code-string">"createdAt"</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>(<span class="code-number">1703412600000</span>) }
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Query với Date</span><br>
+          db.orders.<span class="code-method">find</span>({<br>
+          &nbsp;&nbsp;createdAt: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$gte</span>: <span class="code-method">ISODate</span>(<span class="code-string">"2024-01-01"</span>),<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$lt</span>: <span class="code-method">ISODate</span>(<span class="code-string">"2024-12-31"</span>)<br>
+          &nbsp;&nbsp;}<br>
+          })
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⏱️</span>
+          <span class="card-title">Timestamp & ObjectId</span>
+        </div>
+        <div class="section-title">Timestamp (Internal Use)</div>
+        <div class="code-block">
+          <span class="code-comment">// Timestamp - dùng nội bộ MongoDB</span><br>
+          { <span class="code-string">"ts"</span>: <span class="code-method">Timestamp</span>(<span class="code-number">1703412600</span>, <span class="code-number">1</span>) }<br><br>
+          <span class="code-comment">// Timestamp(seconds, increment)</span><br>
+          <span class="code-comment">// Chủ yếu dùng trong replication oplog</span>
+        </div>
+        <div class="section-title">ObjectId (12 bytes)</div>
+        <div class="code-block">
+          <span class="code-comment">// Tạo ObjectId mới</span><br>
+          { <span class="code-string">"_id"</span>: <span class="code-method">ObjectId</span>() }<br><br>
+          
+          <span class="code-comment">// ObjectId cụ thể</span><br>
+          { <span class="code-string">"_id"</span>: <span class="code-method">ObjectId</span>(<span class="code-string">"507f1f77bcf86cd799439011"</span>) }<br><br>
+          
+          <span class="code-comment">// Lấy timestamp từ ObjectId</span><br>
+          <span class="code-method">ObjectId</span>(<span class="code-string">"507f1f77bcf86cd799439011"</span>).<span class="code-method">getTimestamp</span>()<br>
+          <span class="code-comment">// → ISODate("2012-10-17T20:46:31Z")</span>
+        </div>
+        <div class="info-box">
+          💡 ObjectId chứa timestamp nên có thể sort theo thời gian tạo mà không cần field riêng.
+        </div>
+      </div>
+    </div>
+
+    <!-- Array & Embedded Document -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📚</span>
+          <span class="card-title">Array</span>
+        </div>
+        <div class="highlight">
+          Mảng có thể chứa bất kỳ kiểu dữ liệu nào, kể cả mixed types
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Array đơn giản</span><br>
+          { <span class="code-string">"tags"</span>: [<span class="code-string">"mongodb"</span>, <span class="code-string">"database"</span>, <span class="code-string">"nosql"</span>] }<br><br>
+          
+          <span class="code-comment">// Array số</span><br>
+          { <span class="code-string">"scores"</span>: [<span class="code-number">85</span>, <span class="code-number">90</span>, <span class="code-number">78</span>, <span class="code-number">92</span>] }<br><br>
+          
+          <span class="code-comment">// Array of Objects</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-string">"orders"</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"item"</span>: <span class="code-string">"Book"</span>, <span class="code-string">"qty"</span>: <span class="code-number">2</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-string">"item"</span>: <span class="code-string">"Pen"</span>, <span class="code-string">"qty"</span>: <span class="code-number">10</span> }<br>
+          &nbsp;&nbsp;]<br>
+          }
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Query Array</span><br>
+          db.posts.<span class="code-method">find</span>({ tags: <span class="code-string">"mongodb"</span> })<br><br>
+          <span class="code-comment">// Tất cả elements</span><br>
+          db.posts.<span class="code-method">find</span>({ tags: { <span class="code-keyword">$all</span>: [<span class="code-string">"mongodb"</span>, <span class="code-string">"nosql"</span>] } })<br><br>
+          <span class="code-comment">// Kích thước array</span><br>
+          db.posts.<span class="code-method">find</span>({ tags: { <span class="code-keyword">$size</span>: <span class="code-number">3</span> } })<br><br>
+          <span class="code-comment">// Element tại index</span><br>
+          db.posts.<span class="code-method">find</span>({ <span class="code-string">"tags.0"</span>: <span class="code-string">"mongodb"</span> })
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📦</span>
+          <span class="card-title">Embedded Document (Object)</span>
+        </div>
+        <div class="highlight">
+          Document lồng nhau - thay thế cho JOIN trong SQL
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Embedded Document</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-string">"name"</span>: <span class="code-string">"John Doe"</span>,<br>
+          &nbsp;&nbsp;<span class="code-string">"address"</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"street"</span>: <span class="code-string">"123 Main St"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"city"</span>: <span class="code-string">"Hà Nội"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"zip"</span>: <span class="code-string">"100000"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"geo"</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"lat"</span>: <span class="code-number">21.0285</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"lng"</span>: <span class="code-number">105.8542</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          }
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Query Embedded Document (Dot Notation)</span><br>
+          db.users.<span class="code-method">find</span>({ <span class="code-string">"address.city"</span>: <span class="code-string">"Hà Nội"</span> })<br><br>
+          <span class="code-comment">// Nested query</span><br>
+          db.users.<span class="code-method">find</span>({ <span class="code-string">"address.geo.lat"</span>: { <span class="code-keyword">$gt</span>: <span class="code-number">20</span> } })<br><br>
+          <span class="code-comment">// Update nested field</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ name: <span class="code-string">"John"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$set</span>: { <span class="code-string">"address.city"</span>: <span class="code-string">"HCM"</span> } }<br>
+          )
+        </div>
+      </div>
+    </div>
+
+    <!-- Binary & Regex -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">💾</span>
+          <span class="card-title">Binary Data</span>
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Binary Data - lưu file, hình ảnh nhỏ</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-string">"avatar"</span>: <span class="code-method">BinData</span>(<span class="code-number">0</span>, <span class="code-string">"base64string..."</span>),<br>
+          &nbsp;&nbsp;<span class="code-string">"thumbnail"</span>: <span class="code-method">BinData</span>(<span class="code-number">0</span>, <span class="code-string">"..."</span>)<br>
+          }
+        </div>
+        <table class="mini-table">
+          <tr><td>Subtype 0</td><td>Generic binary</td></tr>
+          <tr><td>Subtype 1</td><td>Function</td></tr>
+          <tr><td>Subtype 2</td><td>Old binary (deprecated)</td></tr>
+          <tr><td>Subtype 3</td><td>Old UUID (deprecated)</td></tr>
+          <tr><td>Subtype 4</td><td>UUID</td></tr>
+          <tr><td>Subtype 5</td><td>MD5</td></tr>
+        </table>
+        <div class="warning-box">
+          ⚠️ Với file lớn (>16MB), sử dụng GridFS thay vì Binary Data.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔍</span>
+          <span class="card-title">Regular Expression</span>
+        </div>
+        <div class="code-block">
+          <span class="code-comment">// Lưu Regex trong document</span><br>
+          { <span class="code-string">"pattern"</span>: <span class="code-string">/^[a-z]+$/i</span> }<br><br>
+          
+          <span class="code-comment">// Query với Regex</span><br>
+          db.users.<span class="code-method">find</span>({ name: <span class="code-string">/^Nguyễn/</span> })<br><br>
+          
+          <span class="code-comment">// Regex với options</span><br>
+          db.users.<span class="code-method">find</span>({ <br>
+          &nbsp;&nbsp;email: { <span class="code-keyword">$regex</span>: <span class="code-string">"gmail.com$"</span>, <span class="code-keyword">$options</span>: <span class="code-string">"i"</span> }<br>
+          })
+        </div>
+        <table class="mini-table">
+          <tr><td>i</td><td>Case insensitive</td></tr>
+          <tr><td>m</td><td>Multiline</td></tr>
+          <tr><td>x</td><td>Extended (ignore whitespace)</td></tr>
+          <tr><td>s</td><td>Dot matches newline</td></tr>
+        </table>
+        <div class="tip-box">
+          ✅ Regex có thể dùng index nếu pattern bắt đầu bằng ^ (anchor)
+        </div>
+      </div>
+    </div>
+
+    <!-- Type Checking -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🔎</span>
+          <span class="card-title">Kiểm Tra & Chuyển Đổi Kiểu Dữ Liệu</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+          <div>
+            <div class="section-title">$type - Kiểm tra kiểu</div>
+            <div class="code-block">
+              <span class="code-comment">// Tìm documents có field là String</span><br>
+              db.col.<span class="code-method">find</span>({ field: { <span class="code-keyword">$type</span>: <span class="code-string">"string"</span> } })<br><br>
+              
+              <span class="code-comment">// Tìm documents có field là Number</span><br>
+              db.col.<span class="code-method">find</span>({ field: { <span class="code-keyword">$type</span>: <span class="code-string">"number"</span> } })<br><br>
+              
+              <span class="code-comment">// Nhiều types</span><br>
+              db.col.<span class="code-method">find</span>({ <br>
+              &nbsp;&nbsp;field: { <span class="code-keyword">$type</span>: [<span class="code-string">"string"</span>, <span class="code-string">"null"</span>] }<br>
+              })
+            </div>
+          </div>
+          <div>
+            <div class="section-title">$convert - Chuyển đổi kiểu</div>
+            <div class="code-block">
+              <span class="code-comment">// Trong Aggregation Pipeline</span><br>
+              db.col.<span class="code-method">aggregate</span>([<br>
+              &nbsp;&nbsp;{ <span class="code-keyword">$project</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;numStr: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$convert</span>: {<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;input: <span class="code-string">"$stringField"</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;to: <span class="code-string">"int"</span>,<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onError: <span class="code-number">0</span><br>
+              &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+              &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+              &nbsp;&nbsp;}}<br>
+              ])
+            </div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">
+          <div class="code-block" style="margin: 0;">
+            <span class="code-comment">// $toString</span><br>
+            { <span class="code-keyword">$toString</span>: <span class="code-string">"$numField"</span> }
+          </div>
+          <div class="code-block" style="margin: 0;">
+            <span class="code-comment">// $toInt</span><br>
+            { <span class="code-keyword">$toInt</span>: <span class="code-string">"$strField"</span> }
+          </div>
+          <div class="code-block" style="margin: 0;">
+            <span class="code-comment">// $toDouble</span><br>
+            { <span class="code-keyword">$toDouble</span>: <span class="code-string">"$strField"</span> }
+          </div>
+          <div class="code-block" style="margin: 0;">
+            <span class="code-comment">// $toDate</span><br>
+            { <span class="code-keyword">$toDate</span>: <span class="code-string">"$strField"</span> }
+          </div>
+          <div class="code-block" style="margin: 0;">
+            <span class="code-comment">// $toBool</span><br>
+            { <span class="code-keyword">$toBool</span>: <span class="code-string">"$field"</span> }
+          </div>
+          <div class="code-block" style="margin: 0;">
+            <span class="code-comment">// $toObjectId</span><br>
+            { <span class="code-keyword">$toObjectId</span>: <span class="code-string">"$strId"</span> }
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Best Practices -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">⭐</span>
+          <span class="card-title">Best Practices - Chọn Kiểu Dữ Liệu</span>
+        </div>
+        <table class="type-table">
+          <tr>
+            <th>Use Case</th>
+            <th>Recommended Type</th>
+            <th>Lý do</th>
+          </tr>
+          <tr>
+            <td>Tiền tệ, tài chính</td>
+            <td><span class="tag-purple tag">Decimal128</span></td>
+            <td>Độ chính xác cao, tránh lỗi làm tròn</td>
+          </tr>
+          <tr>
+            <td>Tuổi, số lượng</td>
+            <td><span class="tag-blue tag">Int32</span></td>
+            <td>Tiết kiệm bộ nhớ, đủ range</td>
+          </tr>
+          <tr>
+            <td>Timestamp, ID lớn</td>
+            <td><span class="tag-blue tag">Int64</span></td>
+            <td>Range lớn hơn Int32</td>
+          </tr>
+          <tr>
+            <td>Thời gian</td>
+            <td><span class="tag tag">Date</span></td>
+            <td>Hỗ trợ query, aggregation tốt</td>
+          </tr>
+          <tr>
+            <td>Primary Key</td>
+            <td><span class="tag-cyan tag">ObjectId</span></td>
+            <td>Unique, sortable, chứa timestamp</td>
+          </tr>
+          <tr>
+            <td>Tags, categories</td>
+            <td><span class="tag-purple tag">Array</span></td>
+            <td>Flexible, dễ query với $in, $all</td>
+          </tr>
+          <tr>
+            <td>Related data (1:1, 1:few)</td>
+            <td><span class="tag-purple tag">Embedded Doc</span></td>
+            <td>Tránh JOIN, atomic updates</td>
+          </tr>
+          <tr>
+            <td>File nhỏ (<16MB)</td>
+            <td><span class="tag tag">Binary</span></td>
+            <td>Lưu trực tiếp trong document</td>
+          </tr>
+          <tr>
+            <td>File lớn (>16MB)</td>
+            <td><span class="tag-red tag">GridFS</span></td>
+            <td>Chia nhỏ thành chunks</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>📚 MongoDB Cheat Sheet Series | Part 2 of 16</p>
+      <p>Created with Monica AI | December 2024</p>
+    </div>
+  </div>
+</body>
+</html>

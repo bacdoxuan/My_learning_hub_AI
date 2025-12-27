@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #16 - Functions & Modular SQL: Scalar, Inline TVF, Multi-statement</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #f59e0b;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #fbbf24;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #fbbf24;
+            border-bottom: 2px solid #f59e0b;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #fcd34d;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #fbbf24;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #fbbf24;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #fbbf24;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #fbbf24;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #fbbf24;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #f59e0b;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #d97706;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟡 SQL Server Functions & Modular SQL</h1>
+        <p>Scalar, Inline TVF, Multi-statement Functions & APPLY Patterns</p>
+        <div class="badge">Programmability</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module explores user-defined functions in SQL Server: scalar functions, inline table-valued functions (TVF), 
+            and multi-statement TVFs. Learn why inline TVFs often outperform multi-statement TVFs, and how to use APPLY 
+            with TVFs for modular, maintainable query design.
+        </p>
+        
+        <h2>🔧 Function Types Overview</h2>
+        
+        <h3>Scalar vs Table-Valued Functions</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Scalar Functions</div>
+                <div class="concept-description">
+                    <strong style="color: #fbbf24;">Return single value:</strong> One scalar value per invocation<br>
+                    <strong style="color: #fbbf24;">Usage:</strong> Calculations, formatting, data transformation<br>
+                    <strong style="color: #fbbf24;">Performance:</strong> Row-by-row execution, can hurt performance<br>
+                    <strong style="color: #fbbf24;">Limitations:</strong> Cannot use in WHERE clauses for index seeks<br>
+                    <strong style="color: #fbbf24;">Best for:</strong> Simple calculations, reusable logic
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Table-Valued Functions</div>
+                <div class="concept-description">
+                    <strong style="color: #fbbf24;">Return table:</strong> Result set that can be queried<br>
+                    <strong style="color: #fbbf24;">Inline vs Multi-statement:</strong> Inline expands to query, multi-statement materializes<br>
+                    <strong style="color: #fbbf24;">Parameters:</strong> Can accept parameters for filtering<br>
+                    <strong style="color: #fbbf24;">APPLY usage:</strong> Powerful with CROSS/OUTER APPLY<br>
+                    <strong style="color: #fbbf24;">Best for:</strong> Modular queries, parameterized views
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Scalar function example</span>
+<span class="code-keyword">CREATE FUNCTION</span> dbo.GetFullName(@FirstName <span class="code-keyword">VARCHAR</span>(50), @LastName <span class="code-keyword">VARCHAR</span>(50))
+<span class="code-keyword">RETURNS</span> <span class="code-keyword">VARCHAR</span>(101)
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">RETURN</span> <span class="code-function">RTRIM</span>(@FirstName) + ' ' + <span class="code-function">RTRIM</span>(@LastName);
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Usage (can hurt performance in large result sets)</span>
+<span class="code-keyword">SELECT</span> CustomerID, dbo.GetFullName(FirstName, LastName) AS FullName
+<span class="code-keyword">FROM</span> Customers;
+
+<span class="code-comment">-- Inline TVF example</span>
+<span class="code-keyword">CREATE FUNCTION</span> dbo.GetActiveOrders(@CustomerID <span class="code-keyword">INT</span>)
+<span class="code-keyword">RETURNS TABLE</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">RETURN</span> (
+    <span class="code-keyword">SELECT</span> OrderID, OrderDate, TotalAmount
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">WHERE</span> CustomerID = @CustomerID
+        <span class="code-keyword">AND</span> Status = 'Active'
+);
+
+<span class="code-comment">-- Multi-statement TVF example</span>
+<span class="code-keyword">CREATE FUNCTION</span> dbo.GetCustomerSummary(@StartDate <span class="code-keyword">DATE</span>, @EndDate <span class="code-keyword">DATE</span>)
+<span class="code-keyword">RETURNS</span> @Summary <span class="code-keyword">TABLE</span> (
+    CustomerID <span class="code-keyword">INT</span>,
+    OrderCount <span class="code-keyword">INT</span>,
+    TotalAmount <span class="code-keyword">DECIMAL</span>(10,2)
+)
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">INSERT INTO</span> @Summary
+    <span class="code-keyword">SELECT</span> CustomerID, <span class="code-function">COUNT</span>(*), <span class="code-function">SUM</span>(TotalAmount)
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">WHERE</span> OrderDate <span class="code-keyword">BETWEEN</span> @StartDate <span class="code-keyword">AND</span> @EndDate
+    <span class="code-keyword">GROUP BY</span> CustomerID;
+    
+    <span class="code-keyword">RETURN</span>;
+<span class="code-keyword">END</span>;</code>
+        </div>
+        
+        <h2>⚡ Why Inline TVFs Are Often Better</h2>
+        
+        <h3>Performance Advantages of Inline TVFs</h3>
+        <div class="concept-box">
+            <div class="concept-title">Inline TVF Benefits</div>
+            <div class="concept-description">
+                <strong style="color: #fbbf24;">Query expansion:</strong> Function code inlines into calling query, allowing optimization<br>
+                <strong style="color: #fbbf24;">Statistics awareness:</strong> Optimizer sees table structures and can use indexes<br>
+                <strong style="color: #fbbf24;">Parallel execution:</strong> Can participate in parallel query plans<br>
+                <strong style="color: #fbbf24;">Parameter sniffing:</strong> Benefits from parameter values for plan optimization<br>
+                <strong style="color: #fbbf24;">No materialization:</strong> Results stream directly without temp storage<br>
+                <strong style="color: #fbbf24;">Better performance:</strong> Often faster than multi-statement TVFs or views
+            </div>
+        </div>
+        
+        <div class="concept-box">
+            <div class="concept-title">Multi-statement TVF Limitations</div>
+            <div class="concept-description">
+                <strong style="color: #fbbf24;">Materialization:</strong> Results stored in temp table, then queried<br>
+                <strong style="color: #fbbf24;">Fixed estimates:</strong> Optimizer assumes 1 or 100 rows, poor cardinality<br>
+                <strong style="color: #fbbf24;">No statistics:</strong> Cannot use table statistics for optimization<br>
+                <strong style="color: #fbbf24;">Serial execution:</strong> Cannot run in parallel<br>
+                <strong style="color: #fbbf24;">Tempdb usage:</strong> Consumes tempdb space for result storage<br>
+                <strong style="color: #fbbf24;">Performance penalty:</strong> Extra I/O for materialization and re-querying
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Inline TVF: Expands to efficient query</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, o.OrderID, o.OrderDate
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">CROSS APPLY</span> dbo.GetActiveOrders(c.CustomerID) o;
+
+<span class="code-comment">-- Expands to (approximately):</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, o.OrderID, o.OrderDate
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">INNER JOIN</span> Orders o <span class="code-keyword">ON</span> c.CustomerID = o.CustomerID
+<span class="code-keyword">WHERE</span> o.Status = 'Active';
+
+<span class="code-comment">-- Multi-statement TVF: Materializes first, then joins</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, s.OrderCount, s.TotalAmount
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">CROSS APPLY</span> dbo.GetCustomerSummary('2023-01-01', '2023-12-31') s;
+
+<span class="code-comment">-- Behind the scenes: Materialize temp table, then join</span>
+<span class="code-comment">-- Poor cardinality estimates lead to bad query plans</span></code>
+        </div>
+        
+        <h2>🔗 APPLY + TVF Patterns</h2>
+        
+        <h3>Advanced Query Patterns with Table-Valued Functions</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">CROSS APPLY</div>
+                <div class="concept-description">
+                    <strong style="color: #fbbf24;">Inner join semantics:</strong> Only returns rows where TVF produces results<br>
+                    <strong style="color: #fbbf24;">One-to-many:</strong> Each left row can produce multiple right rows<br>
+                    <strong style="color: #fbbf24;">Parameterized correlation:</strong> TVF can use values from left table<br>
+                    <strong style="color: #fbbf24;">Performance:</strong> Inline TVFs optimize well with CROSS APPLY<br>
+                    <strong style="color: #fbbf24;">Use cases:</strong> Detail records, running totals, custom aggregations
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">OUTER APPLY</div>
+                <div class="concept-description">
+                    <strong style="color: #fbbf24;">Left join semantics:</strong> Returns all left rows, NULLs for no TVF results<br>
+                    <strong style="color: #fbbf24;">Optional relationship:</strong> TVF results are optional<br>
+                    <strong style="color: #fbbf24;">Default values:</strong> Can provide defaults when TVF returns nothing<br>
+                    <strong style="color: #fbbf24;">Performance:</strong> Same optimization benefits as CROSS APPLY<br>
+                    <strong style="color: #fbbf24;">Use cases:</strong> Latest records, optional details, sparse relationships
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- CROSS APPLY: Get order details for each customer</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, od.ProductID, od.Quantity
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">CROSS APPLY</span> dbo.GetCustomerOrderDetails(c.CustomerID) od
+<span class="code-keyword">ORDER BY</span> c.CustomerName, od.OrderID;
+
+<span class="code-comment">-- OUTER APPLY: Get latest order for each customer (or NULL)</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, 
+       <span class="code-function">ISNULL</span>(lo.OrderDate, 'No orders') AS LastOrderDate,
+       <span class="code-function">ISNULL</span>(<span class="code-function">CAST</span>(lo.TotalAmount <span class="code-keyword">AS</span> <span class="code-keyword">VARCHAR</span>), 'N/A') AS LastOrderAmount
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">OUTER APPLY</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-keyword">TOP</span> 1 OrderDate, TotalAmount
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">WHERE</span> CustomerID = c.CustomerID
+    <span class="code-keyword">ORDER BY</span> OrderDate <span class="code-keyword">DESC</span>
+) lo;
+
+<span class="code-comment">-- Advanced pattern: Running totals with APPLY</span>
+<span class="code-keyword">CREATE FUNCTION</span> dbo.GetRunningTotal(@CustomerID <span class="code-keyword">INT</span>, @UpToDate <span class="code-keyword">DATE</span>)
+<span class="code-keyword">RETURNS TABLE</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">RETURN</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-function">SUM</span>(TotalAmount) AS RunningTotal
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">WHERE</span> CustomerID = @CustomerID
+        <span class="code-keyword">AND</span> OrderDate <= @UpToDate
+);
+
+<span class="code-keyword">SELECT</span> o.OrderID, o.OrderDate, o.TotalAmount, rt.RunningTotal
+<span class="code-keyword">FROM</span> Orders o
+<span class="code-keyword">CROSS APPLY</span> dbo.GetRunningTotal(o.CustomerID, o.OrderDate) rt
+<span class="code-keyword">WHERE</span> o.CustomerID = 123
+<span class="code-keyword">ORDER BY</span> o.OrderDate;
+
+<span class="code-comment">-- APPLY with TOP for "latest N" pattern</span>
+<span class="code-keyword">SELECT</span> p.ProductName, recent.ReviewDate, recent.Rating
+<span class="code-keyword">FROM</span> Products p
+<span class="code-keyword">OUTER APPLY</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-keyword">TOP</span> 3 ReviewDate, Rating
+    <span class="code-keyword">FROM</span> ProductReviews
+    <span class="code-keyword">WHERE</span> ProductID = p.ProductID
+    <span class="code-keyword">ORDER BY</span> ReviewDate <span class="code-keyword">DESC</span>
+) recent;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Function Selection Guidelines:</strong> Prefer inline TVFs over multi-statement TVFs for better performance. Use scalar functions sparingly in WHERE clauses. 
+            Leverage APPLY for correlated subqueries and complex relationships.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Performance Pitfalls:</strong> Scalar functions in SELECT lists can force row-by-row execution. Multi-statement TVFs can cause spool operations. 
+            Always test function performance with realistic data volumes.
+        </div>
+        
+        <h2>📊 Function Type Comparison</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Function Type</th>
+                <th>Performance</th>
+                <th>Optimization</th>
+                <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Scalar</strong></td>
+                <td>Can be slow (row-by-row)</td>
+                <td>Limited optimization</td>
+                <td>Simple calculations</td>
+                </tr>
+                <tr>
+                    <td><strong>Inline TVF</strong></td>
+                <td>Excellent (expands to query)</td>
+                <td>Full optimization</td>
+                <td>Parameterized views</td>
+                </tr>
+                <tr>
+                    <td><strong>Multi-statement TVF</strong></td>
+                <td>Poor (materializes results)</td>
+                <td>Limited optimization</td>
+                <td>Complex logic requiring temp storage</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Understand scalar function limitations and use cases</li>
+                <li>Create inline table-valued functions (TVF)</li>
+                <li>Create multi-statement table-valued functions</li>
+                <li>Explain why inline TVFs often perform better</li>
+                <li>Understand query expansion vs materialization</li>
+                <li>Use CROSS APPLY for correlated queries</li>
+                <li>Use OUTER APPLY for optional relationships</li>
+                <li>Implement running totals with APPLY + TVF</li>
+                <li>Create "latest N" patterns with APPLY</li>
+                <li>Avoid scalar functions in WHERE clauses</li>
+                <li>Choose appropriate function type for each scenario</li>
+                <li>Test function performance with execution plans</li>
+                <li>Use inline TVFs as parameterized views</li>
+                <li>Implement modular query design with functions</li>
+                <li>Monitor function usage and performance impact</li>
+                <li>Document function purposes and limitations</li>
+                <li>Use APPLY for complex joins and aggregations</li>
+                <li>Understand cardinality estimation differences</li>
+                <li>Optimize functions for better query performance</li>
+                <li>Avoid unnecessary function calls in large result sets</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Function Creation:</strong> Create scalar, inline TVF, and multi-statement TVF versions of the same logic and compare performance.</li>
+                <li><strong>APPLY Patterns:</strong> Implement CROSS APPLY and OUTER APPLY queries for customer-order relationships.</li>
+                <li><strong>Performance Analysis:</strong> Analyze execution plans for inline vs multi-statement TVFs to understand optimization differences.</li>
+                <li><strong>Advanced Patterns:</strong> Create a running total calculation using APPLY with an inline TVF.</li>
+                <li><strong>Optimization:</strong> Refactor a query using scalar functions in WHERE clauses to use inline TVFs with APPLY.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/15-stored-procedures.html" class="nav-btn">← Previous: Stored Procedures (Design, Parameters, Security)</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/17-triggers-temporal.html" class="nav-btn">Next: Triggers, Auditing Patterns & Temporal Tables →</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #4 - Advanced Features</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #e67e22; border-radius: 8px; padding: 25px; margin: 20px 0; transition: all 0.3s ease; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(230, 126, 34, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #e67e22; margin-bottom: 12px; }
+        .concept-description { color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.9em; line-height: 1.5; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-comment { color: #636e72; }
+        .code-number { color: #ffeaa7; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #e67e22; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); border-radius: 8px; overflow: hidden; }
+        th { background: linear-gradient(135deg, rgba(230, 126, 34, 0.2), rgba(211, 84, 0, 0.2)); color: #e67e22; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #e67e22; }
+        td { padding: 12px 15px; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        tr:hover { background: rgba(230, 126, 34, 0.1); }
+        .highlight-box { background: rgba(230, 126, 34, 0.1); border-left: 4px solid #e67e22; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .info-box { background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; color: #85c1e9; }
+        .warning-box { background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 20px; border-radius: 8px; margin: 20px 0; color: #f1948a; }
+        .success-box { background: rgba(46, 204, 113, 0.1); border-left: 4px solid #2ecc71; padding: 20px; border-radius: 8px; margin: 20px 0; color: #7dcea0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 10px 0; padding-left: 30px; position: relative; color: #cbd5e1; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #e67e22; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #e67e22, #d35400); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(230, 126, 34, 0.3); }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .hero h1 { font-size: 1.8em; } }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🚀 SQLite3 Advanced Features</h1>
+        <p>Master JSON, Full-Text Search, Spatial Data, Virtual Tables & UDFs</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module explores SQLite's advanced features that extend its capabilities beyond traditional 
+            relational database operations. You'll learn JSON manipulation, full-text search with FTS5, 
+            spatial indexing with R-Tree, virtual tables, and how to create custom functions.
+        </p>
+        
+        <h2>📦 JSON Functions</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">JSON Support in SQLite</div>
+            <div class="concept-description">
+                SQLite provides built-in JSON functions (since version 3.9.0) for storing, querying, and 
+                manipulating JSON data. JSON is stored as TEXT but can be validated and queried efficiently 
+                using specialized functions.
+            </div>
+        </div>
+        
+        <h3>Creating & Validating JSON</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create table with JSON column</span>
+<span class="code-keyword">CREATE TABLE</span> users (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    name <span class="code-function">TEXT</span>,
+    profile <span class="code-function">TEXT</span>  <span class="code-comment">-- JSON data stored as TEXT</span>
+);
+
+<span class="code-comment">-- Insert JSON data</span>
+<span class="code-keyword">INSERT INTO</span> users (name, profile) <span class="code-keyword">VALUES</span> (
+    <span class="code-string">'Alice'</span>,
+    <span class="code-function">json</span>(<span class="code-string">'{"age": 30, "city": "New York", "skills": ["Python", "SQL"]}'</span>)
+);
+
+<span class="code-comment">-- Validate JSON (returns NULL if invalid)</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">json_valid</span>(<span class="code-string">'{"name": "test"}'</span>);  <span class="code-comment">-- Returns 1</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">json_valid</span>(<span class="code-string">'{invalid json}'</span>);      <span class="code-comment">-- Returns 0</span>
+
+<span class="code-comment">-- Pretty print JSON</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">json</span>(profile) <span class="code-keyword">FROM</span> users;</code>
+        </div>
+        
+        <h3>Extracting JSON Data</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- json_extract() - Extract values from JSON</span>
+<span class="code-keyword">SELECT</span> 
+    name,
+    <span class="code-function">json_extract</span>(profile, <span class="code-string">'$.age'</span>) <span class="code-keyword">AS</span> age,
+    <span class="code-function">json_extract</span>(profile, <span class="code-string">'$.city'</span>) <span class="code-keyword">AS</span> city
+<span class="code-keyword">FROM</span> users;
+
+<span class="code-comment">-- Shorthand: -> operator (SQLite 3.38.0+)</span>
+<span class="code-keyword">SELECT</span> 
+    name,
+    profile -> <span class="code-string">'$.age'</span> <span class="code-keyword">AS</span> age,
+    profile -> <span class="code-string">'$.city'</span> <span class="code-keyword">AS</span> city
+<span class="code-keyword">FROM</span> users;
+
+<span class="code-comment">-- ->> operator returns unquoted text</span>
+<span class="code-keyword">SELECT</span> profile ->> <span class="code-string">'$.city'</span> <span class="code-keyword">FROM</span> users;  <span class="code-comment">-- Returns: New York</span>
+<span class="code-keyword">SELECT</span> profile -> <span class="code-string">'$.city'</span> <span class="code-keyword">FROM</span> users;   <span class="code-comment">-- Returns: "New York"</span>
+
+<span class="code-comment">-- Extract array elements</span>
+<span class="code-keyword">SELECT</span> 
+    name,
+    <span class="code-function">json_extract</span>(profile, <span class="code-string">'$.skills[0]'</span>) <span class="code-keyword">AS</span> first_skill,
+    <span class="code-function">json_extract</span>(profile, <span class="code-string">'$.skills[1]'</span>) <span class="code-keyword">AS</span> second_skill
+<span class="code-keyword">FROM</span> users;</code>
+        </div>
+        
+        <h3>Querying JSON Arrays with json_each()</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- json_each() - Iterate over JSON array</span>
+<span class="code-keyword">SELECT</span> 
+    u.name,
+    j.value <span class="code-keyword">AS</span> skill
+<span class="code-keyword">FROM</span> users u,
+     <span class="code-function">json_each</span>(u.profile, <span class="code-string">'$.skills'</span>) j;
+
+<span class="code-comment">-- Find users with specific skill</span>
+<span class="code-keyword">SELECT</span> <span class="code-keyword">DISTINCT</span> u.name
+<span class="code-keyword">FROM</span> users u,
+     <span class="code-function">json_each</span>(u.profile, <span class="code-string">'$.skills'</span>) j
+<span class="code-keyword">WHERE</span> j.value = <span class="code-string">'Python'</span>;
+
+<span class="code-comment">-- json_tree() - Recursively iterate JSON structure</span>
+<span class="code-keyword">SELECT</span> 
+    key,
+    value,
+    type,
+    path
+<span class="code-keyword">FROM</span> <span class="code-function">json_tree</span>(<span class="code-string">'{"name": "Alice", "skills": ["Python", "SQL"]}'</span>);</code>
+        </div>
+        
+        <h3>Modifying JSON Data</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- json_set() - Add or replace values</span>
+<span class="code-keyword">UPDATE</span> users
+<span class="code-keyword">SET</span> profile = <span class="code-function">json_set</span>(profile, <span class="code-string">'$.age'</span>, <span class="code-number">31</span>)
+<span class="code-keyword">WHERE</span> name = <span class="code-string">'Alice'</span>;
+
+<span class="code-comment">-- json_insert() - Add only if path doesn't exist</span>
+<span class="code-keyword">UPDATE</span> users
+<span class="code-keyword">SET</span> profile = <span class="code-function">json_insert</span>(profile, <span class="code-string">'$.country'</span>, <span class="code-string">'USA'</span>)
+<span class="code-keyword">WHERE</span> name = <span class="code-string">'Alice'</span>;
+
+<span class="code-comment">-- json_replace() - Replace only if path exists</span>
+<span class="code-keyword">UPDATE</span> users
+<span class="code-keyword">SET</span> profile = <span class="code-function">json_replace</span>(profile, <span class="code-string">'$.city'</span>, <span class="code-string">'Boston'</span>)
+<span class="code-keyword">WHERE</span> name = <span class="code-string">'Alice'</span>;
+
+<span class="code-comment">-- json_remove() - Remove paths</span>
+<span class="code-keyword">UPDATE</span> users
+<span class="code-keyword">SET</span> profile = <span class="code-function">json_remove</span>(profile, <span class="code-string">'$.country'</span>)
+<span class="code-keyword">WHERE</span> name = <span class="code-string">'Alice'</span>;
+
+<span class="code-comment">-- json_patch() - Apply RFC 7396 JSON patch</span>
+<span class="code-keyword">UPDATE</span> users
+<span class="code-keyword">SET</span> profile = <span class="code-function">json_patch</span>(profile, <span class="code-string">'{"age": 32, "verified": true}'</span>)
+<span class="code-keyword">WHERE</span> name = <span class="code-string">'Alice'</span>;</code>
+        </div>
+        
+        <h3>JSON Aggregate Functions</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- json_group_array() - Aggregate into JSON array</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">json_group_array</span>(name) <span class="code-keyword">AS</span> all_names
+<span class="code-keyword">FROM</span> users;
+<span class="code-comment">-- Result: ["Alice", "Bob", "Charlie"]</span>
+
+<span class="code-comment">-- json_group_object() - Aggregate into JSON object</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">json_group_object</span>(name, profile ->> <span class="code-string">'$.age'</span>) <span class="code-keyword">AS</span> ages
+<span class="code-keyword">FROM</span> users;
+<span class="code-comment">-- Result: {"Alice": 30, "Bob": 25, "Charlie": 35}</span>
+
+<span class="code-comment">-- Create nested JSON structure</span>
+<span class="code-keyword">SELECT</span> 
+    profile ->> <span class="code-string">'$.city'</span> <span class="code-keyword">AS</span> city,
+    <span class="code-function">json_group_array</span>(
+        <span class="code-function">json_object</span>(
+            <span class="code-string">'name'</span>, name,
+            <span class="code-string">'age'</span>, profile ->> <span class="code-string">'$.age'</span>
+        )
+    ) <span class="code-keyword">AS</span> residents
+<span class="code-keyword">FROM</span> users
+<span class="code-keyword">GROUP BY</span> profile ->> <span class="code-string">'$.city'</span>;</code>
+        </div>
+        
+        <h3>JSON Indexing</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create index on JSON field</span>
+<span class="code-keyword">CREATE INDEX</span> idx_users_age 
+<span class="code-keyword">ON</span> users(<span class="code-function">json_extract</span>(profile, <span class="code-string">'$.age'</span>));
+
+<span class="code-comment">-- Generated column with index (SQLite 3.31.0+)</span>
+<span class="code-keyword">ALTER TABLE</span> users 
+<span class="code-keyword">ADD COLUMN</span> age_generated <span class="code-function">INTEGER</span> 
+<span class="code-keyword">GENERATED ALWAYS AS</span> (<span class="code-function">json_extract</span>(profile, <span class="code-string">'$.age'</span>)) <span class="code-keyword">STORED</span>;
+
+<span class="code-keyword">CREATE INDEX</span> idx_users_age_generated <span class="code-keyword">ON</span> users(age_generated);</code>
+        </div>
+        
+        <h2>🔎 Full-Text Search (FTS5)</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">What is FTS5?</div>
+            <div class="concept-description">
+                FTS5 (Full-Text Search version 5) is SQLite's latest full-text search extension. 
+                It provides fast text search capabilities with features like phrase queries, prefix searches, 
+                ranking, and highlighting. Perfect for implementing search functionality in applications.
+            </div>
+        </div>
+        
+        <h3>Creating FTS5 Tables</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create FTS5 virtual table</span>
+<span class="code-keyword">CREATE VIRTUAL TABLE</span> articles <span class="code-keyword">USING</span> <span class="code-function">fts5</span>(
+    title,
+    content,
+    author,
+    tags
+);
+
+<span class="code-comment">-- Insert data</span>
+<span class="code-keyword">INSERT INTO</span> articles <span class="code-keyword">VALUES</span> (
+    <span class="code-string">'SQLite Tutorial'</span>,
+    <span class="code-string">'Learn SQLite database basics and advanced features'</span>,
+    <span class="code-string">'John Doe'</span>,
+    <span class="code-string">'database, tutorial, sqlite'</span>
+);
+
+<span class="code-keyword">INSERT INTO</span> articles <span class="code-keyword">VALUES</span> (
+    <span class="code-string">'Python Programming'</span>,
+    <span class="code-string">'Master Python programming with practical examples'</span>,
+    <span class="code-string">'Jane Smith'</span>,
+    <span class="code-string">'python, programming, tutorial'</span>
+);</code>
+        </div>
+        
+        <h3>Basic FTS5 Queries</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Simple search</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> articles <span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'sqlite'</span>;
+
+<span class="code-comment">-- Search in specific column</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> articles <span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'title:sqlite'</span>;
+
+<span class="code-comment">-- Phrase search (exact match)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> articles <span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'"database basics"'</span>;
+
+<span class="code-comment">-- Prefix search</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> articles <span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'prog*'</span>;
+
+<span class="code-comment">-- Boolean operators</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> articles <span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'python AND tutorial'</span>;
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> articles <span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'python OR sqlite'</span>;
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> articles <span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'database NOT python'</span>;
+
+<span class="code-comment">-- NEAR operator (words within 10 tokens)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> articles <span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'NEAR(sqlite database, 10)'</span>;</code>
+        </div>
+        
+        <h3>Ranking & Sorting</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- BM25 ranking (default)</span>
+<span class="code-keyword">SELECT</span> 
+    title,
+    <span class="code-function">bm25</span>(articles) <span class="code-keyword">AS</span> rank
+<span class="code-keyword">FROM</span> articles
+<span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'sqlite'</span>
+<span class="code-keyword">ORDER BY</span> rank;
+
+<span class="code-comment">-- Custom column weights</span>
+<span class="code-keyword">SELECT</span> 
+    title,
+    <span class="code-function">bm25</span>(articles, <span class="code-number">10.0</span>, <span class="code-number">1.0</span>, <span class="code-number">5.0</span>, <span class="code-number">1.0</span>) <span class="code-keyword">AS</span> rank
+<span class="code-keyword">FROM</span> articles
+<span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'sqlite'</span>
+<span class="code-keyword">ORDER BY</span> rank;
+<span class="code-comment">-- Weights: title=10.0, content=1.0, author=5.0, tags=1.0</span></code>
+        </div>
+        
+        <h3>Highlighting & Snippets</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Highlight matching terms</span>
+<span class="code-keyword">SELECT</span> 
+    <span class="code-function">highlight</span>(articles, <span class="code-number">0</span>, <span class="code-string">'<b>'</span>, <span class="code-string">'</b>'</span>) <span class="code-keyword">AS</span> highlighted_title,
+    <span class="code-function">highlight</span>(articles, <span class="code-number">1</span>, <span class="code-string">'<mark>'</span>, <span class="code-string">'</mark>'</span>) <span class="code-keyword">AS</span> highlighted_content
+<span class="code-keyword">FROM</span> articles
+<span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'sqlite'</span>;
+
+<span class="code-comment">-- Generate snippet (excerpt)</span>
+<span class="code-keyword">SELECT</span> 
+    title,
+    <span class="code-function">snippet</span>(articles, <span class="code-number">1</span>, <span class="code-string">'<b>'</span>, <span class="code-string">'</b>'</span>, <span class="code-string">'...'</span>, <span class="code-number">20</span>) <span class="code-keyword">AS</span> excerpt
+<span class="code-keyword">FROM</span> articles
+<span class="code-keyword">WHERE</span> articles <span class="code-keyword">MATCH</span> <span class="code-string">'database'</span>;
+<span class="code-comment">-- Parameters: column, start_tag, end_tag, ellipsis, max_tokens</span></code>
+        </div>
+        
+        <h3>FTS5 with External Content</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create regular table</span>
+<span class="code-keyword">CREATE TABLE</span> posts (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    title <span class="code-function">TEXT</span>,
+    body <span class="code-function">TEXT</span>,
+    created_at <span class="code-function">TEXT</span>
+);
+
+<span class="code-comment">-- Create FTS5 table with external content</span>
+<span class="code-keyword">CREATE VIRTUAL TABLE</span> posts_fts <span class="code-keyword">USING</span> <span class="code-function">fts5</span>(
+    title,
+    body,
+    content=posts,
+    content_rowid=id
+);
+
+<span class="code-comment">-- Triggers to keep FTS in sync</span>
+<span class="code-keyword">CREATE TRIGGER</span> posts_ai <span class="code-keyword">AFTER INSERT ON</span> posts <span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">INSERT INTO</span> posts_fts(rowid, title, body)
+    <span class="code-keyword">VALUES</span> (new.id, new.title, new.body);
+<span class="code-keyword">END</span>;
+
+<span class="code-keyword">CREATE TRIGGER</span> posts_ad <span class="code-keyword">AFTER DELETE ON</span> posts <span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">DELETE FROM</span> posts_fts <span class="code-keyword">WHERE</span> rowid = old.id;
+<span class="code-keyword">END</span>;
+
+<span class="code-keyword">CREATE TRIGGER</span> posts_au <span class="code-keyword">AFTER UPDATE ON</span> posts <span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">UPDATE</span> posts_fts 
+    <span class="code-keyword">SET</span> title = new.title, body = new.body
+    <span class="code-keyword">WHERE</span> rowid = old.id;
+<span class="code-keyword">END</span>;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 FTS5 Best Practices:</strong><br>
+            • Use external content tables to avoid data duplication<br>
+            • Create triggers to keep FTS index synchronized<br>
+            • Use column weights to prioritize title matches<br>
+            • Rebuild index periodically: <code>INSERT INTO articles(articles) VALUES('rebuild')</code><br>
+            • Optimize for space: <code>INSERT INTO articles(articles) VALUES('optimize')</code>
+        </div>
+        
+        <h2>🗺️ R-Tree Spatial Indexing</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">What is R-Tree?</div>
+            <div class="concept-description">
+                R-Tree is a spatial indexing extension for efficiently querying multi-dimensional data 
+                (coordinates, bounding boxes, ranges). Perfect for geospatial applications, game development, 
+                and any scenario requiring efficient range queries.
+            </div>
+        </div>
+        
+        <h3>Creating R-Tree Tables</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create R-Tree for 2D points (latitude, longitude)</span>
+<span class="code-keyword">CREATE VIRTUAL TABLE</span> locations <span class="code-keyword">USING</span> <span class="code-function">rtree</span>(
+    id,              <span class="code-comment">-- Integer primary key</span>
+    min_lat, max_lat,  <span class="code-comment">-- Latitude range</span>
+    min_lon, max_lon   <span class="code-comment">-- Longitude range</span>
+);
+
+<span class="code-comment">-- Insert point locations (min = max for points)</span>
+<span class="code-keyword">INSERT INTO</span> locations <span class="code-keyword">VALUES</span> (<span class="code-number">1</span>, <span class="code-number">40.7128</span>, <span class="code-number">40.7128</span>, -<span class="code-number">74.0060</span>, -<span class="code-number">74.0060</span>);  <span class="code-comment">-- New York</span>
+<span class="code-keyword">INSERT INTO</span> locations <span class="code-keyword">VALUES</span> (<span class="code-number">2</span>, <span class="code-number">51.5074</span>, <span class="code-number">51.5074</span>, -<span class="code-number">0.1278</span>, -<span class="code-number">0.1278</span>);     <span class="code-comment">-- London</span>
+<span class="code-keyword">INSERT INTO</span> locations <span class="code-keyword">VALUES</span> (<span class="code-number">3</span>, <span class="code-number">48.8566</span>, <span class="code-number">48.8566</span>, <span class="code-number">2.3522</span>, <span class="code-number">2.3522</span>);        <span class="code-comment">-- Paris</span>
+
+<span class="code-comment">-- Insert bounding boxes (areas)</span>
+<span class="code-keyword">INSERT INTO</span> locations <span class="code-keyword">VALUES</span> (<span class="code-number">4</span>, <span class="code-number">40.5</span>, <span class="code-number">41.0</span>, -<span class="code-number">74.5</span>, -<span class="code-number">73.5</span>);  <span class="code-comment">-- NYC area</span></code>
+        </div>
+        
+        <h3>Spatial Queries</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Find locations within bounding box</span>
+<span class="code-keyword">SELECT</span> id <span class="code-keyword">FROM</span> locations
+<span class="code-keyword">WHERE</span> min_lat >= <span class="code-number">40.0</span> <span class="code-keyword">AND</span> max_lat <= <span class="code-number">42.0</span>
+  <span class="code-keyword">AND</span> min_lon >= -<span class="code-number">75.0</span> <span class="code-keyword">AND</span> max_lon <= -<span class="code-number">73.0</span>;
+
+<span class="code-comment">-- Find nearby locations (within radius)</span>
+<span class="code-comment">-- Using Haversine formula for distance</span>
+<span class="code-keyword">WITH</span> search_point <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-number">40.7589</span> <span class="code-keyword">AS</span> lat, -<span class="code-number">73.9851</span> <span class="code-keyword">AS</span> lon, <span class="code-number">10</span> <span class="code-keyword">AS</span> radius_km
+)
+<span class="code-keyword">SELECT</span> 
+    l.id,
+    <span class="code-function">ROUND</span>(
+        <span class="code-number">6371</span> * <span class="code-number">2</span> * <span class="code-function">ASIN</span>(<span class="code-function">SQRT</span>(
+            <span class="code-function">POW</span>(<span class="code-function">SIN</span>((<span class="code-function">RADIANS</span>(l.min_lat) - <span class="code-function">RADIANS</span>(s.lat)) / <span class="code-number">2</span>), <span class="code-number">2</span>) +
+            <span class="code-function">COS</span>(<span class="code-function">RADIANS</span>(s.lat)) * <span class="code-function">COS</span>(<span class="code-function">RADIANS</span>(l.min_lat)) *
+            <span class="code-function">POW</span>(<span class="code-function">SIN</span>((<span class="code-function">RADIANS</span>(l.min_lon) - <span class="code-function">RADIANS</span>(s.lon)) / <span class="code-number">2</span>), <span class="code-number">2</span>)
+        )),
+        <span class="code-number">2</span>
+    ) <span class="code-keyword">AS</span> distance_km
+<span class="code-keyword">FROM</span> locations l, search_point s
+<span class="code-keyword">WHERE</span> l.min_lat <span class="code-keyword">BETWEEN</span> s.lat - <span class="code-number">0.1</span> <span class="code-keyword">AND</span> s.lat + <span class="code-number">0.1</span>
+  <span class="code-keyword">AND</span> l.min_lon <span class="code-keyword">BETWEEN</span> s.lon - <span class="code-number">0.1</span> <span class="code-keyword">AND</span> s.lon + <span class="code-number">0.1</span>
+<span class="code-keyword">HAVING</span> distance_km <= s.radius_km
+<span class="code-keyword">ORDER BY</span> distance_km;</code>
+        </div>
+        
+        <h3>R-Tree with External Content</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Regular table for place data</span>
+<span class="code-keyword">CREATE TABLE</span> places (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    name <span class="code-function">TEXT</span>,
+    latitude <span class="code-function">REAL</span>,
+    longitude <span class="code-function">REAL</span>
+);
+
+<span class="code-comment">-- R-Tree index</span>
+<span class="code-keyword">CREATE VIRTUAL TABLE</span> places_idx <span class="code-keyword">USING</span> <span class="code-function">rtree</span>(
+    id,
+    min_lat, max_lat,
+    min_lon, max_lon
+);
+
+<span class="code-comment">-- Trigger to keep R-Tree synchronized</span>
+<span class="code-keyword">CREATE TRIGGER</span> places_insert <span class="code-keyword">AFTER INSERT ON</span> places <span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">INSERT INTO</span> places_idx <span class="code-keyword">VALUES</span> (
+        new.id,
+        new.latitude, new.latitude,
+        new.longitude, new.longitude
+    );
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Query with JOIN</span>
+<span class="code-keyword">SELECT</span> p.name, p.latitude, p.longitude
+<span class="code-keyword">FROM</span> places p
+<span class="code-keyword">JOIN</span> places_idx i <span class="code-keyword">ON</span> p.id = i.id
+<span class="code-keyword">WHERE</span> i.min_lat >= <span class="code-number">40.0</span> <span class="code-keyword">AND</span> i.max_lat <= <span class="code-number">42.0</span>
+  <span class="code-keyword">AND</span> i.min_lon >= -<span class="code-number">75.0</span> <span class="code-keyword">AND</span> i.max_lon <= -<span class="code-number">73.0</span>;</code>
+        </div>
+        
+        <h2>📊 Virtual Tables</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">What are Virtual Tables?</div>
+            <div class="concept-description">
+                Virtual tables are interfaces to external data sources or computed data. They look like 
+                regular tables but are backed by custom code. SQLite includes several built-in virtual 
+                table modules (FTS5, R-Tree, JSON) and allows creating custom ones.
+            </div>
+        </div>
+        
+        <h3>CSV Virtual Table</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Load CSV extension (if available)</span>
+.load csv
+
+<span class="code-comment">-- Create virtual table from CSV file</span>
+<span class="code-keyword">CREATE VIRTUAL TABLE</span> temp.csv_data <span class="code-keyword">USING</span> <span class="code-function">csv</span>(
+    filename=<span class="code-string">'data.csv'</span>,
+    header=<span class="code-function">yes</span>
+);
+
+<span class="code-comment">-- Query CSV data</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> csv_data <span class="code-keyword">WHERE</span> column1 > <span class="code-number">100</span>;</code>
+        </div>
+        
+        <h3>Generate Series (Built-in)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Generate sequence of numbers</span>
+<span class="code-keyword">SELECT</span> value <span class="code-keyword">FROM</span> <span class="code-function">generate_series</span>(<span class="code-number">1</span>, <span class="code-number">10</span>);
+
+<span class="code-comment">-- With step</span>
+<span class="code-keyword">SELECT</span> value <span class="code-keyword">FROM</span> <span class="code-function">generate_series</span>(<span class="code-number">0</span>, <span class="code-number">100</span>, <span class="code-number">10</span>);
+
+<span class="code-comment">-- Generate dates</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">DATE</span>(<span class="code-string">'2024-01-01'</span>, <span class="code-string">'+'</span> || value || <span class="code-string">' days'</span>) <span class="code-keyword">AS</span> date
+<span class="code-keyword">FROM</span> <span class="code-function">generate_series</span>(<span class="code-number">0</span>, <span class="code-number">30</span>);
+
+<span class="code-comment">-- Use in queries</span>
+<span class="code-keyword">SELECT</span> 
+    d.date,
+    <span class="code-function">COALESCE</span>(<span class="code-function">SUM</span>(o.amount), <span class="code-number">0</span>) <span class="code-keyword">AS</span> daily_total
+<span class="code-keyword">FROM</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-function">DATE</span>(<span class="code-string">'2024-01-01'</span>, <span class="code-string">'+'</span> || value || <span class="code-string">' days'</span>) <span class="code-keyword">AS</span> date
+    <span class="code-keyword">FROM</span> <span class="code-function">generate_series</span>(<span class="code-number">0</span>, <span class="code-number">30</span>)
+) d
+<span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> <span class="code-function">DATE</span>(o.order_date) = d.date
+<span class="code-keyword">GROUP BY</span> d.date;</code>
+        </div>
+        
+        <h2>🔧 User-Defined Functions (UDF)</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">Creating Custom Functions</div>
+            <div class="concept-description">
+                SQLite allows creating custom functions in application code (C, Python, Node.js, etc.). 
+                This enables extending SQLite with domain-specific logic, complex calculations, 
+                or integration with external services.
+            </div>
+        </div>
+        
+        <h3>Python Example</h3>
+        <div class="code-block">
+<code><span class="code-keyword">import</span> sqlite3
+<span class="code-keyword">import</span> math
+
+<span class="code-comment"># Connect to database</span>
+conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
+
+<span class="code-comment"># Create scalar function</span>
+<span class="code-keyword">def</span> <span class="code-function">haversine_distance</span>(lat1, lon1, lat2, lon2):
+    <span class="code-string">"""Calculate distance between two points in km"""</span>
+    R = <span class="code-number">6371</span>  <span class="code-comment"># Earth radius in km</span>
+    
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    
+    a = math.sin(dlat/<span class="code-number">2</span>)**<span class="code-number">2</span> + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/<span class="code-number">2</span>)**<span class="code-number">2</span>
+    c = <span class="code-number">2</span> * math.asin(math.sqrt(a))
+    
+    <span class="code-keyword">return</span> R * c
+
+<span class="code-comment"># Register function</span>
+conn.create_function(<span class="code-string">'distance'</span>, <span class="code-number">4</span>, haversine_distance)
+
+<span class="code-comment"># Use in query</span>
+cursor = conn.execute(<span class="code-string">"""
+    SELECT name, distance(40.7128, -74.0060, latitude, longitude) as dist
+    FROM places
+    ORDER BY dist
+    LIMIT 10
+"""</span>)
+
+<span class="code-comment"># Create aggregate function</span>
+<span class="code-keyword">class</span> <span class="code-function">MedianAggregate</span>:
+    <span class="code-keyword">def</span> <span class="code-function">__init__</span>(self):
+        self.values = []
+    
+    <span class="code-keyword">def</span> <span class="code-function">step</span>(self, value):
+        self.values.append(value)
+    
+    <span class="code-keyword">def</span> <span class="code-function">finalize</span>(self):
+        <span class="code-keyword">if not</span> self.values:
+            <span class="code-keyword">return None</span>
+        sorted_values = sorted(self.values)
+        n = len(sorted_values)
+        <span class="code-keyword">if</span> n % <span class="code-number">2</span> == <span class="code-number">1</span>:
+            <span class="code-keyword">return</span> sorted_values[n//<span class="code-number">2</span>]
+        <span class="code-keyword">else</span>:
+            <span class="code-keyword">return</span> (sorted_values[n//<span class="code-number">2</span>-<span class="code-number">1</span>] + sorted_values[n//<span class="code-number">2</span>]) / <span class="code-number">2</span>
+
+<span class="code-comment"># Register aggregate</span>
+conn.create_aggregate(<span class="code-string">'median'</span>, <span class="code-number">1</span>, MedianAggregate)
+
+<span class="code-comment"># Use aggregate</span>
+cursor = conn.execute(<span class="code-string">"SELECT median(amount) FROM orders"</span>)</code>
+        </div>
+        
+        <h3>Node.js Example (better-sqlite3)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
+<span class="code-keyword">const</span> db = <span class="code-keyword">new</span> Database(<span class="code-string">'mydb.db'</span>);
+
+<span class="code-comment">// Create scalar function</span>
+db.function(<span class="code-string">'slugify'</span>, (text) => {
+    <span class="code-keyword">return</span> text
+        .toLowerCase()
+        .replace(<span class="code-string">/[^\w\s-]/g</span>, <span class="code-string">''</span>)
+        .replace(<span class="code-string">/[\s_-]+/g</span>, <span class="code-string">'-'</span>)
+        .replace(<span class="code-string">/^-+|-+$/g</span>, <span class="code-string">''</span>);
+});
+
+<span class="code-comment">// Use function</span>
+<span class="code-keyword">const</span> result = db.prepare(<span class="code-string">`
+    SELECT title, slugify(title) as slug
+    FROM articles
+`</span>).all();
+
+<span class="code-comment">// Create aggregate function</span>
+db.aggregate(<span class="code-string">'string_concat'</span>, {
+    start: <span class="code-string">''</span>,
+    step: (total, value) => total + value + <span class="code-string">', '</span>,
+    result: (total) => total.slice(<span class="code-number">0</span>, -<span class="code-number">2</span>)
+});
+
+<span class="code-comment">// Use aggregate</span>
+<span class="code-keyword">const</span> names = db.prepare(<span class="code-string">`
+    SELECT string_concat(name) as all_names
+    FROM users
+`</span>).get();</code>
+        </div>
+        
+        <h2>🎯 Common Use Cases</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Use Case</th>
+                    <th>Example</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>JSON</strong></td>
+                    <td>Semi-structured data, flexible schemas</td>
+                    <td>User preferences, API responses, logs</td>
+                </tr>
+                <tr>
+                    <td><strong>FTS5</strong></td>
+                    <td>Text search, content discovery</td>
+                    <td>Blog search, documentation, product catalog</td>
+                </tr>
+                <tr>
+                    <td><strong>R-Tree</strong></td>
+                    <td>Geospatial queries, range searches</td>
+                    <td>Location-based services, maps, game worlds</td>
+                </tr>
+                <tr>
+                    <td><strong>Virtual Tables</strong></td>
+                    <td>External data access, computed tables</td>
+                    <td>CSV import, REST API integration, views</td>
+                </tr>
+                <tr>
+                    <td><strong>UDF</strong></td>
+                    <td>Custom business logic, calculations</td>
+                    <td>Encryption, validation, complex math</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Store and query JSON data with json_extract() and operators</li>
+            <li>Modify JSON with json_set(), json_insert(), json_remove()</li>
+            <li>Create FTS5 tables for full-text search</li>
+            <li>Use FTS5 query syntax (MATCH, phrase search, boolean operators)</li>
+            <li>Rank and highlight search results</li>
+            <li>Create R-Tree indexes for spatial data</li>
+            <li>Perform geospatial queries efficiently</li>
+            <li>Use virtual tables for external data sources</li>
+            <li>Create user-defined functions in application code</li>
+            <li>Choose the right advanced feature for your use case</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> You've mastered SQLite's advanced features! 
+            Move on to <strong>Module 5: Transactions & Concurrency</strong> to learn about 
+            transaction modes, locking mechanisms, isolation levels, and handling concurrent access.
+        </div>
+        
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

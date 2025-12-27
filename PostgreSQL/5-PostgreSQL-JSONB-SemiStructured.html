@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Cheat Sheet #5 - JSONB & Semi-Structured Data</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #e74c3c; border-radius: 8px; padding: 25px; margin: 20px 0; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(231, 76, 60, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #e74c3c; margin-bottom: 12px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.85em; line-height: 1.5; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-comment { color: #636e72; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #e74c3c; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); }
+        th { background: linear-gradient(135deg, rgba(231, 76, 60, 0.2), rgba(192, 57, 43, 0.2)); color: #e74c3c; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #e74c3c; }
+        td { padding: 12px 15px; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        tr:hover { background: rgba(231, 76, 60, 0.1); }
+        .info-box { background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 10px 0; padding-left: 30px; position: relative; color: #cbd5e1; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #e74c3c; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔴 PostgreSQL JSONB & Semi-Structured Data</h1>
+        <p>Work with JSON/JSONB, Operators, Functions, and GIN Indexing</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8;">
+            Learn to store and query semi-structured data using JSONB, master powerful operators, 
+            use advanced functions for data manipulation, optimize with GIN indexes, and leverage JSON Path queries.
+        </p>
+        
+        <h2>📦 JSON vs JSONB</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Aspect</th>
+                    <th>JSON</th>
+                    <th>JSONB</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Storage</td>
+                    <td>Text format</td>
+                    <td>Binary format</td>
+                </tr>
+                <tr>
+                    <td>Processing</td>
+                    <td>Reparsed on each access</td>
+                    <td>Pre-parsed, faster</td>
+                </tr>
+                <tr>
+                    <td>Compression</td>
+                    <td>None</td>
+                    <td>Binary compression</td>
+                </tr>
+                <tr>
+                    <td>Indexing</td>
+                    <td>Not recommended</td>
+                    <td>GIN/GiST support</td>
+                </tr>
+                <tr>
+                    <td>Performance</td>
+                    <td>Slower</td>
+                    <td>Faster ✓ Use this</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h2>🎯 JSONB Operators</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Operator</th>
+                    <th>Description</th>
+                    <th>Example</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>-></code></td>
+                    <td>Get JSON object field or array element</td>
+                    <td>data->'name'</td>
+                </tr>
+                <tr>
+                    <td><code>->></code></td>
+                    <td>Get text value</td>
+                    <td>data->>'name'</td>
+                </tr>
+                <tr>
+                    <td><code>@></code></td>
+                    <td>Contains (check if left contains right)</td>
+                    <td>data @> '{"status":"active"}'</td>
+                </tr>
+                <tr>
+                    <td><code><@</code></td>
+                    <td>Contained by</td>
+                    <td>'{"a":1}' <@ data</td>
+                </tr>
+                <tr>
+                    <td><code>?</code></td>
+                    <td>Key exists</td>
+                    <td>data ? 'name'</td>
+                </tr>
+                <tr>
+                    <td><code>?&</code></td>
+                    <td>All keys exist</td>
+                    <td>data ?& ARRAY['a','b']</td>
+                </tr>
+                <tr>
+                    <td><code>?|</code></td>
+                    <td>Any key exists</td>
+                    <td>data ?| ARRAY['a','b']</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Operator Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Extract and filter</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> products 
+<span class="code-keyword">WHERE</span> data-><span class="code-string">'category'</span> = <span class="code-string">'"electronics"'</span>::jsonb;
+
+<span class="code-comment">-- Contains operator (most useful)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> products 
+<span class="code-keyword">WHERE</span> data @> <span class="code-string">'{"in_stock":true}'</span>::jsonb;
+
+<span class="code-comment">-- Key existence</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> products <span class="code-keyword">WHERE</span> data ? <span class="code-string">'discount'</span>;
+
+<span class="code-comment">-- Combine multiple conditions</span>
+<span class="code-keyword">SELECT</span> data->><span class="code-string">'name'</span> <span class="code-keyword">FROM</span> products
+<span class="code-keyword">WHERE</span> (data->><span class="code-string">'price'</span>)::NUMERIC > <span class="code-number">100</span>
+<span class="code-keyword">AND</span> data @> <span class="code-string">'{"brand":"Samsung"}'</span>::jsonb;</code>
+        </div>
+        
+        <h2>🔧 JSONB Functions</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">Key JSONB Functions</div>
+            <div style="color: #cbd5e1; margin-top: 15px;">
+                <strong style="color: #e74c3c;">jsonb_set():</strong> Update specific key<br>
+                <strong style="color: #e74c3c;">jsonb_array_elements():</strong> Expand array elements<br>
+                <strong style="color: #e74c3c;">jsonb_each():</strong> Expand object key-value pairs<br>
+                <strong style="color: #e74c3c;">jsonb_keys():</strong> Get all keys<br>
+                <strong style="color: #e74c3c;">jsonb_agg():</strong> Aggregate into JSON<br>
+                <strong style="color: #e74c3c;">json_build_object():</strong> Construct JSON<br>
+                <strong style="color: #e74c3c;">jsonb_to_recordset():</strong> Convert to rows
+            </div>
+        </div>
+        
+        <h3>Function Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Update JSON value</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">jsonb_set</span>(data, <span class="code-string">'{price}'</span>, <span class="code-string">'99.99'</span>::jsonb)
+<span class="code-keyword">FROM</span> products <span class="code-keyword">WHERE</span> id = <span class="code-number">1</span>;
+
+<span class="code-comment">-- Expand array to rows</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">jsonb_array_elements</span>(data-><span class="code-string">'tags'</span>)
+<span class="code-keyword">FROM</span> products;
+
+<span class="code-comment">-- Build JSON from columns</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">json_build_object</span>(
+    <span class="code-string">'id'</span>, id,
+    <span class="code-string">'name'</span>, name,
+    <span class="code-string">'email'</span>, email
+) <span class="code-keyword">FROM</span> users;
+
+<span class="code-comment">-- Aggregate rows to JSON array</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">jsonb_agg</span>(<span class="code-function">json_build_object</span>(
+    <span class="code-string">'name'</span>, name,
+    <span class="code-string">'age'</span>, age
+)) <span class="code-keyword">FROM</span> users;</code>
+        </div>
+        
+        <h2>🔍 GIN Indexing for JSONB</h2>
+        <div class="code-block">
+<code><span class="code-comment">-- Create GIN index on JSONB column</span>
+<span class="code-keyword">CREATE INDEX</span> idx_products_data <span class="code-keyword">ON</span> products <span class="code-keyword">USING GIN</span> (data);
+
+<span class="code-comment">-- GIN index optimizes these operators: @>, @<, ?, ?&, ?|</span>
+<span class="code-keyword">CREATE INDEX</span> idx_data_contains <span class="code-keyword">ON</span> products 
+<span class="code-keyword">USING GIN</span> (data <span class="code-keyword">jsonb_path_ops</span>);
+
+<span class="code-comment">-- Verify index usage with EXPLAIN</span>
+<span class="code-keyword">EXPLAIN</span> (<span class="code-keyword">ANALYZE</span>) 
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> products 
+<span class="code-keyword">WHERE</span> data @> <span class="code-string">'{"brand":"Sony"}'</span>::jsonb;</code>
+        </div>
+        
+        <h2>📍 JSON Path Queries (PostgreSQL 12+)</h2>
+        <div class="code-block">
+<code><span class="code-comment">-- Use @? for path existence check</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> products 
+<span class="code-keyword">WHERE</span> data @? <span class="code-string">'$.specifications.color'</span>;
+
+<span class="code-comment">-- Use @@ for more complex queries</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> products 
+<span class="code-keyword">WHERE</span> data @@ <span class="code-string">'$.price < 1000'</span>;
+
+<span class="code-comment">-- jsonpath function</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">jsonb_path_query_array</span>(data, <span class="code-string">'$.*.price'</span>)
+<span class="code-keyword">FROM</span> products;</code>
+        </div>
+        
+        <h2>✅ Learning Checklist</h2>
+        <ul class="checklist">
+            <li>Always use JSONB over JSON for performance</li>
+            <li>Master the @ operator family for queries</li>
+            <li>Index JSONB columns with GIN for performance</li>
+            <li>Use jsonb_set for updates</li>
+            <li>Extract array elements with jsonb_array_elements</li>
+            <li>Build JSON with json_build_object</li>
+            <li>Combine with EXPLAIN to verify index usage</li>
+            <li>Use JSON Path queries for complex filtering</li>
+            <li>Leverage GIN indexing for @> operator</li>
+        </ul>
+        
+        <div class="info-box">
+            <strong>💡 Pro Tip:</strong> JSONB with GIN indexes provides flexible schema storage with near-relational query performance. 
+            Perfect for evolving schemas or semi-structured data alongside relational tables.
+        </div>
+        
+        <a href="index-postgresql.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Cheat Sheet #1 - Foundations & Data Model</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .hero {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            padding: 40px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .concept-section {
+            background: #1a2844;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .concept-title {
+            color: #38ef7d;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .concept-text {
+            color: #a0aec0;
+            margin-bottom: 15px;
+        }
+        .code-block {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #38ef7d;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block code {
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .code-keyword { color: #667eea; }
+        .code-string { color: #38ef7d; }
+        .code-method { color: #fbbf24; }
+        .code-number { color: #f87171; }
+        .info-box {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid #667eea;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid #ef4444;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .tip-box {
+            background: rgba(56, 239, 125, 0.1);
+            border-left: 3px solid #38ef7d;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a2844;
+            margin: 20px 0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            background: #334155;
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #334155;
+        }
+        .tab-btn {
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            color: #a0aec0;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active {
+            color: #38ef7d;
+            border-bottom-color: #38ef7d;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .checklist {
+            background: #1a2844;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .checkbox-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            align-items: flex-start;
+        }
+        input[type="checkbox"] {
+            margin-top: 3px;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            .content { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="hero-badge">Module 1 of 7</div>
+            <h1>Firestore Foundations & Data Model</h1>
+            <p style="color: rgba(255,255,255,0.8); margin-top: 10px;">Master the NoSQL document-oriented structure</p>
+        </div>
+
+        <div class="content">
+            <div class="concept-section">
+                <div class="concept-title">📦 Collections & Documents</div>
+                <div class="concept-text">
+                    Firestore is a NoSQL, document-oriented database. Instead of tables and rows, data is organized into:
+                </div>
+                <div class="info-box">
+                    <strong>Collections:</strong> Containers holding documents<br>
+                    <strong>Documents:</strong> Individual records with key-value pairs<br>
+                    <strong>Fields:</strong> Keys and values within a document
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">// Document structure</span>
+users/user123 {
+  first: <span class="code-string">"Ada"</span>,
+  last: <span class="code-string">"Lovelace"</span>,
+  born: <span class="code-number">1815</span>
+}
+                </code></div>
+                <div class="tip-box">
+                    💡 Collections and documents are created implicitly when you add data
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🌳 Subcollections & Hierarchies</div>
+                <div class="concept-text">
+                    Documents can contain subcollections, allowing hierarchical data structures up to 100 levels deep:
+                </div>
+                <div class="code-block"><code>
+users/userId/posts/postId {
+  title: <span class="code-string">"Hello World"</span>,
+  timestamp: <span class="code-number">1640000000</span>
+}
+                </code></div>
+                <div class="info-box">
+                    <strong>Benefits:</strong> Better query organization, atomic updates at document level
+                </div>
+                <div class="warning-box">
+                    ⚠️ Subcollection queries don't automatically include parent data
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">📊 Data Types Supported</div>
+                <table>
+                    <tr>
+                        <th>Type</th>
+                        <th>Description</th>
+                        <th>Example</th>
+                    </tr>
+                    <tr>
+                        <td>String</td>
+                        <td>UTF-8 text</td>
+                        <td>"Hello"</td>
+                    </tr>
+                    <tr>
+                        <td>Number</td>
+                        <td>Integer or float</td>
+                        <td>42, 3.14</td>
+                    </tr>
+                    <tr>
+                        <td>Boolean</td>
+                        <td>true or false</td>
+                        <td>true</td>
+                    </tr>
+                    <tr>
+                        <td>Date</td>
+                        <td>Timestamp</td>
+                        <td>Timestamp.now()</td>
+                    </tr>
+                    <tr>
+                        <td>Array</td>
+                        <td>Ordered list</td>
+                        <td>["a", "b", "c"]</td>
+                    </tr>
+                    <tr>
+                        <td>Map/Object</td>
+                        <td>Nested object</td>
+                        <td>{name: "John"}</td>
+                    </tr>
+                    <tr>
+                        <td>Reference</td>
+                        <td>Link to another document</td>
+                        <td>db.doc("users/123")</td>
+                    </tr>
+                    <tr>
+                        <td>Null</td>
+                        <td>Null value</td>
+                        <td>null</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">💾 Document ID Types</div>
+                <div class="concept-text">
+                    You can specify custom IDs or let Firestore auto-generate them:
+                </div>
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(event, 'auto-id')">Auto ID</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'custom-id')">Custom ID</button>
+                </div>
+                <div id="auto-id" class="tab-content active">
+                    <div class="code-block"><code>
+<span class="code-keyword">// JavaScript</span>
+<span class="code-keyword">const</span> docRef = <span class="code-keyword">await</span> <span class="code-method">addDoc</span>(
+  <span class="code-method">collection</span>(db, <span class="code-string">"users"</span>),
+  { first: <span class="code-string">"Ada"</span>, last: <span class="code-string">"Lovelace"</span> }
+);
+<span class="code-comment">// Auto-generated 20-char ID</span>
+                    </code></div>
+                </div>
+                <div id="custom-id" class="tab-content">
+                    <div class="code-block"><code>
+<span class="code-keyword">// JavaScript</span>
+<span class="code-keyword">await</span> <span class="code-method">setDoc</span>(
+  <span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, <span class="code-string">"user123"</span>),
+  { first: <span class="code-string">"Ada"</span>, last: <span class="code-string">"Lovelace"</span> }
+);
+                    </code></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="concept-section" style="margin-bottom: 30px;">
+            <div class="concept-title">🎓 Key Concepts Summary</div>
+            <table>
+                <tr>
+                    <th>Concept</th>
+                    <th>SQL Equivalent</th>
+                    <th>Firestore Definition</th>
+                </tr>
+                <tr>
+                    <td>Database</td>
+                    <td>Database</td>
+                    <td>Project-level container</td>
+                </tr>
+                <tr>
+                    <td>Collection</td>
+                    <td>Table</td>
+                    <td>Container for documents</td>
+                </tr>
+                <tr>
+                    <td>Document</td>
+                    <td>Row</td>
+                    <td>Single record with fields</td>
+                </tr>
+                <tr>
+                    <td>Field</td>
+                    <td>Column</td>
+                    <td>Key-value pair</td>
+                </tr>
+                <tr>
+                    <td>Subcollection</td>
+                    <td>Related table</td>
+                    <td>Collection within a document</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="checklist">
+            <div class="concept-title">✅ Learning Checklist</div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c1">
+                <label for="c1">Understand document-oriented vs. relational databases</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c2">
+                <label for="c2">Know the difference between collections and documents</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c3">
+                <label for="c3">Understand all supported data types</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c4">
+                <label for="c4">Design a basic data model for your app</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c5">
+                <label for="c5">Know when to use subcollections vs. denormalization</label>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px;">
+            <a href="index.html" style="color: #667eea; text-decoration: none; font-weight: 600;">← Back to Index</a>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(event, tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const btns = document.querySelectorAll('.tab-btn');
+
+            btns.forEach(btn => btn.classList.remove('active'));
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+    </script>
+</body>
+</html>

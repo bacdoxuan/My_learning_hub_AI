@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #3 - CRUD + Filtering + Sorting</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #10b981;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #34d399;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #34d399;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #6ee7b7;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #34d399;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #fbbf24;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #34d399;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #34d399;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #34d399;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #34d399;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #059669;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟢 SQL Server CRUD + Filtering + Sorting</h1>
+        <p>Master T-SQL Essentials for Data Manipulation and Retrieval</p>
+        <div class="badge">Foundation</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers the core T-SQL operations for data manipulation (CRUD: Create, Read, Update, Delete) and data retrieval with filtering and sorting. 
+            Learn INSERT, UPDATE, DELETE, MERGE syntax and pitfalls, WHERE clause operators, ORDER BY, TOP, and OFFSET/FETCH for pagination.
+        </p>
+        
+        <h2>📝 CRUD Operations</h2>
+        
+        <h3>INSERT Syntax & Patterns</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Single Row Insert</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Basic:</strong> INSERT INTO table (columns) VALUES (values)<br>
+                    <strong style="color: #34d399;">Default values:</strong> Omit columns with DEFAULT constraint<br>
+                    <strong style="color: #34d399;">Identity:</strong> Skip IDENTITY columns or use SET IDENTITY_INSERT ON
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Multi-Row Insert</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">VALUES multiple:</strong> VALUES (), (), ()<br>
+                    <strong style="color: #34d399;">INSERT SELECT:</strong> Copy from another table<br>
+                    <strong style="color: #34d399;">SELECT INTO:</strong> Create table and insert in one statement
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Single row insert</span>
+<span class="code-keyword">INSERT INTO</span> Employees (FirstName, LastName, Email, HireDate)
+<span class="code-keyword">VALUES</span> ('John', 'Doe', 'john.doe@company.com', GETDATE());
+
+<span class="code-comment">-- Multi-row insert</span>
+<span class="code-keyword">INSERT INTO</span> Products (ProductName, Price, CategoryID)
+<span class="code-keyword">VALUES</span>
+    ('Laptop', 999.99, 1),
+    ('Mouse', 29.99, 2),
+    ('Keyboard', 79.99, 2);
+
+<span class="code-comment">-- INSERT SELECT</span>
+<span class="code-keyword">INSERT INTO</span> ArchivedOrders (OrderID, CustomerID, OrderDate)
+<span class="code-keyword">SELECT</span> OrderID, CustomerID, OrderDate
+<span class="code-keyword">FROM</span> Orders
+<span class="code-keyword">WHERE</span> OrderDate < '2020-01-01';
+
+<span class="code-comment">-- SELECT INTO (creates table)</span>
+<span class="code-keyword">SELECT</span> CustomerID, COUNT(*) AS OrderCount
+<span class="code-keyword">INTO</span> CustomerOrderSummary
+<span class="code-keyword">FROM</span> Orders
+<span class="code-keyword">GROUP BY</span> CustomerID;</code>
+        </div>
+        
+        <h3>UPDATE & DELETE Operations</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">UPDATE Patterns</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Basic:</strong> UPDATE table SET column = value WHERE condition<br>
+                    <strong style="color: #34d399;">Multiple columns:</strong> SET col1 = val1, col2 = val2<br>
+                    <strong style="color: #34d399;">FROM clause:</strong> Update using data from other tables<br>
+                    <strong style="color: #34d399;">TOP:</strong> Limit rows affected
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">DELETE Patterns</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Basic:</strong> DELETE FROM table WHERE condition<br>
+                    <strong style="color: #34d399;">TRUNCATE:</strong> Fast delete of all rows (no WHERE, no triggers)<br>
+                    <strong style="color: #34d399;">TOP:</strong> Limit deletions<br>
+                    <strong style="color: #34d399;">Foreign keys:</strong> Consider CASCADE or manual cleanup
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- UPDATE examples</span>
+<span class="code-keyword">UPDATE</span> Employees
+<span class="code-keyword">SET</span> Salary = Salary * 1.05, LastModified = GETDATE()
+<span class="code-keyword">WHERE</span> DepartmentID = 1;
+
+<span class="code-comment">-- UPDATE with JOIN</span>
+<span class="code-keyword">UPDATE</span> p
+<span class="code-keyword">SET</span> p.UnitPrice = p.UnitPrice * 1.1
+<span class="code-keyword">FROM</span> Products p
+<span class="code-keyword">INNER JOIN</span> Categories c <span class="code-keyword">ON</span> p.CategoryID = c.CategoryID
+<span class="code-keyword">WHERE</span> c.CategoryName = 'Electronics';
+
+<span class="code-comment">-- DELETE examples</span>
+<span class="code-keyword">DELETE FROM</span> Orders
+<span class="code-keyword">WHERE</span> OrderDate < '2019-01-01';
+
+<span class="code-comment">-- TRUNCATE (fast, no conditions)</span>
+<span class="code-keyword">TRUNCATE TABLE</span> TempData;
+
+<span class="code-comment">-- DELETE TOP</span>
+<span class="code-keyword">DELETE TOP</span> (1000) <span class="code-keyword">FROM</span> LargeTable
+<span class="code-keyword">WHERE</span> CreatedDate < '2020-01-01';</code>
+        </div>
+        
+        <h3>MERGE (Upsert) Operation</h3>
+        <div class="concept-box">
+            <div class="concept-title">MERGE Syntax</div>
+            <div class="concept-description">
+                MERGE combines INSERT, UPDATE, DELETE in one statement. Use WHEN MATCHED for updates, WHEN NOT MATCHED for inserts, 
+                WHEN NOT MATCHED BY SOURCE for deletes. Essential for ETL processes and data synchronization.
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- MERGE example: Sync staging to production</span>
+<span class="code-keyword">MERGE</span> Production.ProductInventory AS target
+<span class="code-keyword">USING</span> Staging.ProductUpdates AS source
+    <span class="code-keyword">ON</span> target.ProductID = source.ProductID
+<span class="code-keyword">WHEN MATCHED THEN</span>
+    <span class="code-keyword">UPDATE SET</span>
+        target.Quantity = source.Quantity,
+        target.LastUpdated = GETDATE()
+<span class="code-keyword">WHEN NOT MATCHED THEN</span>
+    <span class="code-keyword">INSERT</span> (ProductID, Quantity, LastUpdated)
+    <span class="code-keyword">VALUES</span> (source.ProductID, source.Quantity, GETDATE())
+<span class="code-keyword">WHEN NOT MATCHED BY SOURCE THEN</span>
+    <span class="code-keyword">DELETE</span>;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ MERGE Pitfalls:</strong> Always include semicolon at end. WHEN MATCHED can cause unexpected updates if join condition is wrong. 
+            Use HOLDLOCK for concurrency. Test thoroughly - MERGE can be complex to debug.
+        </div>
+        
+        <h2>🔍 Filtering with WHERE</h2>
+        
+        <h3>WHERE Clause Operators</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Operator</th>
+                    <th>Description</th>
+                    <th>Example</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>=, <>, <, >, <=, >=</strong></td>
+                    <td>Comparison operators</td>
+                    <td><code>WHERE Age > 18</code></td>
+                </tr>
+                <tr>
+                    <td><strong>LIKE</strong></td>
+                    <td>Pattern matching with wildcards</td>
+                    <td><code>WHERE Name LIKE 'J%'</code></td>
+                </tr>
+                <tr>
+                    <td><strong>IN</strong></td>
+                    <td>Value in list</td>
+                    <td><code>WHERE Status IN (1,2,3)</code></td>
+                </tr>
+                <tr>
+                    <td><strong>BETWEEN</strong></td>
+                    <td>Range inclusive</td>
+                    <td><code>WHERE Price BETWEEN 10 AND 100</code></td>
+                </tr>
+                <tr>
+                    <td><strong>IS NULL</strong></td>
+                    <td>Check for NULL values</td>
+                    <td><code>WHERE Email IS NULL</code></td>
+                </tr>
+                <tr>
+                    <td><strong>AND, OR, NOT</strong></td>
+                    <td>Logical operators</td>
+                    <td><code>WHERE Age > 18 AND Status = 'Active'</code></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- WHERE clause examples</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Employees
+<span class="code-keyword">WHERE</span> DepartmentID = 1
+    <span class="code-keyword">AND</span> (Salary > 50000 <span class="code-keyword">OR</span> HireDate > '2020-01-01')
+    <span class="code-keyword">AND</span> Email <span class="code-keyword">IS NOT NULL</span>;
+
+<span class="code-comment">-- LIKE patterns</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Products
+<span class="code-keyword">WHERE</span> ProductName <span class="code-keyword">LIKE</span> 'Laptop%'          <span class="code-comment">-- Starts with Laptop</span>
+    <span class="code-keyword">OR</span> ProductName <span class="code-keyword">LIKE</span> '%Pro'            <span class="code-comment">-- Ends with Pro</span>
+    <span class="code-keyword">OR</span> ProductName <span class="code-keyword">LIKE</span> '%Book%'         <span class="code-comment">-- Contains Book</span>
+    <span class="code-keyword">OR</span> ProductName <span class="code-keyword">LIKE</span> 'Mac_[0-9]'      <span class="code-comment">-- Mac + digit</span>;</code>
+        </div>
+        
+        <h2>📊 Sorting & Pagination</h2>
+        
+        <h3>ORDER BY & TOP</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">ORDER BY Options</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">ASC/DESC:</strong> Ascending (default) or descending<br>
+                    <strong style="color: #34d399;">Multiple columns:</strong> Sort by multiple criteria<br>
+                    <strong style="color: #34d399;">NULLS FIRST/LAST:</strong> Control NULL positioning (SQL Server 2022)<br>
+                    <strong style="color: #34d399;">Expressions:</strong> Sort by computed values
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">TOP Clause</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">TOP (n):</strong> Return first n rows<br>
+                    <strong style="color: #34d399;">TOP (n) PERCENT:</strong> Return percentage of rows<br>
+                    <strong style="color: #34d399;">WITH TIES:</strong> Include ties in ordered results<br>
+                    <strong style="color: #34d399;">In DML:</strong> Limit affected rows
+                </div>
+            </div>
+        </div>
+        
+        <h3>OFFSET/FETCH Pagination</h3>
+        <div class="concept-box">
+            <div class="concept-title">Modern Pagination</div>
+            <div class="concept-description">
+                OFFSET skips first n rows, FETCH NEXT m ROWS ONLY returns next m rows. More efficient than ROW_NUMBER() for large datasets. 
+                Requires ORDER BY. Use for web applications with page-based navigation.
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- ORDER BY examples</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Products
+<span class="code-keyword">ORDER BY</span> Price <span class="code-keyword">DESC</span>, ProductName <span class="code-keyword">ASC</span>;
+
+<span class="code-comment">-- TOP examples</span>
+<span class="code-keyword">SELECT TOP</span> (10) * <span class="code-keyword">FROM</span> Products
+<span class="code-keyword">ORDER BY</span> Price <span class="code-keyword">DESC</span>;
+
+<span class="code-keyword">SELECT TOP</span> (5) <span class="code-keyword">PERCENT</span> * <span class="code-keyword">FROM</span> Products
+<span class="code-keyword">ORDER BY</span> UnitsInStock <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- OFFSET/FETCH pagination</span>
+<span class="code-keyword">SELECT</span> ProductID, ProductName, Price
+<span class="code-keyword">FROM</span> Products
+<span class="code-keyword">ORDER BY</span> ProductID
+<span class="code-keyword">OFFSET</span> 20 <span class="code-keyword">ROWS</span>
+<span class="code-keyword">FETCH NEXT</span> 10 <span class="code-keyword">ROWS ONLY</span>;
+
+<span class="code-comment">-- Page 3 (pages of 25)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Orders
+<span class="code-keyword">ORDER BY</span> OrderDate <span class="code-keyword">DESC</span>
+<span class="code-keyword">OFFSET</span> 50 <span class="code-keyword">ROWS</span>
+<span class="code-keyword">FETCH NEXT</span> 25 <span class="code-keyword">ROWS ONLY</span>;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Best Practice:</strong> Always use ORDER BY with TOP or OFFSET/FETCH unless order doesn't matter. 
+            SQL Server doesn't guarantee order without explicit ORDER BY.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Production Notes:</strong> UPDATE and DELETE without WHERE affect all rows - catastrophic in production. 
+            Always test DML statements first with SELECT. Use transactions for multi-statement operations.
+        </div>
+        
+        <h2>📊 Comparison: CRUD Operations</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Operation</th>
+                    <th>SQL Server</th>
+                    <th>PostgreSQL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>MERGE/Upsert</strong></td>
+                <td>MERGE statement</td>
+                <td>INSERT ... ON CONFLICT</td>
+                </tr>
+                <tr>
+                    <td><strong>Fast bulk delete</strong></td>
+                <td>TRUNCATE TABLE</td>
+                <td>TRUNCATE TABLE</td>
+                </tr>
+                <tr>
+                    <td><strong>Pagination</strong></td>
+                <td>OFFSET/FETCH</td>
+                <td>LIMIT/OFFSET</td>
+                </tr>
+                <tr>
+                    <td><strong>Pattern matching</strong></td>
+                <td>LIKE with % and _</td>
+                <td>LIKE or ~ (regex)</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Write INSERT statements for single and multiple rows</li>
+                <li>Use INSERT SELECT to copy data between tables</li>
+                <li>Perform UPDATE operations with WHERE clauses</li>
+                <li>Update data using JOINs in FROM clause</li>
+                <li>Use DELETE with appropriate WHERE conditions</li>
+                <li>Understand when to use TRUNCATE vs DELETE</li>
+                <li>Write MERGE statements for upsert operations</li>
+                <li>Avoid common MERGE pitfalls (missing semicolon, wrong conditions)</li>
+                <li>Use comparison operators in WHERE clauses</li>
+                <li>Implement pattern matching with LIKE and wildcards</li>
+                <li>Use IN, BETWEEN, and IS NULL operators effectively</li>
+                <li>Combine conditions with AND, OR, NOT</li>
+                <li>Sort results with ORDER BY (single and multiple columns)</li>
+                <li>Use TOP to limit result sets</li>
+                <li>Implement pagination with OFFSET and FETCH</li>
+                <li>Understand the importance of ORDER BY with TOP/pagination</li>
+                <li>Test DML operations safely before production use</li>
+                <li>Use transactions for multi-statement data changes</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>CRUD Operations:</strong> Create a Products table and perform all CRUD operations: insert sample data, update prices, delete discontinued items, and use MERGE to sync with a staging table.</li>
+                <li><strong>Advanced Filtering:</strong> Write queries to find employees hired in the last year, products with names containing 'Pro', orders between specific dates, and customers with NULL email addresses.</li>
+                <li><strong>Sorting & Pagination:</strong> Create a query that returns products sorted by price descending, then implement pagination to show 10 products per page.</li>
+                <li><strong>MERGE Scenarios:</strong> Design a MERGE statement to synchronize inventory levels from a daily update file, handling inserts, updates, and marking obsolete items.</li>
+                <li><strong>Performance Considerations:</strong> Compare the performance implications of using TOP vs OFFSET/FETCH for different query patterns and data sizes.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/02-data-types-schema-ddl.html" class="nav-btn">← Previous: Data Types, Schema & DDL</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/04-joins-set-ops-subqueries.html" class="nav-btn">Next: Joins, Set Ops & Subqueries →</a>
+        </div>
+    </div>
+</body>
+</html>

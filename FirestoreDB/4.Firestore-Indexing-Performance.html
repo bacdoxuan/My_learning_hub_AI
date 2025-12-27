@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Cheat Sheet #4 - Indexing & Performance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .hero {
+            background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%);
+            padding: 40px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #0f172a;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.1);
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: #0f172a;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .concept-section {
+            background: #1a2844;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .concept-title {
+            color: #f2994a;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .concept-text {
+            color: #a0aec0;
+            margin-bottom: 15px;
+        }
+        .code-block {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #f2994a;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.85rem;
+        }
+        .code-block code {
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+        .code-keyword { color: #667eea; }
+        .code-string { color: #38ef7d; }
+        .code-method { color: #fbbf24; }
+        .code-number { color: #f87171; }
+        .code-comment { color: #6b7280; font-style: italic; }
+        .info-box {
+            background: rgba(242, 153, 74, 0.1);
+            border-left: 3px solid #f2994a;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid #ef4444;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a2844;
+            margin: 20px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            background: #334155;
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        .checklist {
+            background: #1a2844;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .checkbox-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            align-items: flex-start;
+        }
+        @media (max-width: 768px) {
+            .content { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="hero-badge">Module 4 of 7</div>
+            <h1>Indexing & Performance</h1>
+            <p style="color: rgba(0,0,0,0.7); margin-top: 10px;">Optimize queries with smart indexing</p>
+        </div>
+
+        <div class="content">
+            <div class="concept-section">
+                <div class="concept-title">🔑 Single-Field Indexes</div>
+                <div class="concept-text">
+                    Automatic indexes on individual fields for simple queries:
+                </div>
+                <div class="info-box">
+                    <strong>Created automatically for:</strong><br>
+                    • Equality (==) filters<br>
+                    • Range (<, >, <=, >=) filters<br>
+                    • ARRAY-CONTAINS queries
+                </div>
+                <div class="code-block"><code>
+<span class="code-comment">// Automatically indexed</span>
+<span class="code-keyword">where</span>(<span class="code-string">"status"</span>, <span class="code-string">"=="</span>, <span class="code-string">"active"</span>)
+<span class="code-keyword">where</span>(<span class="code-string">"age"</span>, <span class="code-string">">"</span>, <span class="code-number">18</span>)
+<span class="code-keyword">where</span>(<span class="code-string">"tags"</span>, <span class="code-string">"array-contains"</span>, <span class="code-string">"vip"</span>)
+                </code></div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🔗 Composite Indexes</div>
+                <div class="concept-text">
+                    Required for queries combining filters and ordering:
+                </div>
+                <div class="code-block"><code>
+<span class="code-comment">// Requires composite index</span>
+<span class="code-keyword">query</span>(
+  <span class="code-method">collection</span>(db, <span class="code-string">"users"</span>),
+  <span class="code-method">where</span>(<span class="code-string">"age"</span>, <span class="code-string">">"</span>, <span class="code-number">18</span>),
+  <span class="code-method">orderBy</span>(<span class="code-string">"createdAt"</span>, <span class="code-string">"desc"</span>)
+)
+                </code></div>
+                <div class="warning-box">
+                    ⚠️ <strong>Hard limit:</strong> Maximum 200 composite indexes per database
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">⚙️ Index Management</div>
+                <div class="concept-text">
+                    View and manage indexes in the Firebase Console:
+                </div>
+                <div class="info-box">
+                    <strong>In Firebase Console:</strong><br>
+                    Firestore → Indexes → Composite Indexes<br><br>
+                    <strong>Actions:</strong><br>
+                    • Enable/disable indexes<br>
+                    • Delete unused indexes<br>
+                    • Monitor index size
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">⚡ Query Performance Tips</div>
+                <div class="info-box">
+                    <strong>Best Practices:</strong><br>
+                    ✓ Use limits to reduce data transferred<br>
+                    ✓ Filter before ordering when possible<br>
+                    ✓ Use pagination for large datasets<br>
+                    ✓ Avoid unnecessary subcollection queries<br>
+                    ✓ Denormalize frequently-accessed data<br>
+                    ✓ Use collection group queries sparingly
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🗂️ Index Size Calculation</div>
+                <div class="info-box">
+                    <strong>Index entry contains:</strong><br>
+                    • Collection/Document ID<br>
+                    • Indexed field values<br>
+                    • Maximum 7.5 KiB per entry<br>
+                    • 100 field max per composite index
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">💰 Cost Optimization</div>
+                <div class="info-box">
+                    <strong>Index costs:</strong><br>
+                    • Storage: $0.18/GB/month<br>
+                    • Write overhead scales with index count<br>
+                    • Unused indexes increase write cost<br><br>
+                    <strong>Optimize by:</strong><br>
+                    • Deleting unused indexes<br>
+                    • Using simpler queries when possible<br>
+                    • Batching writes to save operations
+                </div>
+            </div>
+        </div>
+
+        <div class="concept-section" style="margin-bottom: 30px;">
+            <div class="concept-title">📋 Index Types Comparison</div>
+            <table>
+                <tr>
+                    <th>Type</th>
+                    <th>Created</th>
+                    <th>Use Case</th>
+                    <th>Limit</th>
+                </tr>
+                <tr>
+                    <td>Single-field</td>
+                    <td>Automatic</td>
+                    <td>Simple queries (==, <, >)</td>
+                    <td>Unlimited (system indexes)</td>
+                </tr>
+                <tr>
+                    <td>Composite</td>
+                    <td>Manual/Auto</td>
+                    <td>Complex queries (filter + order)</td>
+                    <td>200 max per database</td>
+                </tr>
+                <tr>
+                    <td>Collection Group</td>
+                    <td>Manual</td>
+                    <td>Query subcollections</td>
+                    <td>Per collection group</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="concept-section" style="margin-bottom: 30px;">
+            <div class="concept-title">🚫 Queries That Need Indexes</div>
+            <table>
+                <tr>
+                    <th>Query Pattern</th>
+                    <th>Reason</th>
+                </tr>
+                <tr>
+                    <td>where() + orderBy()</td>
+                    <td>Composite index required</td>
+                </tr>
+                <tr>
+                    <td>Multiple where() + orderBy()</td>
+                    <td>Composite index required</td>
+                </tr>
+                <tr>
+                    <td>Inequality + orderBy()</td>
+                    <td>Composite index required</td>
+                </tr>
+                <tr>
+                    <td>Range + orderBy()</td>
+                    <td>Composite index required</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="checklist">
+            <div class="concept-title">✅ Learning Checklist</div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c1">
+                <label for="c1">Understand single-field index types</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c2">
+                <label for="c2">Know when composite indexes are required</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c3">
+                <label for="c3">Create and manage composite indexes</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c4">
+                <label for="c4">Monitor and delete unused indexes</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c5">
+                <label for="c5">Optimize for cost and performance</label>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px;">
+            <a href="index.html" style="color: #667eea; text-decoration: none; font-weight: 600;">← Back to Index</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheets - Master Index</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        
+        header { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); padding: 40px 20px; text-align: center; border-bottom: 2px solid #3b82f6; }
+        h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; color: #60a5fa; }
+        .subtitle { font-size: 1.1em; color: #cbd5e1; margin-bottom: 20px; }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        
+        .search-section { background: rgba(30, 41, 59, 0.6); border-radius: 12px; padding: 30px; margin-bottom: 40px; border: 1px solid #334155; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        input[type="text"] { flex: 1; min-width: 250px; padding: 12px 16px; background: rgba(0, 0, 0, 0.3); border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-size: 1em; }
+        input[type="text"]:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+        .btn { padding: 12px 24px; background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
+        .btn-secondary { background: linear-gradient(135deg, #64748b, #475569); }
+        .btn-secondary:hover { box-shadow: 0 10px 20px rgba(100, 116, 139, 0.3); }
+        
+        .tag-section { margin-bottom: 15px; }
+        .tag-label { color: #94a3b8; font-weight: 600; margin-bottom: 10px; display: block; }
+        .tags { display: flex; gap: 8px; flex-wrap: wrap; }
+        .tag { padding: 6px 14px; background: rgba(59, 130, 246, 0.2); border: 1px solid #3b82f6; color: #60a5fa; border-radius: 20px; cursor: pointer; font-size: 0.9em; transition: all 0.2s ease; }
+        .tag:hover { background: rgba(59, 130, 246, 0.3); }
+        .tag.active { background: #3b82f6; color: white; }
+        .clear-btn { padding: 8px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; border-radius: 6px; cursor: pointer; font-size: 0.85em; }
+        .clear-btn:hover { background: rgba(239, 68, 68, 0.3); }
+        
+        .counter { color: #94a3b8; font-size: 0.95em; margin-top: 15px; }
+        
+        .modules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-bottom: 50px; }
+        
+        .module-card { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 25px; border-left: 5px solid; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden; }
+        .module-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3); }
+        .module-card::before { content: ''; position: absolute; top: 0; right: -40px; width: 80px; height: 80px; background: rgba(255, 255, 255, 0.02); border-radius: 50%; }
+        
+        .module-card.green { border-left-color: #2ecc71; }
+        .module-card.blue { border-left-color: #3498db; }
+        .module-card.purple { border-left-color: #9b59b6; }
+        .module-card.orange { border-left-color: #e67e22; }
+        .module-card.red { border-left-color: #e74c3c; }
+        .module-card.yellow { border-left-color: #f39c12; }
+        .module-card.dark { border-left-color: #95a5a6; }
+        .module-card.teal { border-left-color: #16a085; }
+        .module-card.pink { border-left-color: #e91e63; }
+        .module-card.indigo { border-left-color: #3f51b5; }
+        
+        .module-badge { display: inline-block; font-size: 1.8em; margin-bottom: 10px; }
+        .module-title { font-size: 1.4em; font-weight: 700; margin-bottom: 10px; color: #f1f5f9; }
+        .module-description { color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; font-size: 0.95em; }
+        .module-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+        .module-tag { padding: 4px 10px; background: rgba(100, 116, 139, 0.3); color: #cbd5e1; border-radius: 4px; font-size: 0.8em; }
+        
+        .module-link { display: inline-block; margin-top: 10px; padding: 10px 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1)); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; text-decoration: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; transition: all 0.2s ease; }
+        .module-link:hover { background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.2)); border-color: #3b82f6; }
+        
+        .timeline-section { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 30px; margin-bottom: 50px; border: 1px solid #334155; }
+        .timeline-section h2 { font-size: 1.8em; color: #f1f5f9; margin-bottom: 25px; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; }
+        .timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        .timeline-item { background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(37, 99, 235, 0.05)); border: 1px solid #334155; border-radius: 8px; padding: 15px; text-align: center; }
+        .timeline-week { color: #3b82f6; font-weight: 700; font-size: 1.1em; }
+        .timeline-content { color: #cbd5e1; font-size: 0.9em; margin-top: 8px; line-height: 1.4; }
+        
+        .projects-section { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 30px; margin-bottom: 50px; border: 1px solid #334155; }
+        .projects-section h2 { font-size: 1.8em; color: #f1f5f9; margin-bottom: 25px; border-bottom: 2px solid #f39c12; padding-bottom: 15px; }
+        .projects-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .project-card { background: linear-gradient(135deg, rgba(243, 156, 18, 0.1), rgba(230, 126, 34, 0.05)); border: 1px solid #334155; border-radius: 8px; padding: 20px; }
+        .project-title { font-size: 1.2em; font-weight: 700; color: #f1f5f9; margin-bottom: 10px; }
+        .project-modules { color: #94a3b8; font-size: 0.85em; margin-bottom: 12px; }
+        .project-desc { color: #cbd5e1; line-height: 1.6; margin-bottom: 12px; }
+        .project-bullets { list-style: none; padding: 0; color: #cbd5e1; font-size: 0.9em; }
+        .project-bullets li { padding: 5px 0; padding-left: 20px; position: relative; }
+        .project-bullets li:before { content: "→"; position: absolute; left: 0; color: #f39c12; }
+        
+        .resources-section { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 30px; border: 1px solid #334155; }
+        .resources-section h2 { font-size: 1.8em; color: #f1f5f9; margin-bottom: 25px; border-bottom: 2px solid #10b981; padding-bottom: 15px; }
+        .resources-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .resource-item { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05)); border: 1px solid #334155; border-radius: 8px; padding: 18px; }
+        .resource-title { font-size: 1.1em; font-weight: 700; color: #a7f3d0; margin-bottom: 8px; }
+        .resource-desc { color: #cbd5e1; font-size: 0.9em; line-height: 1.5; }
+        .resource-link { display: inline-block; margin-top: 10px; color: #10b981; text-decoration: none; font-weight: 600; font-size: 0.9em; }
+        .resource-link:hover { text-decoration: underline; }
+        
+        footer { background: #0f172a; border-top: 1px solid #334155; padding: 30px 20px; text-align: center; color: #64748b; margin-top: 60px; }
+        
+        .hidden { display: none !important; }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .modules-grid { grid-template-columns: 1fr; }
+            .search-box { flex-direction: column; }
+            input[type="text"] { min-width: 100%; }
+            .timeline { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🔵 SQL Server Cheat Sheets</h1>
+        <p class="subtitle">Master SQL Server with 21 comprehensive modules covering Foundations, Advanced T-SQL, Performance Tuning, In-Memory OLTP, Security, Backup/Restore, Always On, and Monitoring</p>
+    </header>
+    
+    <div class="container">
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search modules by name, tags, or keywords...">
+                <button class="btn" onclick="performSearch()">Search</button>
+                <button class="btn btn-secondary" onclick="openFiltered()">Open Filtered (Multi-Tab)</button>
+            </div>
+            
+            <div class="tag-section">
+                <span class="tag-label">Filter by Tags:</span>
+                <div class="tags" id="tagContainer"></div>
+                <button class="clear-btn" onclick="clearFilters()">Clear All Filters</button>
+            </div>
+            
+            <div class="counter">
+                <span id="counter">21 / 21 modules shown</span>
+            </div>
+        </div>
+        
+        <div class="modules-grid" id="modulesContainer"></div>
+        
+        <div class="timeline-section">
+            <h2>📅 Learning Timeline (42 Weeks)</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 1-2</div>
+                    <div class="timeline-content">Overview & Tooling<br>Data Types, Schema & DDL<br>CRUD + Filtering + Sorting</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 3-4</div>
+                    <div class="timeline-content">Joins, Set Ops & Subqueries<br>CTE, Recursive CTE & Query Structuring<br>Window Functions & Analytical Patterns</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 5-6</div>
+                    <div class="timeline-content">Advanced Grouping<br>APPLY, Derived Tables, Temp Tables<br>Indexing Fundamentals</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 7-8</div>
+                    <div class="timeline-content">Advanced Indexing<br>Execution Plans & Query Optimizer<br>Statistics & Cardinality Estimation</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 9-10</div>
+                    <div class="timeline-content">Locks, Blocking & Isolation Levels<br>Transactions, Error Handling & Retry<br>Stored Procedures Design</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 11-12</div>
+                    <div class="timeline-content">Functions & Modular SQL<br>Triggers, Auditing Patterns & Temporal<br>JSON & XML in SQL Server</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 13-14</div>
+                    <div class="timeline-content">Partitioning & Large Data<br>Security Fundamentals & Backup<br>Always On & Monitoring</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="projects-section">
+            <h2>🎯 Practice Projects</h2>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-title">Project 1: E-Commerce Analytics Platform</div>
+                    <div class="project-modules">📚 Modules 1-7</div>
+                    <div class="project-desc">Build a comprehensive e-commerce analytics platform with optimized queries, advanced T-SQL features, and performance monitoring.</div>
+                    <ul class="project-bullets">
+                        <li>Design normalized database schema with constraints</li>
+                        <li>Implement efficient indexing and query optimization</li>
+                        <li>Use window functions for sales analytics</li>
+                        <li>Monitor performance with execution plans</li>
+                    </ul>
+                </div>
+                
+                <div class="project-card">
+                    <div class="project-title">Project 2: Financial Reporting System</div>
+                    <div class="project-modules">📚 Modules 8-14</div>
+                    <div class="project-desc">Develop a robust financial reporting system with transactions, stored procedures, and in-memory optimizations for high-performance calculations.</div>
+                    <ul class="project-bullets">
+                        <li>Implement transaction management with error handling</li>
+                        <li>Create stored procedures for complex financial calculations</li>
+                        <li>Use in-memory tables for real-time aggregations</li>
+                        <li>Build retry patterns for resilient operations</li>
+                    </ul>
+                </div>
+                
+                <div class="project-card">
+                    <div class="project-title">Project 3: Enterprise Data Warehouse</div>
+                    <div class="project-modules">📚 Modules 15-21</div>
+                    <div class="project-desc">Construct an enterprise-grade data warehouse with partitioning, security, high availability, and comprehensive monitoring.</div>
+                    <ul class="project-bullets">
+                        <li>Implement table partitioning for large datasets</li>
+                        <li>Set up security with least privilege principles</li>
+                        <li>Configure Always On availability groups</li>
+                        <li>Monitor performance with DMVs and Extended Events</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="resources-section">
+            <h2>📚 Resources & Tools</h2>
+            <div class="resources-grid">
+                <div class="resource-item">
+                    <div class="resource-title">Microsoft SQL Server Docs</div>
+                    <div class="resource-desc">Official Microsoft documentation with complete API reference and guides for SQL Server.</div>
+                    <a href="https://docs.microsoft.com/en-us/sql/sql-server/" target="_blank" class="resource-link">→ docs.microsoft.com/sql</a>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-title">SQL Server Management Studio</div>
+                    <div class="resource-desc">Integrated environment for managing SQL Server databases and writing queries.</div>
+                    <a href="https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms" target="_blank" class="resource-link">→ download SSMS</a>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-title">Azure SQL Database</div>
+                    <div class="resource-desc">Cloud-based SQL Server with managed services and modern development features.</div>
+                    <a href="https://azure.microsoft.com/en-us/products/azure-sql/database/" target="_blank" class="resource-link">→ azure.microsoft.com</a>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-title">SQL Server Central</div>
+                    <div class="resource-desc">Community forum for SQL Server professionals with articles and discussions.</div>
+                    <a href="https://www.sqlservercentral.com/" target="_blank" class="resource-link">→ sqlservercentral.com</a>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-title">Brent Ozar's Tools</div>
+                    <div class="resource-desc">Free SQL Server monitoring and performance tuning tools.</div>
+                    <a href="https://www.brentozar.com/" target="_blank" class="resource-link">→ brentozar.com</a>
+                </div>
+                <div class="resource-item">
+                    <div class="resource-title">Redgate SQL Toolbelt</div>
+                    <div class="resource-desc">Comprehensive suite of SQL Server development and administration tools.</div>
+                    <a href="https://www.red-gate.com/products/sql-development/sql-toolbelt/" target="_blank" class="resource-link">→ red-gate.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <p>SQL Server Cheat Sheets © 2024 | Comprehensive learning resource for SQL Server professionals</p>
+    </footer>
+    
+    <script>
+        // Module data
+        const modules = [
+            {
+                id: 1,
+                title: "Overview & Tooling",
+                emoji: "🟢",
+                description: "SQL Server components, editions, installation, tools (SSMS, Azure Data Studio), basic architecture, databases, schemas, and objects.",
+                color: "green",
+                tags: ["overview", "tooling", "ssms", "installation", "architecture"],
+                file: "SQL Server Module 01 - Overview & Tooling.html"
+            },
+            {
+                id: 2,
+                title: "Data Types, Schema & DDL",
+                emoji: "🔵",
+                description: "Comprehensive guide to SQL Server data types, schema creation, DDL operations (CREATE, ALTER, DROP), and table design.",
+                color: "blue",
+                tags: ["data-types", "schema", "ddl", "tables", "design"],
+                file: "SQL Server Module 02 - Data Types, Schema & DDL.html"
+            },
+            {
+                id: 3,
+                title: "CRUD + Filtering + Sorting",
+                emoji: "🟣",
+                description: "Basic CRUD operations, WHERE clauses, filtering techniques, ORDER BY, TOP, and data manipulation fundamentals.",
+                color: "purple",
+                tags: ["crud", "filtering", "sorting", "where", "order-by"],
+                file: "SQL Server Module 03 - CRUD + Filtering + Sorting.html"
+            },
+            {
+                id: 4,
+                title: "Joins, Set Ops & Subqueries",
+                emoji: "🟠",
+                description: "INNER, LEFT, RIGHT, FULL OUTER joins, UNION/INTERSECT/EXCEPT operations, and various subquery patterns.",
+                color: "orange",
+                tags: ["joins", "set-operations", "subqueries", "union", "inner-join"],
+                file: "SQL Server Module 04 - Joins, Set Ops & Subqueries.html"
+            },
+            {
+                id: 5,
+                title: "CTE, Recursive CTE & Query Structuring",
+                emoji: "🔴",
+                description: "Common Table Expressions (CTEs), recursive CTEs for hierarchical data, and advanced query structuring techniques.",
+                color: "red",
+                tags: ["cte", "recursive-cte", "query-structuring", "hierarchical", "common-table-expressions"],
+                file: "SQL Server Module 05 - CTE, Recursive CTE & Query Structuring.html"
+            },
+            {
+                id: 6,
+                title: "Window Functions & Analytical Patterns",
+                emoji: "🟡",
+                description: "ROW_NUMBER, RANK, DENSE_RANK, LEAD/LAG functions, and analytical query patterns for data analysis.",
+                color: "yellow",
+                tags: ["window-functions", "analytical", "row-number", "rank", "lead-lag"],
+                file: "SQL Server Module 06 - Window Functions & Analytical Patterns.html"
+            },
+            {
+                id: 7,
+                title: "Advanced Grouping: ROLLUP/CUBE/GROUPING SETS",
+                emoji: "⚫",
+                description: "Advanced GROUP BY extensions including ROLLUP, CUBE, and GROUPING SETS for multi-level aggregation.",
+                color: "dark",
+                tags: ["grouping", "rollup", "cube", "grouping-sets", "aggregation"],
+                file: "SQL Server Module 07 - Advanced Grouping_ ROLLUP_CUBE_GROUPING SETS.html"
+            },
+            {
+                id: 8,
+                title: "APPLY, Derived Tables, Temp Tables & Table Variables",
+                emoji: "🟢",
+                description: "CROSS/OUTER APPLY operations, derived tables, temporary tables, table variables, and their use cases.",
+                color: "teal",
+                tags: ["apply", "derived-tables", "temp-tables", "table-variables", "cross-apply"],
+                file: "SQL Server Module 08 - APPLY, Derived Tables, Temp Tables & Table Variables.html"
+            },
+            {
+                id: 9,
+                title: "Indexing Fundamentals",
+                emoji: "🔵",
+                description: "Clustered vs non-clustered indexes, index creation, maintenance, and basic indexing strategies.",
+                color: "blue",
+                tags: ["indexing", "clustered", "nonclustered", "fundamentals", "maintenance"],
+                file: "SQL Server Module 09 - Indexing Fundamentals.html"
+            },
+            {
+                id: 10,
+                title: "Advanced Indexing: Filtered, Columnstore, Indexed View",
+                emoji: "🟣",
+                description: "Filtered indexes, columnstore indexes, indexed views, and advanced indexing techniques for performance.",
+                color: "purple",
+                tags: ["advanced-indexing", "filtered", "columnstore", "indexed-views", "performance"],
+                file: "SQL Server Module 10 - Advanced Indexing_ Filtered, Columnstore, Indexed View.html"
+            },
+            {
+                id: 11,
+                title: "Execution Plans & Query Optimizer Basics",
+                emoji: "🟠",
+                description: "Reading execution plans, query optimizer fundamentals, operators, and performance tuning basics.",
+                color: "orange",
+                tags: ["execution-plans", "query-optimizer", "operators", "tuning", "performance"],
+                file: "SQL Server Module 11 - Execution Plans & Query Optimizer Basics.html"
+            },
+            {
+                id: 12,
+                title: "Statistics & Cardinality Estimation",
+                emoji: "🔴",
+                description: "Query optimizer statistics, cardinality estimation, and maintaining accurate statistics for optimal plans.",
+                color: "red",
+                tags: ["statistics", "cardinality", "estimation", "optimizer", "query-plans"],
+                file: "SQL Server Module 12 - Statistics & Cardinality Estimation.html"
+            },
+            {
+                id: 13,
+                title: "Locks, Blocking & Isolation Levels",
+                emoji: "🟡",
+                description: "Locking mechanisms, blocking analysis, isolation levels, and concurrency control in SQL Server.",
+                color: "yellow",
+                tags: ["locks", "blocking", "isolation-levels", "concurrency", "locking"],
+                file: "SQL Server Module 13 - Locks, Blocking & Isolation Levels.html"
+            },
+            {
+                id: 14,
+                title: "Transactions, Error Handling & Retry Patterns",
+                emoji: "⚫",
+                description: "Transaction management, TRY/CATCH error handling, and implementing retry logic patterns.",
+                color: "dark",
+                tags: ["transactions", "error-handling", "retry-patterns", "try-catch", "resilience"],
+                file: "SQL Server Module 14 - Transactions, Error Handling & Retry Patterns.html"
+            },
+            {
+                id: 15,
+                title: "Stored Procedures: Design, Parameters, Security",
+                emoji: "🟢",
+                description: "Best practices for stored procedure design, parameter handling (input/output/TVP), and security considerations.",
+                color: "green",
+                tags: ["stored-procedures", "parameters", "security", "design", "tvp"],
+                file: "SQL Server Module 15 - Stored Procedures_ Design, Parameters, Security.html"
+            },
+            {
+                id: 16,
+                title: "Functions & Modular SQL: Scalar, Inline TVF, Multi-statement",
+                emoji: "🔵",
+                description: "User-defined functions (scalar, inline TVF, multi-statement), APPLY patterns, and modular SQL techniques.",
+                color: "blue",
+                tags: ["functions", "tvf", "modular-sql", "scalar", "inline-tvf"],
+                file: "SQL Server Module 16 - Functions & Modular SQL_ Scalar, Inline TVF, Multi-statement.html"
+            },
+            {
+                id: 17,
+                title: "Triggers, Auditing Patterns & Temporal Tables (System-Versioned)",
+                emoji: "🟣",
+                description: "DML triggers, auditing patterns, pitfalls, and system-versioned temporal tables for history tracking.",
+                color: "purple",
+                tags: ["triggers", "auditing", "temporal-tables", "history", "pitfalls"],
+                file: "SQL Server Module 17 - Triggers, Auditing Patterns & Temporal Tables (System-Versioned).html"
+            },
+            {
+                id: 18,
+                title: "JSON & XML in SQL Server",
+                emoji: "🟠",
+                description: "OPENJSON, JSON functions (VALUE/QUERY/MODIFY), XML processing, and indexing strategies for semi-structured data.",
+                color: "orange",
+                tags: ["json", "xml", "openjson", "indexing", "semi-structured"],
+                file: "SQL Server Module 18 - JSON & XML in SQL Server.html"
+            },
+            {
+                id: 19,
+                title: "Partitioning & Large Data Management",
+                emoji: "🔴",
+                description: "Partition functions and schemes, sliding window strategy for data lifecycle management and archiving.",
+                color: "red",
+                tags: ["partitioning", "large-data", "sliding-window", "data-lifecycle", "archiving"],
+                file: "SQL Server Module 19 - Partitioning & Large Data Management.html"
+            },
+            {
+                id: 20,
+                title: "Security Fundamentals & Backup/Restore",
+                emoji: "🟡",
+                description: "Logins/users/roles, least privilege, ownership chaining, backup types, restore sequences, and verification.",
+                color: "yellow",
+                tags: ["security", "backup", "restore", "least-privilege", "authentication"],
+                file: "SQL Server Module 20 - Security Fundamentals & Backup_Restore.html"
+            },
+            {
+                id: 21,
+                title: "Always On & Monitoring",
+                emoji: "⚫",
+                description: "Always On availability groups overview, maintenance basics, monitoring with DMVs and Extended Events starter kit.",
+                color: "dark",
+                tags: ["always-on", "monitoring", "dmvs", "extended-events", "ha-dr"],
+                file: "SQL Server Module 21 - Always On & Monitoring.html"
+            }
+        ];
+        
+        let activeFilters = new Set();
+        
+        function renderModules(modsToShow = modules) {
+            const container = document.getElementById('modulesContainer');
+            container.innerHTML = '';
+            
+            modsToShow.forEach(mod => {
+                const card = document.createElement('div');
+                card.className = `module-card ${mod.color}`;
+                card.innerHTML = `
+                    <div class="module-badge">${mod.emoji}</div>
+                    <div class="module-title">${mod.title}</div>
+                    <div class="module-description">${mod.description}</div>
+                    <div class="module-tags">
+                        ${mod.tags.map(tag => `<span class="module-tag">#${tag}</span>`).join('')}
+                    </div>
+                    <a href="${mod.file}" class="module-link">→ View Module</a>
+                `;
+                container.appendChild(card);
+            });
+            
+            updateCounter(modsToShow.length);
+        }
+        
+        function renderTags() {
+            const allTags = new Set();
+            modules.forEach(mod => mod.tags.forEach(tag => allTags.add(tag)));
+            
+            const tagContainer = document.getElementById('tagContainer');
+            tagContainer.innerHTML = '';
+            
+            Array.from(allTags).sort().forEach(tag => {
+                const tagEl = document.createElement('span');
+                tagEl.className = 'tag';
+                tagEl.textContent = `#${tag}`;
+                tagEl.onclick = () => toggleFilter(tag, tagEl);
+                tagContainer.appendChild(tagEl);
+            });
+        }
+        
+        function toggleFilter(tag, el) {
+            if (activeFilters.has(tag)) {
+                activeFilters.delete(tag);
+                el.classList.remove('active');
+            } else {
+                activeFilters.add(tag);
+                el.classList.add('active');
+            }
+            filterModules();
+        }
+        
+        function filterModules() {
+            if (activeFilters.size === 0) {
+                renderModules(modules);
+            } else {
+                const filtered = modules.filter(mod =>
+                    Array.from(activeFilters).every(filter =>
+                        mod.tags.includes(filter) || mod.title.toLowerCase().includes(filter)
+                    )
+                );
+                renderModules(filtered);
+            }
+        }
+        
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            if (!query) {
+                renderModules(modules);
+                return;
+            }
+            
+            const filtered = modules.filter(mod =>
+                mod.title.toLowerCase().includes(query) ||
+                mod.description.toLowerCase().includes(query) ||
+                mod.tags.some(tag => tag.includes(query))
+            );
+            renderModules(filtered);
+        }
+        
+        function clearFilters() {
+            activeFilters.clear();
+            document.getElementById('searchInput').value = '';
+            document.querySelectorAll('.tag').forEach(tag => tag.classList.remove('active'));
+            renderModules(modules);
+        }
+        
+        function openFiltered() {
+            if (activeFilters.size === 0) {
+                modules.forEach(mod => window.open(mod.file, '_blank'));
+            } else {
+                const filtered = modules.filter(mod =>
+                    Array.from(activeFilters).every(filter =>
+                        mod.tags.includes(filter) || mod.title.toLowerCase().includes(filter)
+                    )
+                );
+                filtered.forEach(mod => window.open(mod.file, '_blank'));
+            }
+        }
+        
+        // Search on Enter key
+        document.addEventListener('DOMContentLoaded', () => {
+            renderTags();
+            renderModules();
+            
+            document.getElementById('searchInput').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') performSearch();
+            });
+        });
+        
+        function updateCounter(shown) {
+            document.getElementById('counter').textContent = `${shown} / 21 modules shown`;
+        }
+    </script>
+</body>
+</html>

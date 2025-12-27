@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Cheat Sheet #6 - Partitioning & Sharding</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #f39c12; border-radius: 8px; padding: 25px; margin: 20px 0; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(243, 156, 18, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #f39c12; margin-bottom: 12px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.85em; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.8em; line-height: 1.4; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-comment { color: #636e72; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #f39c12; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); }
+        th { background: linear-gradient(135deg, rgba(243, 156, 18, 0.2), rgba(230, 126, 34, 0.2)); color: #f39c12; padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #f39c12; }
+        td { padding: 10px 12px; border-bottom: 1px solid #334155; color: #cbd5e1; font-size: 0.95em; }
+        tr:hover { background: rgba(243, 156, 18, 0.1); }
+        .info-box { background: rgba(243, 156, 18, 0.1); border-left: 4px solid #f39c12; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 8px 0; padding-left: 30px; position: relative; color: #cbd5e1; font-size: 0.95em; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #f39c12; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #f39c12, #e67e22); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(243, 156, 18, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟡 PostgreSQL Partitioning & Sharding</h1>
+        <p>Scale with Declarative Partitioning and Sharding Strategies</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8;">
+            Handle large datasets by partitioning tables into smaller segments. Learn declarative partitioning (Range, List, Hash), 
+            partition pruning optimization, and distributed scaling strategies with postgres_fdw and Citus.
+        </p>
+        
+        <h2>📊 Partitioning Types</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Use Case</th>
+                    <th>Example</th>
+                    <th>Best For</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>RANGE</strong></td>
+                    <td>Sequential ranges</td>
+                    <td>Dates, numeric ranges</td>
+                    <td>Time-series data</td>
+                </tr>
+                <tr>
+                    <td><strong>LIST</strong></td>
+                    <td>Specific values</td>
+                    <td>Regions, categories</td>
+                    <td>Categorical data</td>
+                </tr>
+                <tr>
+                    <td><strong>HASH</strong></td>
+                    <td>Distribute evenly</td>
+                    <td>User IDs, accounts</td>
+                    <td>Even distribution</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>RANGE Partitioning (Time-Series)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create partitioned table</span>
+<span class="code-keyword">CREATE TABLE</span> events (
+    id BIGSERIAL,
+    user_id INT,
+    event_type VARCHAR(<span class="code-number">50</span>),
+    created_at TIMESTAMP,
+    <span class="code-keyword">PRIMARY KEY</span> (id, created_at)
+) <span class="code-keyword">PARTITION BY RANGE</span> (created_at);
+
+<span class="code-comment">-- Create partitions by month</span>
+<span class="code-keyword">CREATE TABLE</span> events_2024_01 <span class="code-keyword">PARTITION OF</span> events
+    <span class="code-keyword">FOR VALUES FROM</span> (<span class="code-string">'2024-01-01'</span>) <span class="code-keyword">TO</span> (<span class="code-string">'2024-02-01'</span>);
+
+<span class="code-keyword">CREATE TABLE</span> events_2024_02 <span class="code-keyword">PARTITION OF</span> events
+    <span class="code-keyword">FOR VALUES FROM</span> (<span class="code-string">'2024-02-01'</span>) <span class="code-keyword">TO</span> (<span class="code-string">'2024-03-01'</span>);
+
+<span class="code-comment">-- Catch-all partition</span>
+<span class="code-keyword">CREATE TABLE</span> events_default <span class="code-keyword">PARTITION OF</span> events <span class="code-keyword">DEFAULT</span>;</code>
+        </div>
+        
+        <h3>LIST Partitioning (Regional)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Partition by region</span>
+<span class="code-keyword">CREATE TABLE</span> orders (
+    id BIGSERIAL <span class="code-keyword">PRIMARY KEY</span>,
+    region VARCHAR,
+    amount DECIMAL,
+    created_at TIMESTAMP
+) <span class="code-keyword">PARTITION BY LIST</span> (region);
+
+<span class="code-keyword">CREATE TABLE</span> orders_asia <span class="code-keyword">PARTITION OF</span> orders
+    <span class="code-keyword">FOR VALUES IN</span> (<span class="code-string">'JP'</span>, <span class="code-string">'CN'</span>, <span class="code-string">'IN'</span>, <span class="code-string">'VN'</span>);
+
+<span class="code-keyword">CREATE TABLE</span> orders_us <span class="code-keyword">PARTITION OF</span> orders
+    <span class="code-keyword">FOR VALUES IN</span> (<span class="code-string">'US'</span>, <span class="code-string">'CA'</span>, <span class="code-string">'MX'</span>);
+
+<span class="code-keyword">CREATE TABLE</span> orders_eu <span class="code-keyword">PARTITION OF</span> orders
+    <span class="code-keyword">FOR VALUES IN</span> (<span class="code-string">'UK'</span>, <span class="code-string">'DE'</span>, <span class="code-string">'FR'</span>);</code>
+        </div>
+        
+        <h3>HASH Partitioning (Even Distribution)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Partition by hash for even distribution</span>
+<span class="code-keyword">CREATE TABLE</span> user_sessions (
+    id BIGSERIAL <span class="code-keyword">PRIMARY KEY</span>,
+    user_id INT,
+    session_data JSONB,
+    created_at TIMESTAMP
+) <span class="code-keyword">PARTITION BY HASH</span> (user_id);
+
+<span class="code-comment">-- Create 4 hash partitions</span>
+<span class="code-keyword">CREATE TABLE</span> user_sessions_0 <span class="code-keyword">PARTITION OF</span> user_sessions
+    <span class="code-keyword">FOR VALUES WITH</span> (<span class="code-keyword">MODULUS</span> <span class="code-number">4</span>, <span class="code-keyword">REMAINDER</span> <span class="code-number">0</span>);
+
+<span class="code-keyword">CREATE TABLE</span> user_sessions_1 <span class="code-keyword">PARTITION OF</span> user_sessions
+    <span class="code-keyword">FOR VALUES WITH</span> (<span class="code-keyword">MODULUS</span> <span class="code-number">4</span>, <span class="code-keyword">REMAINDER</span> <span class="code-number">1</span>);
+
+<span class="code-comment">-- ... repeat for 2 and 3</span></code>
+        </div>
+        
+        <h2>⚡ Partition Pruning Optimization</h2>
+        <div class="code-block">
+<code><span class="code-comment">-- Query that uses partition pruning</span>
+<span class="code-keyword">SET</span> constraint_exclusion = partition;
+
+<span class="code-comment">-- This query only scans events_2024_01</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> events
+<span class="code-keyword">WHERE</span> created_at >= <span class="code-string">'2024-01-01'</span> 
+  <span class="code-keyword">AND</span> created_at < <span class="code-string">'2024-02-01'</span>;
+
+<span class="code-comment">-- Verify with EXPLAIN</span>
+<span class="code-keyword">EXPLAIN SELECT</span> * <span class="code-keyword">FROM</span> events 
+<span class="code-keyword">WHERE</span> created_at >= <span class="code-string">'2024-01-01'</span>;</code>
+        </div>
+        
+        <h2>🔧 Partition Maintenance</h2>
+        <div class="code-block">
+<code><span class="code-comment">-- Add new partition for new month</span>
+<span class="code-keyword">CREATE TABLE</span> events_2024_03 <span class="code-keyword">PARTITION OF</span> events
+    <span class="code-keyword">FOR VALUES FROM</span> (<span class="code-string">'2024-03-01'</span>) <span class="code-keyword">TO</span> (<span class="code-string">'2024-04-01'</span>);
+
+<span class="code-comment">-- Detach old partition (for archiving)</span>
+<span class="code-keyword">ALTER TABLE</span> events <span class="code-keyword">DETACH PARTITION</span> events_2023_12;
+
+<span class="code-comment">-- Reattach partition</span>
+<span class="code-keyword">ALTER TABLE</span> events <span class="code-keyword">ATTACH PARTITION</span> events_2023_12
+    <span class="code-keyword">FOR VALUES FROM</span> (<span class="code-string">'2023-12-01'</span>) <span class="code-keyword">TO</span> (<span class="code-string">'2024-01-01'</span>);
+
+<span class="code-comment">-- Move partition to different tablespace</span>
+<span class="code-keyword">ALTER TABLE</span> events_2024_01 <span class="code-keyword">SET TABLESPACE</span> archive_space;</code>
+        </div>
+        
+        <h2>🌐 Sharding Strategies</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">PostgreSQL Sharding Options</div>
+            <div style="color: #cbd5e1; margin-top: 15px;">
+                <strong style="color: #f39c12;">postgres_fdw:</strong> Foreign Data Wrapper for multi-server queries<br>
+                <strong style="color: #f39c12;">Citus:</strong> Open-source PostgreSQL extension for distributed queries<br>
+                <strong style="color: #f39c12;">Application-level:</strong> Hash users/tenants to specific servers<br>
+                <strong style="color: #f39c12;">Replication:</strong> Replicate to read replicas for load distribution
+            </div>
+        </div>
+        
+        <h3>postgres_fdw (Foreign Data Wrapper)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create foreign server connection</span>
+<span class="code-keyword">CREATE SERVER</span> shard_1 <span class="code-keyword">FOREIGN DATA WRAPPER</span> postgres_fdw
+    <span class="code-keyword">OPTIONS</span> (host <span class="code-string">'server1.example.com'</span>, dbname <span class="code-string">'postgres'</span>);
+
+<span class="code-comment">-- Map user</span>
+<span class="code-keyword">CREATE USER MAPPING FOR</span> postgres <span class="code-keyword">SERVER</span> shard_1
+    <span class="code-keyword">OPTIONS</span> (user <span class="code-string">'postgres'</span>, password <span class="code-string">'secret'</span>);
+
+<span class="code-comment">-- Create foreign table</span>
+<span class="code-keyword">CREATE FOREIGN TABLE</span> remote_users (
+    id INT,
+    email VARCHAR,
+    name VARCHAR
+) <span class="code-keyword">SERVER</span> shard_1 <span class="code-keyword">OPTIONS</span> (table_name <span class="code-string">'users'</span>);
+
+<span class="code-comment">-- Query remote table transparently</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> remote_users <span class="code-keyword">WHERE</span> id = <span class="code-number">1</span>;</code>
+        </div>
+        
+        <h3>Citus Extension (Distributed PostgreSQL)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Distribute table across nodes</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> <span class="code-function">create_distributed_table</span>(
+    <span class="code-string">'users'</span>, <span class="code-string">'user_id'</span>
+);
+
+<span class="code-comment">-- Reference table (replicated to all nodes)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> <span class="code-function">create_reference_table</span>(<span class="code-string">'countries'</span>);
+
+<span class="code-comment">-- Distributed query (auto-parallelized)</span>
+<span class="code-keyword">SELECT</span> u.user_id, <span class="code-function">COUNT</span>(o.order_id) <span class="code-keyword">as</span> orders
+<span class="code-keyword">FROM</span> users u
+<span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> u.user_id = o.user_id
+<span class="code-keyword">GROUP BY</span> u.user_id;</code>
+        </div>
+        
+        <h2>✅ Learning Checklist</h2>
+        <ul class="checklist">
+            <li>Choose partitioning type based on data access patterns</li>
+            <li>Implement RANGE partitioning for time-series data</li>
+            <li>Use LIST partitioning for categorical data</li>
+            <li>Apply HASH partitioning for even distribution</li>
+            <li>Enable constraint_exclusion for partition pruning</li>
+            <li>Automate partition creation (monthly, yearly)</li>
+            <li>Monitor partition sizes and performance</li>
+            <li>Archive old partitions to separate tablespaces</li>
+            <li>Understand postgres_fdw for multi-server queries</li>
+            <li>Evaluate Citus for true distributed PostgreSQL</li>
+        </ul>
+        
+        <div class="info-box">
+            <strong>💡 Pro Tip:</strong> Start with declarative partitioning (Range, List, Hash) before considering sharding. 
+            Partitioning within a single database is simpler and handles most scaling needs.
+        </div>
+        
+        <a href="index-postgresql.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

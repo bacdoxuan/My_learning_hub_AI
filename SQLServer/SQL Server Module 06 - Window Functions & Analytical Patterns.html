@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #6 - Window Functions & Analytical Patterns</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #f59e0b;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #fbbf24;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #fbbf24;
+            border-bottom: 2px solid #f59e0b;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #fcd34d;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #f59e0b;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #fbbf24;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #fbbf24;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #fbbf24;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #fbbf24;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #fbbf24;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #fbbf24;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #f59e0b;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #d97706;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟡 SQL Server Window Functions & Analytical Patterns</h1>
+        <p>Master Advanced Analytics with Window Functions and Ranking</p>
+        <div class="badge">Expert</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers window functions for advanced analytical queries. Learn ranking functions (ROW_NUMBER, RANK, DENSE_RANK), 
+            offset functions (LAG, LEAD), running totals, and solving gaps & islands problems. These functions enable complex analytics without subqueries or self-joins.
+        </p>
+        
+        <h2>🏆 Ranking Functions</h2>
+        
+        <h3>ROW_NUMBER, RANK, DENSE_RANK</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                    <th>Example Output</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>ROW_NUMBER()</strong></td>
+                    <td>Sequential numbers, no ties</td>
+                    <td>1, 2, 3, 4, 5...</td>
+                    <td>Pagination, unique rankings</td>
+                </tr>
+                <tr>
+                    <td><strong>RANK()</strong></td>
+                    <td>Standard ranking with gaps for ties</td>
+                    <td>1, 2, 2, 4, 5...</td>
+                    <td>Competitions, leaderboards</td>
+                </tr>
+                <tr>
+                    <td><strong>DENSE_RANK()</strong></td>
+                    <td>Consecutive ranking, no gaps</td>
+                    <td>1, 2, 2, 3, 4...</td>
+                    <td>Dense rankings, categories</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Ranking sales by amount</span>
+<span class="code-keyword">SELECT</span> 
+    ProductName,
+    SalesAmount,
+    <span class="code-function">ROW_NUMBER</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> SalesAmount <span class="code-keyword">DESC</span>) AS RowNum,
+    <span class="code-function">RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> SalesAmount <span class="code-keyword">DESC</span>) AS SalesRank,
+    <span class="code-function">DENSE_RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> SalesAmount <span class="code-keyword">DESC</span>) AS DenseRank
+<span class="code-keyword">FROM</span> ProductSales;
+
+<span class="code-comment">-- Partitioned ranking by category</span>
+<span class="code-keyword">SELECT</span> 
+    CategoryName,
+    ProductName,
+    SalesAmount,
+    <span class="code-function">ROW_NUMBER</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> CategoryName <span class="code-keyword">ORDER BY</span> SalesAmount <span class="code-keyword">DESC</span>) AS CategoryRank
+<span class="code-keyword">FROM</span> ProductSales ps
+<span class="code-keyword">JOIN</span> Categories c <span class="code-keyword">ON</span> ps.CategoryID = c.CategoryID;</code>
+        </div>
+        
+        <h2>⬅️➡️ Offset Functions: LAG & LEAD</h2>
+        
+        <h3>Accessing Previous/Next Rows</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">LAG Function</div>
+                <div class="concept-description">
+                    <strong style="color: #fbbf24;">Access previous rows:</strong> LAG(column, offset, default)<br>
+                    <strong style="color: #fbbf24;">Compare to prior periods:</strong> Month-over-month changes<br>
+                    <strong style="color: #fbbf24;">Calculate differences:</strong> Growth rates, deltas<br>
+                    <strong style="color: #fbbf24;">Default value:</strong> Handles first rows gracefully
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">LEAD Function</div>
+                <div class="concept-description">
+                    <strong style="color: #fbbf24;">Access future rows:</strong> LEAD(column, offset, default)<br>
+                    <strong style="color: #fbbf24;">Predictive analytics:</strong> Next period projections<br>
+                    <strong style="color: #fbbf24;">Compare to future values:</strong> Trends, forecasts<br>
+                    <strong style="color: #fbbf24;">Default value:</strong> Handles last rows gracefully
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Month-over-month sales comparison</span>
+<span class="code-keyword">SELECT</span> 
+    SalesMonth,
+    SalesAmount,
+    <span class="code-function">LAG</span>(SalesAmount, 1, 0) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> SalesMonth) AS PrevMonthSales,
+    SalesAmount - <span class="code-function">LAG</span>(SalesAmount, 1, 0) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> SalesMonth) AS MonthlyChange,
+    <span class="code-keyword">CASE</span> <span class="code-keyword">WHEN</span> <span class="code-function">LAG</span>(SalesAmount, 1, 0) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> SalesMonth) = 0 <span class="code-keyword">THEN</span> 0
+         <span class="code-keyword">ELSE</span> (SalesAmount - <span class="code-function">LAG</span>(SalesAmount, 1, 0) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> SalesMonth)) / <span class="code-function">LAG</span>(SalesAmount, 1, 0) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> SalesMonth) * 100
+    <span class="code-keyword">END</span> AS GrowthPercent
+<span class="code-keyword">FROM</span> MonthlySales
+<span class="code-keyword">ORDER BY</span> SalesMonth;
+
+<span class="code-comment">-- LEAD for next period prediction</span>
+<span class="code-keyword">SELECT</span> 
+    EmployeeName,
+    CurrentSalary,
+    <span class="code-function">LEAD</span>(CurrentSalary, 1) <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> Department <span class="code-keyword">ORDER BY</span> HireDate) AS NextPromotionSalary,
+    <span class="code-function">LEAD</span>(HireDate, 1) <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> Department <span class="code-keyword">ORDER BY</span> HireDate) AS NextPromotionDate
+<span class="code-keyword">FROM</span> EmployeeHistory;</code>
+        </div>
+        
+        <h2>📊 Running Totals & Aggregates</h2>
+        
+        <h3>Accumulating Values with Window Frames</h3>
+        <div class="concept-box">
+            <div class="concept-title">Running Totals Pattern</div>
+            <div class="concept-description">
+                <strong style="color: #fbbf24;">SUM() OVER:</strong> Cumulative sums with ORDER BY<br>
+                <strong style="color: #fbbf24;">ROWS UNBOUNDED PRECEDING:</strong> From start to current row<br>
+                <strong style="color: #fbbf24;">Partitioning:</strong> Separate running totals per group<br>
+                <strong style="color: #fbbf24;">Performance:</strong> Efficient with proper indexing
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Running total of sales</span>
+<span class="code-keyword">SELECT</span> 
+    OrderDate,
+    SalesAmount,
+    <span class="code-function">SUM</span>(SalesAmount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> OrderDate <span class="code-keyword">ROWS UNBOUNDED PRECEDING</span>) AS RunningTotal,
+    <span class="code-function">AVG</span>(SalesAmount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> OrderDate <span class="code-keyword">ROWS BETWEEN 6 PRECEDING AND CURRENT ROW</span>) AS Rolling7DayAvg
+<span class="code-keyword">FROM</span> DailySales
+<span class="code-keyword">ORDER BY</span> OrderDate;
+
+<span class="code-comment">-- Running total by category</span>
+<span class="code-keyword">SELECT</span> 
+    CategoryName,
+    ProductName,
+    SalesAmount,
+    <span class="code-function">SUM</span>(SalesAmount) <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> CategoryName <span class="code-keyword">ORDER BY</span> SalesAmount <span class="code-keyword">DESC</span>) AS CategoryRunningTotal
+<span class="code-keyword">FROM</span> ProductSales ps
+<span class="code-keyword">JOIN</span> Categories c <span class="code-keyword">ON</span> ps.CategoryID = c.CategoryID;</code>
+        </div>
+        
+        <h2>🏝️ Gaps & Islands Problems</h2>
+        
+        <h3>Finding Sequences and Missing Values</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Gaps (Missing Sequences)</div>
+                <div class="concept-description">
+                    <strong style="color: #fbbf24;">Identify missing values:</strong> Dates, IDs, sequences<br>
+                    <strong style="color: #fbbf24;">LAG/LEAD comparison:</strong> Find breaks in continuity<br>
+                    <strong style="color: #fbbf24;">Business applications:</strong> Missing transactions, gaps in inventory<br>
+                    <strong style="color: #fbbf24;">Reporting:</strong> Data quality analysis
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Islands (Consecutive Sequences)</div>
+                <div class="concept-description">
+                    <strong style="color: #fbbf24;">Group consecutive values:</strong> Sessions, streaks, runs<br>
+                    <strong style="color: #fbbf24;">ROW_NUMBER differences:</strong> Identify sequence groups<br>
+                    <strong style="color: #fbbf24;">Business applications:</strong> User sessions, consecutive sales days<br>
+                    <strong style="color: #fbbf24;">Analytics:</strong> Pattern recognition
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Gaps: Find missing order dates</span>
+<span class="code-keyword">WITH</span> DateSequence AS (
+    <span class="code-keyword">SELECT</span> <span class="code-function">DISTINCT</span> <span class="code-function">CAST</span>(OrderDate <span class="code-keyword">AS</span> <span class="code-keyword">DATE</span>) AS OrderDate
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">WHERE</span> OrderDate >= '2023-01-01'
+),
+DateGaps AS (
+    <span class="code-keyword">SELECT</span> 
+        OrderDate,
+        <span class="code-function">LAG</span>(OrderDate, 1) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> OrderDate) AS PrevDate,
+        <span class="code-function">DATEDIFF</span>(<span class="code-keyword">DAY</span>, <span class="code-function">LAG</span>(OrderDate, 1) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> OrderDate), OrderDate) AS DaysGap
+    <span class="code-keyword">FROM</span> DateSequence
+)
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> DateGaps <span class="code-keyword">WHERE</span> DaysGap > 1;
+
+<span class="code-comment">-- Islands: Group consecutive login days</span>
+<span class="code-keyword">WITH</span> LoginSequence AS (
+    <span class="code-keyword">SELECT</span> 
+        UserID,
+        LoginDate,
+        <span class="code-function">ROW_NUMBER</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> LoginDate) AS RowNum,
+        <span class="code-function">ROW_NUMBER</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> UserID <span class="code-keyword">ORDER BY</span> LoginDate) AS UserRowNum
+    <span class="code-keyword">FROM</span> UserLogins
+),
+IslandGroups AS (
+    <span class="code-keyword">SELECT</span> 
+        UserID,
+        LoginDate,
+        RowNum - UserRowNum AS IslandGroup
+    <span class="code-keyword">FROM</span> LoginSequence
+)
+<span class="code-keyword">SELECT</span> 
+    UserID,
+    IslandGroup,
+    <span class="code-function">MIN</span>(LoginDate) AS StartDate,
+    <span class="code-function">MAX</span>(LoginDate) AS EndDate,
+    <span class="code-function">COUNT</span>(*) AS ConsecutiveDays
+<span class="code-keyword">FROM</span> IslandGroups
+<span class="code-keyword">GROUP BY</span> UserID, IslandGroup
+<span class="code-keyword">HAVING</span> <span class="code-function">COUNT</span>(*) > 2;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Performance Best Practices:</strong> Always include ORDER BY in window functions. Use PARTITION BY to limit window size. 
+            Index columns used in PARTITION BY and ORDER BY clauses for better performance.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Common Mistakes:</strong> Forgetting ORDER BY creates undefined results. Using window functions in WHERE clauses requires subqueries. 
+            Large window frames can be expensive - consider alternatives for very large datasets.
+        </div>
+        
+        <h2>📊 Window Function Syntax Summary</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Function Type</th>
+                <th>Syntax</th>
+                <th>SQL Server</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Ranking</strong></td>
+                <td><code>FUNCTION() OVER ([PARTITION BY col] ORDER BY col)</code></td>
+                <td>ROW_NUMBER, RANK, DENSE_RANK</td>
+                </tr>
+                <tr>
+                    <td><strong>Offset</strong></td>
+                <td><code>FUNCTION(col, offset, default) OVER ([PARTITION BY col] ORDER BY col)</code></td>
+                <td>LAG, LEAD</td>
+                </tr>
+                <tr>
+                    <td><strong>Aggregate</strong></td>
+                <td><code>FUNCTION(col) OVER ([PARTITION BY col] ORDER BY col [ROWS frame])</code></td>
+                <td>SUM, AVG, COUNT, MIN, MAX</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Use ROW_NUMBER() for unique sequential numbering</li>
+                <li>Apply RANK() and DENSE_RANK() for ranking with ties</li>
+                <li>Implement partitioned rankings by categories</li>
+                <li>Use LAG() to access previous row values</li>
+                <li>Use LEAD() to access next row values</li>
+                <li>Calculate month-over-month changes with LAG/LEAD</li>
+                <li>Create running totals with SUM() OVER</li>
+                <li>Implement rolling averages with window frames</li>
+                <li>Solve gaps problems using LAG for missing sequences</li>
+                <li>Solve islands problems using ROW_NUMBER differences</li>
+                <li>Identify consecutive sequences and streaks</li>
+                <li>Optimize window functions with proper indexing</li>
+                <li>Use window frames (ROWS/RANGE) for specific ranges</li>
+                <li>Combine multiple window functions in single queries</li>
+                <li>Handle NULL values in window function calculations</li>
+                <li>Apply window functions to time series data</li>
+                <li>Use window functions for pagination and top-N queries</li>
+                <li>Debug window function results with sample data</li>
+                <li>Compare window function performance vs traditional methods</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Ranking Functions:</strong> Create a sales leaderboard showing top 3 products per category using ROW_NUMBER and RANK. Implement dense ranking for customer tiers based on total purchases.</li>
+                <li><strong>LAG/LEAD Analysis:</strong> Calculate month-over-month sales growth and identify declining periods. Use LEAD to predict next month's sales based on current trends.</li>
+                <li><strong>Running Totals:</strong> Implement running totals for inventory levels and cumulative sales. Create rolling 30-day averages for website traffic data.</li>
+                <li><strong>Gaps & Islands:</strong> Find missing order numbers in a sequence and identify gaps in user login dates. Group consecutive days of product availability.</li>
+                <li><strong>Advanced Analytics:</strong> Combine multiple window functions to create a comprehensive sales dashboard with rankings, trends, and running totals.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/05-cte-recursive-structuring.html" class="nav-btn">← Previous: CTE, Recursive CTE & Query Structuring</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/07-grouping-advanced-rollup.html" class="nav-btn">Next: Grouping Advanced: ROLLUP/CUBE/GROUPING SETS →</a>
+        </div>
+    </div>
+</body>
+</html>

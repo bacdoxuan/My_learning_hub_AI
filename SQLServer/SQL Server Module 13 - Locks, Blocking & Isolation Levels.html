@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #13 - Locks, Blocking & Isolation Levels</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #7c3aed;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #a78bfa;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #a78bfa;
+            border-bottom: 2px solid #7c3aed;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #c4b5fd;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #a78bfa;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #a78bfa;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #a78bfa;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #a78bfa;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #a78bfa;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #a78bfa;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #7c3aed;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #6d28d9;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟣 SQL Server Locks, Blocking & Isolation Levels</h1>
+        <p>Understanding Lock Modes, Blocking Chains, Snapshot Isolation & Deadlock Prevention</p>
+        <div class="badge">Concurrency & Transactions</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers SQL Server concurrency control: lock modes and their compatibility, blocking chains, 
+            snapshot isolation levels (READ COMMITTED SNAPSHOT and SNAPSHOT), and deadlock detection and prevention strategies. 
+            Understanding these concepts is crucial for designing high-concurrency applications.
+        </p>
+        
+        <h2>🔒 Lock Modes & Compatibility</h2>
+        
+        <h3>Understanding Lock Types</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Lock Mode</th>
+                    <th>Description</th>
+                    <th>Compatibility</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Shared (S)</strong></td>
+                    <td>Read access, allows other shared locks</td>
+                    <td>Compatible with S, U; Conflicts with X, IX, SIX</td>
+                    <td>SELECT operations</td>
+                </tr>
+                <tr>
+                    <td><strong>Exclusive (X)</strong></td>
+                    <td>Write access, blocks all other locks</td>
+                    <td>Conflicts with all other modes</td>
+                    <td>INSERT, UPDATE, DELETE</td>
+                </tr>
+                <tr>
+                    <td><strong>Update (U)</strong></td>
+                    <td>Intent to update, allows shared but blocks exclusive</td>
+                    <td>Compatible with S; Conflicts with U, X, IX, SIX</td>
+                    <td>UPDATE statements (initial phase)</td>
+                </tr>
+                <tr>
+                    <td><strong>Intent Shared (IS)</strong></td>
+                    <td>Intent to acquire shared locks on lower levels</td>
+                    <td>Compatible with IS, IX; Conflicts with X, SIX</td>
+                    <td>Hierarchy protection</td>
+                </tr>
+                <tr>
+                    <td><strong>Intent Exclusive (IX)</strong></td>
+                    <td>Intent to acquire exclusive locks on lower levels</td>
+                    <td>Compatible with IS, IX; Conflicts with S, U, X, SIX</td>
+                    <td>Hierarchy protection for updates</td>
+                </tr>
+                <tr>
+                    <td><strong>Shared Intent Exclusive (SIX)</strong></td>
+                    <td>Shared lock with intent exclusive on lower levels</td>
+                    <td>Conflicts with S, U, X, IS, IX, SIX</td>
+                    <td>Bulk operations</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- View current locks</span>
+<span class="code-keyword">SELECT</span> 
+    request_session_id AS SessionID,
+    resource_type AS ResourceType,
+    resource_description AS ResourceDesc,
+    request_mode AS LockMode,
+    request_status AS Status
+<span class="code-keyword">FROM</span> sys.dm_exec_requests r
+<span class="code-keyword">CROSS APPLY</span> sys.dm_exec_sql_text(r.sql_handle) t
+<span class="code-keyword">WHERE</span> r.request_mode <span class="code-keyword">IS NOT NULL</span>;
+
+<span class="code-comment">-- Lock compatibility example</span>
+<span class="code-comment">-- Session 1: SELECT (acquires S lock)</span>
+<span class="code-keyword">BEGIN TRAN</span>;
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Products <span class="code-keyword">WHERE</span> ProductID = 1;
+
+<span class="code-comment">-- Session 2: Can also SELECT (S compatible with S)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Products <span class="code-keyword">WHERE</span> ProductID = 1;
+
+<span class="code-comment">-- Session 3: UPDATE will wait (X conflicts with S)</span>
+<span class="code-keyword">UPDATE</span> Products <span class="code-keyword">SET</span> Price = 10.00 <span class="code-keyword">WHERE</span> ProductID = 1;
+<span class="code-keyword">COMMIT</span>;</code>
+        </div>
+        
+        <h2>⛓️ Blocking Chains</h2>
+        
+        <h3>Understanding & Resolving Blocking</h3>
+        <div class="concept-box">
+            <div class="concept-title">Blocking Analysis</div>
+            <div class="concept-description">
+                <strong style="color: #a78bfa;">Blocking occurs when:</strong> Session A holds a lock that session B wants<br>
+                <strong style="color: #a78bfa;">Blocking chain:</strong> Session B blocks C, C blocks D, etc.<br>
+                <strong style="color: #a78bfa;">Detection:</strong> Use sys.dm_exec_requests to find blocked sessions<br>
+                <strong style="color: #a78bfa;">Root cause:</strong> Find the head blocker (session with blocking_session_id = 0)<br>
+                <strong style="color: #a78bfa;">Resolution:</strong> Kill blocking session, optimize queries, or use snapshot isolation<br>
+                <strong style="color: #a78bfa;">Prevention:</strong> Keep transactions short, use proper indexing, avoid table scans
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Find blocking sessions</span>
+<span class="code-keyword">SELECT</span> 
+    r.session_id AS BlockedSession,
+    r.blocking_session_id AS BlockingSession,
+    r.wait_type,
+    r.wait_time,
+    r.cpu_time,
+    SUBSTRING(t.text, (r.statement_start_offset/2)+1,
+        ((<span class="code-keyword">CASE</span> r.statement_end_offset <span class="code-keyword">WHEN</span> -1 <span class="code-keyword">THEN</span> DATALENGTH(t.text)
+             <span class="code-keyword">ELSE</span> r.statement_end_offset <span class="code-keyword">END</span> - r.statement_start_offset)/2) + 1) AS BlockedQuery
+<span class="code-keyword">FROM</span> sys.dm_exec_requests r
+<span class="code-keyword">CROSS APPLY</span> sys.dm_exec_sql_text(r.sql_handle) t
+<span class="code-keyword">WHERE</span> r.blocking_session_id <> 0;
+
+<span class="code-comment">-- Kill blocking session (use carefully)</span>
+<span class="code-keyword">KILL</span> 123;  <span class="code-comment">-- Replace with actual session ID</span>
+
+<span class="code-comment">-- Find head blocker</span>
+<span class="code-keyword">WITH</span> BlockingHierarchy AS (
+    <span class="code-keyword">SELECT</span> session_id, blocking_session_id, 0 AS level
+    <span class="code-keyword">FROM</span> sys.dm_exec_requests
+    <span class="code-keyword">WHERE</span> blocking_session_id = 0
+    <span class="code-keyword">UNION ALL</span>
+    <span class="code-keyword">SELECT</span> r.session_id, r.blocking_session_id, bh.level + 1
+    <span class="code-keyword">FROM</span> sys.dm_exec_requests r
+    <span class="code-keyword">INNER JOIN</span> BlockingHierarchy bh <span class="code-keyword">ON</span> r.blocking_session_id = bh.session_id
+)
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> BlockingHierarchy <span class="code-keyword">ORDER BY</span> level;</code>
+        </div>
+        
+        <h2>📸 Snapshot Isolation Levels</h2>
+        
+        <h3>READ COMMITTED SNAPSHOT vs SNAPSHOT</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">READ COMMITTED SNAPSHOT</div>
+                <div class="concept-description">
+                    <strong style="color: #a78bfa;">Row versioning:</strong> Readers don't block writers, writers don't block readers<br>
+                    <strong style="color: #a78bfa;">Version store:</strong> Old versions kept in tempdb for consistent reads<br>
+                    <strong style="color: #a78bfa;">Statement-level consistency:</strong> Each statement sees committed data as of statement start<br>
+                    <strong style="color: #a78bfa;">Default for RC:</strong> Can be enabled database-wide without app changes<br>
+                    <strong style="color: #a78bfa;">Best for:</strong> High read/write concurrency with acceptable tempdb usage
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">SNAPSHOT Isolation</div>
+                <div class="concept-description">
+                    <strong style="color: #a78bfa;">Transaction-level consistency:</strong> Entire transaction sees database as of transaction start<br>
+                    <strong style="color: #a78bfa;">Write conflicts:</strong> Detects update conflicts with optimistic concurrency<br>
+                    <strong style="color: #a78bfa;">Explicit mode:</strong> Must be set per transaction with SET TRANSACTION ISOLATION LEVEL<br>
+                    <strong style="color: #a78bfa;">Higher tempdb usage:</strong> Versions kept longer than RCSI<br>
+                    <strong style="color: #a78bfa;">Best for:</strong> Complex transactions requiring full consistency
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Enable READ COMMITTED SNAPSHOT</span>
+<span class="code-keyword">ALTER DATABASE</span> YourDatabase <span class="code-keyword">SET</span> READ_COMMITTED_SNAPSHOT ON;
+
+<span class="code-comment">-- Check current isolation level</span>
+<span class="code-keyword">SELECT</span> 
+    CASE transaction_isolation_level
+        <span class="code-keyword">WHEN</span> 1 <span class="code-keyword">THEN</span> 'READ UNCOMMITTED'
+        <span class="code-keyword">WHEN</span> 2 <span class="code-keyword">THEN</span> 'READ COMMITTED'
+        <span class="code-keyword">WHEN</span> 3 <span class="code-keyword">THEN</span> 'REPEATABLE READ'
+        <span class="code-keyword">WHEN</span> 4 <span class="code-keyword">THEN</span> 'SERIALIZABLE'
+        <span class="code-keyword">WHEN</span> 5 <span class="code-keyword">THEN</span> 'SNAPSHOT'
+    <span class="code-keyword">END</span> AS IsolationLevel
+<span class="code-keyword">FROM</span> sys.dm_exec_sessions <span class="code-keyword">WHERE</span> session_id = @@SPID;
+
+<span class="code-comment">-- Use SNAPSHOT isolation</span>
+<span class="code-keyword">SET TRANSACTION ISOLATION LEVEL</span> SNAPSHOT;
+<span class="code-keyword">BEGIN TRANSACTION</span>;
+    <span class="code-comment">-- Your transaction code here</span>
+    <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Accounts <span class="code-keyword">WHERE</span> AccountID = 1;
+    <span class="code-keyword">UPDATE</span> Accounts <span class="code-keyword">SET</span> Balance = Balance - 100 <span class="code-keyword">WHERE</span> AccountID = 1;
+<span class="code-keyword">COMMIT</span>;
+
+<span class="code-comment">-- Monitor version store usage</span>
+<span class="code-keyword">SELECT</span> 
+    SUM(version_store_reserved_page_count) * 8 / 1024 AS VersionStoreMB
+<span class="code-keyword">FROM</span> sys.dm_db_file_space_usage;</code>
+        </div>
+        
+        <h2>💀 Deadlocks: Detection & Prevention</h2>
+        
+        <h3>Understanding & Avoiding Deadlocks</h3>
+        <div class="concept-box">
+            <div class="concept-title">Deadlock Characteristics</div>
+            <div class="concept-description">
+                <strong style="color: #a78bfa;">Cycle of dependencies:</strong> Session A waits for B, B waits for A<br>
+                <strong style="color: #a78bfa;">Victim selection:</strong> SQL Server kills lowest cost transaction<br>
+                <strong style="color: #a78bfa;">Detection:</strong> Automatic via lock monitor (every 5 seconds)<br>
+                <strong style="color: #a78bfa;">Prevention:</strong> Consistent access order, short transactions, proper indexing<br>
+                <strong style="color: #a78bfa;">Monitoring:</strong> Extended Events or trace flag 1222 for deadlock details<br>
+                <strong style="color: #a78bfa;">Resolution:</strong> Retry logic, SET DEADLOCK_PRIORITY
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Enable deadlock monitoring</span>
+<span class="code-keyword">DBCC TRACEON</span> (1222, -1);  <span class="code-comment">-- Detailed deadlock info in error log</span>
+
+<span class="code-comment">-- Set deadlock priority (LOW makes session more likely to be victim)</span>
+<span class="code-keyword">SET DEADLOCK_PRIORITY</span> LOW;
+<span class="code-keyword">BEGIN TRY</span>
+    <span class="code-keyword">UPDATE</span> Table1 <span class="code-keyword">SET</span> Col1 = 1 <span class="code-keyword">WHERE</span> ID = 1;
+    <span class="code-keyword">UPDATE</span> Table2 <span class="code-keyword">SET</span> Col2 = 2 <span class="code-keyword">WHERE</span> ID = 2;
+<span class="code-keyword">COMMIT</span>;
+<span class="code-keyword">END TRY</span>
+<span class="code-keyword">BEGIN CATCH</span>
+    <span class="code-keyword">IF</span> ERROR_NUMBER() = 1205  <span class="code-comment">-- Deadlock victim</span>
+    <span class="code-keyword">BEGIN</span>
+        <span class="code-keyword">PRINT</span> 'Deadlock detected, retrying...';
+        <span class="code-comment">-- Retry logic here</span>
+    <span class="code-keyword">END</span>
+<span class="code-keyword">END CATCH</span>;
+
+<span class="code-comment">-- Consistent access order to prevent deadlocks</span>
+<span class="code-keyword">CREATE PROCEDURE</span> TransferMoney
+    @FromAccount <span class="code-keyword">INT</span>, @ToAccount <span class="code-keyword">INT</span>, @Amount <span class="code-keyword">DECIMAL</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-comment">-- Always access accounts in order (smaller ID first)</span>
+    <span class="code-keyword">DECLARE</span> @FirstAccount <span class="code-keyword">INT</span> = <span class="code-keyword">CASE</span> <span class="code-keyword">WHEN</span> @FromAccount < @ToAccount <span class="code-keyword">THEN</span> @FromAccount <span class="code-keyword">ELSE</span> @ToAccount <span class="code-keyword">END</span>;
+    <span class="code-keyword">DECLARE</span> @SecondAccount <span class="code-keyword">INT</span> = <span class="code-keyword">CASE</span> <span class="code-keyword">WHEN</span> @FromAccount < @ToAccount <span class="code-keyword">THEN</span> @ToAccount <span class="code-keyword">ELSE</span> @FromAccount <span class="code-keyword">END</span>;
+    
+    <span class="code-keyword">BEGIN TRANSACTION</span>;
+        <span class="code-keyword">UPDATE</span> Accounts <span class="code-keyword">SET</span> Balance = Balance - @Amount <span class="code-keyword">WHERE</span> AccountID = @FirstAccount;
+        <span class="code-keyword">UPDATE</span> Accounts <span class="code-keyword">SET</span> Balance = Balance + @Amount <span class="code-keyword">WHERE</span> AccountID = @SecondAccount;
+    <span class="code-keyword">COMMIT</span>;
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Query recent deadlocks</span>
+<span class="code-keyword">SELECT</span> 
+    wait_type,
+    waiting_tasks_count,
+    wait_time_ms,
+    max_wait_time_ms
+<span class="code-keyword">FROM</span> sys.dm_os_wait_stats
+<span class="code-keyword">WHERE</span> wait_type <span class="code-keyword">LIKE</span> '%LOCK%';</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Isolation Level Selection:</strong> Use READ COMMITTED SNAPSHOT for most applications. Reserve SNAPSHOT isolation for complex transactions. 
+            Always test concurrency behavior with your specific workload.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Common Issues:</strong> Long-running transactions increase blocking. Inconsistent resource access order causes deadlocks. 
+            Snapshot isolation requires careful tempdb capacity planning.
+        </div>
+        
+        <h2>📊 Isolation Levels Comparison</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Isolation Level</th>
+                <th>Concurrency</th>
+                <th>Consistency</th>
+                <th>Blocking</th>
+                <th>Tempdb Usage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>READ COMMITTED</strong></td>
+                <td>Medium</td>
+                <td>Statement</td>
+                <td>High</td>
+                <td>Low</td>
+                </tr>
+                <tr>
+                    <td><strong>READ COMMITTED SNAPSHOT</strong></td>
+                <td>High</td>
+                <td>Statement</td>
+                <td>Low</td>
+                <td>Medium</td>
+                </tr>
+                <tr>
+                    <td><strong>SNAPSHOT</strong></td>
+                <td>High</td>
+                <td>Transaction</td>
+                <td>Low</td>
+                <td>High</td>
+                </tr>
+                <tr>
+                    <td><strong>SERIALIZABLE</strong></td>
+                <td>Low</td>
+                <td>Full</td>
+                <td>Very High</td>
+                <td>Low</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Understand different lock modes (S, X, U, IS, IX, SIX)</li>
+                <li>Analyze lock compatibility matrices</li>
+                <li>Identify blocking chains using DMVs</li>
+                <li>Resolve blocking issues (kill sessions, optimize queries)</li>
+                <li>Enable and understand READ COMMITTED SNAPSHOT</li>
+                <li>Use SNAPSHOT isolation for complex transactions</li>
+                <li>Monitor tempdb usage with row versioning</li>
+                <li>Detect deadlocks using error logs and DMVs</li>
+                <li>Implement deadlock prevention strategies</li>
+                <li>Use consistent resource access order</li>
+                <li>Set appropriate DEADLOCK_PRIORITY</li>
+                <li>Implement retry logic for deadlock victims</li>
+                <li>Keep transactions short to reduce blocking</li>
+                <li>Use proper indexing to minimize lock duration</li>
+                <li>Monitor lock waits and timeouts</li>
+                <li>Choose appropriate isolation levels for different workloads</li>
+                <li>Handle write conflicts in SNAPSHOT isolation</li>
+                <li>Tune tempdb for snapshot isolation workloads</li>
+                <li>Analyze deadlock graphs from extended events</li>
+                <li>Test concurrency behavior in development</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Lock Analysis:</strong> Create a scenario with different lock modes and analyze their compatibility. Use DMVs to observe lock acquisition.</li>
+                <li><strong>Blocking Resolution:</strong> Set up a blocking chain with multiple sessions. Identify the head blocker and resolve the blocking.</li>
+                <li><strong>Snapshot Isolation:</strong> Enable READ COMMITTED SNAPSHOT on a database. Compare blocking behavior with traditional READ COMMITTED.</li>
+                <li><strong>Deadlock Creation:</strong> Create a deadlock scenario and analyze the deadlock graph. Implement prevention strategies like access order control.</li>
+                <li><strong>Isolation Level Testing:</strong> Test different isolation levels with concurrent read/write workloads. Measure performance and consistency differences.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/12-statistics-cardinality.html" class="nav-btn">← Previous: Statistics & Cardinality Estimation</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/14-transactions-error-handling.html" class="nav-btn">Next: Transactions, Error Handling & Retry Patterns →</a>
+        </div>
+    </div>
+</body>
+</html>

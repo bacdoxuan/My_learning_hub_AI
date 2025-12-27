@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #6 - Administration & Integration</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #e74c3c; border-radius: 8px; padding: 25px; margin: 20px 0; transition: all 0.3s ease; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(231, 76, 60, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #e74c3c; margin-bottom: 12px; }
+        .concept-description { color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.9em; line-height: 1.5; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-comment { color: #636e72; }
+        .code-number { color: #ffeaa7; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #e74c3c; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); border-radius: 8px; overflow: hidden; }
+        th { background: linear-gradient(135deg, rgba(231, 76, 60, 0.2), rgba(192, 57, 43, 0.2)); color: #e74c3c; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #e74c3c; }
+        td { padding: 12px 15px; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        tr:hover { background: rgba(231, 76, 60, 0.1); }
+        .highlight-box { background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .info-box { background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; color: #85c1e9; }
+        .warning-box { background: rgba(241, 196, 15, 0.1); border-left: 4px solid #f1c40f; padding: 20px; border-radius: 8px; margin: 20px 0; color: #f4d03f; }
+        .success-box { background: rgba(46, 204, 113, 0.1); border-left: 4px solid #2ecc71; padding: 20px; border-radius: 8px; margin: 20px 0; color: #7dcea0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 10px 0; padding-left: 30px; position: relative; color: #cbd5e1; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #e74c3c; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3); }
+        .final-banner { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); padding: 40px; border-radius: 12px; text-align: center; margin: 40px 0; color: white; }
+        .final-banner h2 { color: white; border: none; margin: 0 0 20px 0; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .hero h1 { font-size: 1.8em; } }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🛠️ SQLite3 Administration & Integration</h1>
+        <p>Master Backup, Encryption, Integration & Security Best Practices</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This final module covers database administration, backup strategies, encryption with SQLCipher, 
+            integration with Python and Node.js, security best practices, and data migration techniques. 
+            You'll learn everything needed to deploy and maintain SQLite in production environments.
+        </p>
+        
+        <h2>💾 Backup & Recovery</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">Why Backup SQLite?</div>
+            <div class="concept-description">
+                SQLite databases are single files, making backups simple. However, proper backup techniques 
+                ensure data consistency, especially for active databases. Choose the right method based on 
+                your requirements: online vs offline, full vs incremental, hot vs cold backup.
+            </div>
+        </div>
+        
+        <h3>Method 1: File Copy (Offline Backup)</h3>
+        <div class="code-block">
+<code><span class="code-comment"># Linux/Mac - Simple file copy</span>
+cp mydb.db mydb_backup_$(date +%Y%m%d).db
+
+<span class="code-comment"># Windows</span>
+copy mydb.db mydb_backup_%date:~-4,4%%date:~-10,2%%date:~-7,2%.db
+
+<span class="code-comment"># With compression</span>
+tar -czf mydb_backup_$(date +%Y%m%d).tar.gz mydb.db
+
+<span class="code-comment"># rsync for incremental backups</span>
+rsync -av --progress mydb.db /backup/location/</code>
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ File Copy Warning:</strong><br>
+            Only use file copy when database is NOT in use. Copying an active database can result in 
+            corrupted backup. For active databases, use <code>.backup</code> command or online backup API.
+        </div>
+        
+        <h3>Method 2: SQLite .backup Command (Online Backup)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- In SQLite CLI</span>
+sqlite> .backup backup.db
+
+<span class="code-comment">-- Backup to different location</span>
+sqlite> .backup /path/to/backup/mydb_backup.db
+
+<span class="code-comment">-- Restore from backup</span>
+sqlite> .restore backup.db</code>
+        </div>
+        
+        <h3>Method 3: SQL VACUUM INTO (SQLite 3.27.0+)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create backup while optimizing database</span>
+<span class="code-keyword">VACUUM INTO</span> <span class="code-string">'backup.db'</span>;
+
+<span class="code-comment">-- Benefits:</span>
+<span class="code-comment">-- 1. Creates backup</span>
+<span class="code-comment">-- 2. Removes fragmentation</span>
+<span class="code-comment">-- 3. Reclaims unused space</span>
+<span class="code-comment">-- 4. Can be done while database is in use</span></code>
+        </div>
+        
+        <h3>Method 4: SQL .dump Command</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Export as SQL statements</span>
+sqlite> .output backup.sql
+sqlite> .dump
+sqlite> .output stdout
+
+<span class="code-comment"># Or from command line</span>
+sqlite3 mydb.db .dump > backup.sql
+
+<span class="code-comment">-- Restore from SQL dump</span>
+sqlite3 newdb.db < backup.sql
+
+<span class="code-comment">-- Dump specific table</span>
+sqlite3 mydb.db ".dump users" > users_backup.sql</code>
+        </div>
+        
+        <h3>Method 5: Online Backup API (Python)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">import</span> sqlite3
+
+<span class="code-keyword">def</span> <span class="code-function">backup_database</span>(source_db, backup_db):
+    <span class="code-string">"""Online backup using SQLite backup API"""</span>
+    source = sqlite3.connect(source_db)
+    backup = sqlite3.connect(backup_db)
+    
+    <span class="code-keyword">with</span> backup:
+        source.backup(backup)
+    
+    source.close()
+    backup.close()
+
+<span class="code-comment"># Usage</span>
+backup_database(<span class="code-string">'mydb.db'</span>, <span class="code-string">'backup.db'</span>)
+
+<span class="code-comment"># With progress callback</span>
+<span class="code-keyword">def</span> <span class="code-function">backup_with_progress</span>(source_db, backup_db):
+    source = sqlite3.connect(source_db)
+    backup = sqlite3.connect(backup_db)
+    
+    <span class="code-keyword">def</span> <span class="code-function">progress</span>(status, remaining, total):
+        print(<span class="code-string">f'Copied {total - remaining} of {total} pages...'</span>)
+    
+    <span class="code-keyword">with</span> backup:
+        source.backup(backup, pages=<span class="code-number">100</span>, progress=progress)
+    
+    source.close()
+    backup.close()</code>
+        </div>
+        
+        <h3>Method 6: Online Backup API (Node.js)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
+
+<span class="code-keyword">function</span> <span class="code-function">backupDatabase</span>(sourceFile, backupFile) {
+    <span class="code-keyword">const</span> source = <span class="code-keyword">new</span> Database(sourceFile);
+    <span class="code-keyword">const</span> backup = <span class="code-keyword">new</span> Database(backupFile);
+    
+    <span class="code-comment">// Copy database</span>
+    backup.exec(source.serialize());
+    
+    source.close();
+    backup.close();
+}
+
+<span class="code-comment">// Usage</span>
+backupDatabase(<span class="code-string">'mydb.db'</span>, <span class="code-string">'backup.db'</span>);</code>
+        </div>
+        
+        <h3>Backup Strategy Comparison</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Method</th>
+                    <th>Online?</th>
+                    <th>Speed</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>File Copy</strong></td>
+                    <td>❌ No</td>
+                    <td>⚡ Fastest</td>
+                    <td>Offline backups, scheduled maintenance</td>
+                </tr>
+                <tr>
+                    <td><strong>.backup</strong></td>
+                    <td>✅ Yes</td>
+                    <td>🚀 Fast</td>
+                    <td>CLI backups, simple scripts</td>
+                </tr>
+                <tr>
+                    <td><strong>VACUUM INTO</strong></td>
+                    <td>✅ Yes</td>
+                    <td>🐢 Slower</td>
+                    <td>Backup + optimization combined</td>
+                </tr>
+                <tr>
+                    <td><strong>.dump</strong></td>
+                    <td>✅ Yes</td>
+                    <td>🐢 Slowest</td>
+                    <td>Human-readable, version control, migration</td>
+                </tr>
+                <tr>
+                    <td><strong>Backup API</strong></td>
+                    <td>✅ Yes</td>
+                    <td>🚀 Fast</td>
+                    <td>Application-level backups, automated</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Automated Backup Script (Python)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">import</span> sqlite3
+<span class="code-keyword">import</span> shutil
+<span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime
+<span class="code-keyword">import</span> os
+
+<span class="code-keyword">def</span> <span class="code-function">automated_backup</span>(db_path, backup_dir, keep_days=<span class="code-number">7</span>):
+    <span class="code-string">"""Automated backup with rotation"""</span>
+    <span class="code-comment"># Create backup filename with timestamp</span>
+    timestamp = datetime.now().strftime(<span class="code-string">'%Y%m%d_%H%M%S'</span>)
+    backup_file = os.path.join(backup_dir, <span class="code-string">f'backup_{timestamp}.db'</span>)
+    
+    <span class="code-comment"># Perform backup</span>
+    source = sqlite3.connect(db_path)
+    backup = sqlite3.connect(backup_file)
+    <span class="code-keyword">with</span> backup:
+        source.backup(backup)
+    source.close()
+    backup.close()
+    
+    print(<span class="code-string">f'Backup created: {backup_file}'</span>)
+    
+    <span class="code-comment"># Clean old backups</span>
+    <span class="code-keyword">for</span> filename <span class="code-keyword">in</span> os.listdir(backup_dir):
+        <span class="code-keyword">if</span> filename.startswith(<span class="code-string">'backup_'</span>) <span class="code-keyword">and</span> filename.endswith(<span class="code-string">'.db'</span>):
+            filepath = os.path.join(backup_dir, filename)
+            file_age = datetime.now() - datetime.fromtimestamp(os.path.getmtime(filepath))
+            <span class="code-keyword">if</span> file_age.days > keep_days:
+                os.remove(filepath)
+                print(<span class="code-string">f'Deleted old backup: {filename}'</span>)
+
+<span class="code-comment"># Usage</span>
+automated_backup(<span class="code-string">'mydb.db'</span>, <span class="code-string">'/backups'</span>, keep_days=<span class="code-number">7</span>)</code>
+        </div>
+        
+        <h2>🔐 Database Encryption (SQLCipher)</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">What is SQLCipher?</div>
+            <div class="concept-description">
+                SQLCipher is an open-source extension that provides transparent 256-bit AES encryption for 
+                SQLite databases. It encrypts the entire database file, including metadata, making it 
+                essential for applications handling sensitive data.
+            </div>
+        </div>
+        
+        <h3>Installing SQLCipher</h3>
+        <div class="code-block">
+<code><span class="code-comment"># Linux (Ubuntu/Debian)</span>
+sudo apt-get install sqlcipher libsqlcipher-dev
+
+<span class="code-comment"># macOS</span>
+brew install sqlcipher
+
+<span class="code-comment"># Python</span>
+pip install pysqlcipher3
+
+<span class="code-comment"># Node.js</span>
+npm install @journeyapps/sqlcipher</code>
+        </div>
+        
+        <h3>Using SQLCipher (CLI)</h3>
+        <div class="code-block">
+<code><span class="code-comment"># Create encrypted database</span>
+sqlcipher encrypted.db
+sqlite> PRAGMA key = <span class="code-string">'your-secret-password'</span>;
+sqlite> CREATE TABLE users (id INTEGER, name TEXT);
+sqlite> INSERT INTO users VALUES (1, <span class="code-string">'Alice'</span>);
+sqlite> .quit
+
+<span class="code-comment"># Open encrypted database</span>
+sqlcipher encrypted.db
+sqlite> PRAGMA key = <span class="code-string">'your-secret-password'</span>;
+sqlite> SELECT * FROM users;
+
+<span class="code-comment"># Change password</span>
+sqlite> PRAGMA rekey = <span class="code-string">'new-password'</span>;</code>
+        </div>
+        
+        <h3>SQLCipher with Python</h3>
+        <div class="code-block">
+<code><span class="code-keyword">from</span> pysqlcipher3 <span class="code-keyword">import</span> dbapi2 <span class="code-keyword">as</span> sqlite
+
+<span class="code-comment"># Create/open encrypted database</span>
+conn = sqlite.connect(<span class="code-string">'encrypted.db'</span>)
+conn.execute(<span class="code-string">"PRAGMA key = 'your-secret-password'"</span>)
+
+<span class="code-comment"># Use normally</span>
+conn.execute(<span class="code-string">'CREATE TABLE IF NOT EXISTS users (id INTEGER, name TEXT)'</span>)
+conn.execute(<span class="code-string">'INSERT INTO users VALUES (?, ?)'</span>, (<span class="code-number">1</span>, <span class="code-string">'Alice'</span>))
+conn.commit()
+
+<span class="code-comment"># Query</span>
+cursor = conn.execute(<span class="code-string">'SELECT * FROM users'</span>)
+<span class="code-keyword">for</span> row <span class="code-keyword">in</span> cursor:
+    print(row)
+
+conn.close()
+
+<span class="code-comment"># Encrypt existing database</span>
+<span class="code-keyword">def</span> <span class="code-function">encrypt_database</span>(plain_db, encrypted_db, password):
+    <span class="code-comment"># Open plain database</span>
+    plain = sqlite.connect(plain_db)
+    
+    <span class="code-comment"># Attach encrypted database</span>
+    plain.execute(<span class="code-string">f"ATTACH DATABASE '{encrypted_db}' AS encrypted KEY '{password}'"</span>)
+    
+    <span class="code-comment"># Copy data</span>
+    plain.execute(<span class="code-string">'SELECT sqlcipher_export("encrypted")'</span>)
+    
+    <span class="code-comment"># Detach and close</span>
+    plain.execute(<span class="code-string">'DETACH DATABASE encrypted'</span>)
+    plain.close()</code>
+        </div>
+        
+        <h3>SQLCipher with Node.js</h3>
+        <div class="code-block">
+<code><span class="code-keyword">const</span> SQLite = require(<span class="code-string">'@journeyapps/sqlcipher'</span>).verbose();
+
+<span class="code-comment">// Create/open encrypted database</span>
+<span class="code-keyword">const</span> db = <span class="code-keyword">new</span> SQLite.Database(<span class="code-string">'encrypted.db'</span>);
+
+<span class="code-comment">// Set encryption key</span>
+db.run(<span class="code-string">"PRAGMA key = 'your-secret-password'"</span>);
+
+<span class="code-comment">// Use normally</span>
+db.serialize(() => {
+    db.run(<span class="code-string">'CREATE TABLE IF NOT EXISTS users (id INTEGER, name TEXT)'</span>);
+    db.run(<span class="code-string">'INSERT INTO users VALUES (?, ?)'</span>, [<span class="code-number">1</span>, <span class="code-string">'Alice'</span>]);
+    
+    db.each(<span class="code-string">'SELECT * FROM users'</span>, (err, row) => {
+        console.log(row);
+    });
+});
+
+db.close();</code>
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ Encryption Best Practices:</strong><br>
+            • Never hardcode passwords in source code<br>
+            • Use environment variables or key management systems<br>
+            • Use strong passwords (min 20 characters, random)<br>
+            • Consider key derivation functions (PBKDF2)<br>
+            • Backup encrypted databases separately<br>
+            • Test recovery procedures regularly
+        </div>
+        
+        <h2>🐍 Python Integration</h2>
+        
+        <h3>Basic Python sqlite3 Module</h3>
+        <div class="code-block">
+<code><span class="code-keyword">import</span> sqlite3
+
+<span class="code-comment"># Connect to database</span>
+conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
+
+<span class="code-comment"># Enable foreign keys</span>
+conn.execute(<span class="code-string">'PRAGMA foreign_keys = ON'</span>)
+
+<span class="code-comment"># Create cursor</span>
+cursor = conn.cursor()
+
+<span class="code-comment"># Execute query</span>
+cursor.execute(<span class="code-string">'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT)'</span>)
+
+<span class="code-comment"># Insert data (parameterized query)</span>
+cursor.execute(<span class="code-string">'INSERT INTO users (name) VALUES (?)'</span>, (<span class="code-string">'Alice'</span>,))
+
+<span class="code-comment"># Insert many</span>
+users = [(<span class="code-string">'Bob'</span>,), (<span class="code-string">'Charlie'</span>,), (<span class="code-string">'David'</span>,)]
+cursor.executemany(<span class="code-string">'INSERT INTO users (name) VALUES (?)'</span>, users)
+
+<span class="code-comment"># Commit changes</span>
+conn.commit()
+
+<span class="code-comment"># Query data</span>
+cursor.execute(<span class="code-string">'SELECT * FROM users'</span>)
+rows = cursor.fetchall()
+<span class="code-keyword">for</span> row <span class="code-keyword">in</span> rows:
+    print(row)
+
+<span class="code-comment"># Close connection</span>
+conn.close()</code>
+        </div>
+        
+        <h3>Python Context Manager</h3>
+        <div class="code-block">
+<code><span class="code-keyword">import</span> sqlite3
+
+<span class="code-comment"># Automatic commit/rollback and close</span>
+<span class="code-keyword">with</span> sqlite3.connect(<span class="code-string">'mydb.db'</span>) <span class="code-keyword">as</span> conn:
+    conn.execute(<span class="code-string">'PRAGMA foreign_keys = ON'</span>)
+    
+    <span class="code-comment"># Operations here</span>
+    conn.execute(<span class="code-string">'INSERT INTO users (name) VALUES (?)'</span>, (<span class="code-string">'Alice'</span>,))
+    
+    <span class="code-comment"># Automatic commit on success, rollback on exception</span>
+
+<span class="code-comment"># Connection automatically closed</span></code>
+        </div>
+        
+        <h3>Python Row Factory (Dict-like Access)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">import</span> sqlite3
+
+conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
+
+<span class="code-comment"># Enable row factory for dict-like access</span>
+conn.row_factory = sqlite3.Row
+
+cursor = conn.execute(<span class="code-string">'SELECT * FROM users'</span>)
+<span class="code-keyword">for</span> row <span class="code-keyword">in</span> cursor:
+    print(<span class="code-string">f"ID: {row['id']}, Name: {row['name']}"</span>)
+    <span class="code-comment"># Can also use: row[0], row[1]</span>
+
+conn.close()</code>
+        </div>
+        
+        <h3>Python ORM Example (SQLAlchemy)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">from</span> sqlalchemy <span class="code-keyword">import</span> create_engine, Column, Integer, String
+<span class="code-keyword">from</span> sqlalchemy.ext.declarative <span class="code-keyword">import</span> declarative_base
+<span class="code-keyword">from</span> sqlalchemy.orm <span class="code-keyword">import</span> sessionmaker
+
+<span class="code-comment"># Create engine</span>
+engine = create_engine(<span class="code-string">'sqlite:///mydb.db'</span>)
+Base = declarative_base()
+
+<span class="code-comment"># Define model</span>
+<span class="code-keyword">class</span> <span class="code-function">User</span>(Base):
+    __tablename__ = <span class="code-string">'users'</span>
+    
+    id = Column(Integer, primary_key=<span class="code-keyword">True</span>)
+    name = Column(String)
+    email = Column(String)
+
+<span class="code-comment"># Create tables</span>
+Base.metadata.create_all(engine)
+
+<span class="code-comment"># Create session</span>
+Session = sessionmaker(bind=engine)
+session = Session()
+
+<span class="code-comment"># Insert</span>
+user = User(name=<span class="code-string">'Alice'</span>, email=<span class="code-string">'alice@example.com'</span>)
+session.add(user)
+session.commit()
+
+<span class="code-comment"># Query</span>
+users = session.query(User).filter(User.name == <span class="code-string">'Alice'</span>).all()
+<span class="code-keyword">for</span> user <span class="code-keyword">in</span> users:
+    print(<span class="code-string">f'{user.name}: {user.email}'</span>)
+
+session.close()</code>
+        </div>
+        
+        <h2>📦 Node.js Integration</h2>
+        
+        <h3>better-sqlite3 (Recommended)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
+
+<span class="code-comment">// Open database</span>
+<span class="code-keyword">const</span> db = <span class="code-keyword">new</span> Database(<span class="code-string">'mydb.db'</span>);
+
+<span class="code-comment">// Enable foreign keys</span>
+db.pragma(<span class="code-string">'foreign_keys = ON'</span>);
+
+<span class="code-comment">// Create table</span>
+db.exec(<span class="code-string">`
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT
+    )
+`</span>);
+
+<span class="code-comment">// Prepare statement (faster for repeated use)</span>
+<span class="code-keyword">const</span> insert = db.prepare(<span class="code-string">'INSERT INTO users (name, email) VALUES (?, ?)'</span>);
+
+<span class="code-comment">// Insert single row</span>
+<span class="code-keyword">const</span> info = insert.run(<span class="code-string">'Alice'</span>, <span class="code-string">'alice@example.com'</span>);
+console.log(<span class="code-string">`Inserted row with ID: ${info.lastInsertRowid}`</span>);
+
+<span class="code-comment">// Insert many (transaction)</span>
+<span class="code-keyword">const</span> insertMany = db.transaction((users) => {
+    <span class="code-keyword">for</span> (<span class="code-keyword">const</span> user <span class="code-keyword">of</span> users) {
+        insert.run(user.name, user.email);
+    }
+});
+
+insertMany([
+    { name: <span class="code-string">'Bob'</span>, email: <span class="code-string">'bob@example.com'</span> },
+    { name: <span class="code-string">'Charlie'</span>, email: <span class="code-string">'charlie@example.com'</span> }
+]);
+
+<span class="code-comment">// Query single row</span>
+<span class="code-keyword">const</span> user = db.prepare(<span class="code-string">'SELECT * FROM users WHERE name = ?'</span>).get(<span class="code-string">'Alice'</span>);
+console.log(user);
+
+<span class="code-comment">// Query multiple rows</span>
+<span class="code-keyword">const</span> users = db.prepare(<span class="code-string">'SELECT * FROM users'</span>).all();
+console.log(users);
+
+<span class="code-comment">// Close database</span>
+db.close();</code>
+        </div>
+        
+        <h3>Node.js with TypeScript</h3>
+        <div class="code-block">
+<code><span class="code-keyword">import</span> Database <span class="code-keyword">from</span> <span class="code-string">'better-sqlite3'</span>;
+
+<span class="code-keyword">interface</span> <span class="code-function">User</span> {
+    id: number;
+    name: string;
+    email: string;
+}
+
+<span class="code-keyword">class</span> <span class="code-function">UserRepository</span> {
+    <span class="code-keyword">private</span> db: Database.Database;
+    
+    constructor(dbPath: string) {
+        this.db = <span class="code-keyword">new</span> Database(dbPath);
+        this.db.pragma(<span class="code-string">'foreign_keys = ON'</span>);
+        this.initTables();
+    }
+    
+    <span class="code-keyword">private</span> <span class="code-function">initTables</span>(): <span class="code-keyword">void</span> {
+        this.db.exec(<span class="code-string">`
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                email TEXT
+            )
+        `</span>);
+    }
+    
+    <span class="code-function">create</span>(name: string, email: string): number {
+        <span class="code-keyword">const</span> stmt = this.db.prepare(<span class="code-string">'INSERT INTO users (name, email) VALUES (?, ?)'</span>);
+        <span class="code-keyword">const</span> info = stmt.run(name, email);
+        <span class="code-keyword">return</span> info.lastInsertRowid <span class="code-keyword">as</span> number;
+    }
+    
+    <span class="code-function">findById</span>(id: number): User | <span class="code-keyword">undefined</span> {
+        <span class="code-keyword">const</span> stmt = this.db.prepare(<span class="code-string">'SELECT * FROM users WHERE id = ?'</span>);
+        <span class="code-keyword">return</span> stmt.get(id) <span class="code-keyword">as</span> User | <span class="code-keyword">undefined</span>;
+    }
+    
+    <span class="code-function">findAll</span>(): User[] {
+        <span class="code-keyword">const</span> stmt = this.db.prepare(<span class="code-string">'SELECT * FROM users'</span>);
+        <span class="code-keyword">return</span> stmt.all() <span class="code-keyword">as</span> User[];
+    }
+    
+    <span class="code-function">close</span>(): <span class="code-keyword">void</span> {
+        this.db.close();
+    }
+}
+
+<span class="code-comment">// Usage</span>
+<span class="code-keyword">const</span> repo = <span class="code-keyword">new</span> UserRepository(<span class="code-string">'mydb.db'</span>);
+<span class="code-keyword">const</span> userId = repo.create(<span class="code-string">'Alice'</span>, <span class="code-string">'alice@example.com'</span>);
+<span class="code-keyword">const</span> user = repo.findById(userId);
+console.log(user);</code>
+        </div>
+        
+        <h2>🔒 Security Best Practices</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">1. Prevent SQL Injection</div>
+                <div class="concept-description">
+                    <strong style="color: #e74c3c;">❌ Never:</strong> Concatenate user input<br>
+                    <strong style="color: #2ecc71;">✅ Always:</strong> Use parameterized queries
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">2. File Permissions</div>
+                <div class="concept-description">
+                    <strong style="color: #e74c3c;">❌ Never:</strong> 777 permissions<br>
+                    <strong style="color: #2ecc71;">✅ Always:</strong> Restrict to app user only (600)
+                </div>
+            </div>
+        </div>
+        
+        <h3>SQL Injection Prevention</h3>
+        <div class="code-block">
+<code><span class="code-comment"># ❌ DANGEROUS - SQL Injection vulnerability</span>
+user_input = <span class="code-string">"Alice'; DROP TABLE users; --"</span>
+query = <span class="code-string">f"SELECT * FROM users WHERE name = '{user_input}'"</span>
+cursor.execute(query)  <span class="code-comment"># NEVER DO THIS!</span>
+
+<span class="code-comment"># ✅ SAFE - Parameterized query</span>
+user_input = <span class="code-string">"Alice'; DROP TABLE users; --"</span>
+cursor.execute(<span class="code-string">'SELECT * FROM users WHERE name = ?'</span>, (user_input,))
+
+<span class="code-comment"># ✅ SAFE - Named parameters</span>
+cursor.execute(<span class="code-string">'SELECT * FROM users WHERE name = :name'</span>, {<span class="code-string">'name'</span>: user_input})</code>
+        </div>
+        
+        <h3>File Permissions (Linux/Mac)</h3>
+        <div class="code-block">
+<code><span class="code-comment"># Set restrictive permissions</span>
+chmod <span class="code-number">600</span> mydb.db  <span class="code-comment"># Owner read/write only</span>
+chown appuser:appgroup mydb.db
+
+<span class="code-comment"># Check permissions</span>
+ls -l mydb.db
+<span class="code-comment"># Should show: -rw------- 1 appuser appgroup</span></code>
+        </div>
+        
+        <h3>Security Checklist</h3>
+        <ul class="checklist">
+            <li>Always use parameterized queries (never string concatenation)</li>
+            <li>Set restrictive file permissions (600 or 640)</li>
+            <li>Enable foreign key constraints (<code>PRAGMA foreign_keys = ON</code>)</li>
+            <li>Use prepared statements for repeated queries</li>
+            <li>Validate and sanitize all user input</li>
+            <li>Use encryption (SQLCipher) for sensitive data</li>
+            <li>Implement proper authentication and authorization</li>
+            <li>Regular backups with tested recovery procedures</li>
+            <li>Monitor database file size and performance</li>
+            <li>Keep SQLite library updated</li>
+            <li>Use WAL mode for better concurrency and crash recovery</li>
+            <li>Implement rate limiting for API endpoints</li>
+        </ul>
+        
+        <h2>🔄 Migration & Data Import/Export</h2>
+        
+        <h3>CSV Import</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- In SQLite CLI</span>
+sqlite> .mode csv
+sqlite> .import data.csv users
+
+<span class="code-comment">-- With headers</span>
+sqlite> .mode csv
+sqlite> .headers on
+sqlite> .import --skip 1 data.csv users
+
+<span class="code-comment"># Python CSV import</span>
+<span class="code-keyword">import</span> sqlite3
+<span class="code-keyword">import</span> csv
+
+conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
+cursor = conn.cursor()
+
+<span class="code-keyword">with</span> open(<span class="code-string">'data.csv'</span>, <span class="code-string">'r'</span>) <span class="code-keyword">as</span> f:
+    reader = csv.DictReader(f)
+    <span class="code-keyword">for</span> row <span class="code-keyword">in</span> reader:
+        cursor.execute(<span class="code-string">'INSERT INTO users (name, email) VALUES (?, ?)'</span>,
+                      (row[<span class="code-string">'name'</span>], row[<span class="code-string">'email'</span>]))
+
+conn.commit()
+conn.close()</code>
+        </div>
+        
+        <h3>CSV Export</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- In SQLite CLI</span>
+sqlite> .mode csv
+sqlite> .output users.csv
+sqlite> SELECT * FROM users;
+sqlite> .output stdout
+
+<span class="code-comment"># Python CSV export</span>
+<span class="code-keyword">import</span> sqlite3
+<span class="code-keyword">import</span> csv
+
+conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
+cursor = conn.execute(<span class="code-string">'SELECT * FROM users'</span>)
+
+<span class="code-keyword">with</span> open(<span class="code-string">'users.csv'</span>, <span class="code-string">'w'</span>, newline=<span class="code-string">''</span>) <span class="code-keyword">as</span> f:
+    writer = csv.writer(f)
+    writer.writerow([desc[<span class="code-number">0</span>] <span class="code-keyword">for</span> desc <span class="code-keyword">in</span> cursor.description])  <span class="code-comment"># Headers</span>
+    writer.writerows(cursor)
+
+conn.close()</code>
+        </div>
+        
+        <h3>JSON Import/Export</h3>
+        <div class="code-block">
+<code><span class="code-comment"># Python JSON export</span>
+<span class="code-keyword">import</span> sqlite3
+<span class="code-keyword">import</span> json
+
+conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
+conn.row_factory = sqlite3.Row
+
+cursor = conn.execute(<span class="code-string">'SELECT * FROM users'</span>)
+rows = [dict(row) <span class="code-keyword">for</span> row <span class="code-keyword">in</span> cursor]
+
+<span class="code-keyword">with</span> open(<span class="code-string">'users.json'</span>, <span class="code-string">'w'</span>) <span class="code-keyword">as</span> f:
+    json.dump(rows, f, indent=<span class="code-number">2</span>)
+
+conn.close()
+
+<span class="code-comment"># Python JSON import</span>
+<span class="code-keyword">with</span> open(<span class="code-string">'users.json'</span>, <span class="code-string">'r'</span>) <span class="code-keyword">as</span> f:
+    users = json.load(f)
+
+conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
+<span class="code-keyword">for</span> user <span class="code-keyword">in</span> users:
+    conn.execute(<span class="code-string">'INSERT INTO users (name, email) VALUES (?, ?)'</span>,
+                (user[<span class="code-string">'name'</span>], user[<span class="code-string">'email'</span>]))
+conn.commit()
+conn.close()</code>
+        </div>
+        
+        <h3>Database Migration (Schema Changes)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Migration pattern for adding column</span>
+<span class="code-keyword">BEGIN TRANSACTION</span>;
+
+<span class="code-comment">-- 1. Create new table with desired schema</span>
+<span class="code-keyword">CREATE TABLE</span> users_new (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    name <span class="code-function">TEXT NOT NULL</span>,
+    email <span class="code-function">TEXT</span>,
+    created_at <span class="code-function">TEXT DEFAULT CURRENT_TIMESTAMP</span>  <span class="code-comment">-- New column</span>
+);
+
+<span class="code-comment">-- 2. Copy data from old table</span>
+<span class="code-keyword">INSERT INTO</span> users_new (id, name, email)
+<span class="code-keyword">SELECT</span> id, name, email <span class="code-keyword">FROM</span> users;
+
+<span class="code-comment">-- 3. Drop old table</span>
+<span class="code-keyword">DROP TABLE</span> users;
+
+<span class="code-comment">-- 4. Rename new table</span>
+<span class="code-keyword">ALTER TABLE</span> users_new <span class="code-keyword">RENAME TO</span> users;
+
+<span class="code-comment">-- 5. Recreate indexes</span>
+<span class="code-keyword">CREATE INDEX</span> idx_users_email <span class="code-keyword">ON</span> users(email);
+
+<span class="code-keyword">COMMIT</span>;</code>
+        </div>
+        
+        <h2>📊 Monitoring & Maintenance</h2>
+        
+        <h3>Database Health Check</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Check database integrity</span>
+<span class="code-keyword">PRAGMA</span> integrity_check;
+
+<span class="code-comment">-- Quick check (faster)</span>
+<span class="code-keyword">PRAGMA</span> quick_check;
+
+<span class="code-comment">-- Database statistics</span>
+<span class="code-keyword">PRAGMA</span> page_count;
+<span class="code-keyword">PRAGMA</span> page_size;
+<span class="code-keyword">PRAGMA</span> freelist_count;
+
+<span class="code-comment">-- Calculate database size</span>
+<span class="code-keyword">SELECT</span> page_count * page_size <span class="code-keyword">AS</span> size_bytes 
+<span class="code-keyword">FROM</span> pragma_page_count(), pragma_page_size();
+
+<span class="code-comment">-- Table sizes</span>
+<span class="code-keyword">SELECT</span> 
+    name,
+    <span class="code-function">SUM</span>(pgsize) <span class="code-keyword">AS</span> size_bytes
+<span class="code-keyword">FROM</span> dbstat
+<span class="code-keyword">GROUP BY</span> name
+<span class="code-keyword">ORDER BY</span> size_bytes <span class="code-keyword">DESC</span>;</code>
+        </div>
+        
+        <h3>Performance Monitoring (Python)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">import</span> sqlite3
+<span class="code-keyword">import</span> time
+
+<span class="code-keyword">def</span> <span class="code-function">monitor_query</span>(conn, query, params=()):
+    <span class="code-string">"""Monitor query execution time"""</span>
+    start = time.time()
+    cursor = conn.execute(query, params)
+    results = cursor.fetchall()
+    elapsed = time.time() - start
+    
+    print(<span class="code-string">f'Query: {query}'</span>)
+    print(<span class="code-string">f'Time: {elapsed:.4f}s'</span>)
+    print(<span class="code-string">f'Rows: {len(results)}'</span>)
+    
+    <span class="code-keyword">return</span> results
+
+<span class="code-comment"># Usage</span>
+conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
+monitor_query(conn, <span class="code-string">'SELECT * FROM users WHERE name LIKE ?'</span>, (<span class="code-string">'%Alice%'</span>,))</code>
+        </div>
+        
+        <div class="final-banner">
+            <h2>🎉 Congratulations!</h2>
+            <p style="font-size: 1.2em; margin-bottom: 20px;">
+                You've completed the SQLite3 Knowledge Base!
+            </p>
+            <p style="font-size: 1em; line-height: 1.8;">
+                You now have comprehensive knowledge of SQLite from fundamentals to advanced features.<br>
+                You can build production-ready applications with proper security, performance optimization,<br>
+                and best practices for backup, encryption, and integration.
+            </p>
+            <div style="margin-top: 30px; font-size: 1.1em;">
+                <strong>What's Next?</strong><br>
+                • Build real-world projects<br>
+                • Contribute to open-source SQLite projects<br>
+                • Explore SQLite extensions and custom modules<br>
+                • Share your knowledge with others
+            </div>
+        </div>
+        
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Implement proper backup strategies (online and offline)</li>
+            <li>Use SQLCipher for database encryption</li>
+            <li>Integrate SQLite with Python (sqlite3, SQLAlchemy)</li>
+            <li>Integrate SQLite with Node.js (better-sqlite3)</li>
+            <li>Prevent SQL injection with parameterized queries</li>
+            <li>Set proper file permissions for security</li>
+            <li>Import/export data in CSV and JSON formats</li>
+            <li>Perform database migrations safely</li>
+            <li>Monitor database health and performance</li>
+            <li>Implement automated backup with rotation</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <strong>🎯 Final Tips:</strong><br>
+            • Always test in development before production<br>
+            • Keep SQLite library updated for security patches<br>
+            • Document your schema and migration procedures<br>
+            • Monitor database size and performance metrics<br>
+            • Have a disaster recovery plan<br>
+            • Use version control for schema changes<br>
+            • Implement proper logging and error handling
+        </div>
+        
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

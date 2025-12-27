@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MongoDB Cheat Sheets — Master Index (16 files)</title>
+  <meta name="description" content="Trang index để link tới 16 MongoDB cheat sheet HTML (local files)." />
+  <style>
+    :root{
+      --bg1:#0f172a;
+      --bg2:#0b1222;
+      --card:rgba(255,255,255,0.06);
+      --card2:rgba(255,255,255,0.04);
+      --border:rgba(255,255,255,0.10);
+      --text:rgba(255,255,255,0.92);
+      --muted:rgba(255,255,255,0.68);
+      --accent:#7dd3fc;
+      --accent2:#a78bfa;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --chip:rgba(125,211,252,0.14);
+      --shadow: 0 14px 50px rgba(0,0,0,0.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(167,139,250,0.25), transparent 60%),
+        radial-gradient(900px 600px at 80% 0%, rgba(125,211,252,0.20), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+    }
+    a{color:inherit; text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+    header{
+      background: linear-gradient(135deg, rgba(125,211,252,0.18), rgba(167,139,250,0.14));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 18px 14px;
+      box-shadow: var(--shadow);
+    }
+    .title-row{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 14px;
+    }
+    h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: 0.2px;
+    }
+    .subtitle{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.45;
+    }
+    .meta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .pill strong{color:var(--text); font-weight: 600}
+    .controls{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .searchbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .input{
+      flex: 1 1 340px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.22);
+      padding: 12px 12px;
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+    .input::placeholder{color: rgba(255,255,255,0.45)}
+    .btn{
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.07);
+      padding: 12px 12px;
+      color: var(--text);
+      cursor:pointer;
+      font-size: 13.5px;
+    }
+    .btn:hover{background: rgba(255,255,255,0.10)}
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .chip{
+      border:1px solid var(--border);
+      background: var(--chip);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .chip[data-active="true"]{
+      outline: 2px solid rgba(125,211,252,0.55);
+      background: rgba(125,211,252,0.22);
+    }
+    main{margin-top: 16px;}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+    .card{
+      grid-column: span 12;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+    }
+    .card:hover{
+      background: rgba(255,255,255,0.075);
+    }
+    .row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .left{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .kicker{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    .num{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.22);
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .name{
+      font-size: 15.5px;
+      font-weight: 650;
+      letter-spacing: 0.2px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width: 860px;
+    }
+    .desc{
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .tags{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top: 6px;
+    }
+    .tag{
+      font-size: 12px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card2);
+      color: rgba(255,255,255,0.78);
+    }
+    .tag.ok{border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.10); color: rgba(167,243,208,0.95)}
+    .tag.warn{border-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.10); color: rgba(253,230,138,0.95)}
+    .tag.bad{border-color: rgba(251,113,133,0.35); background: rgba(251,113,133,0.10); color: rgba(254,205,211,0.95)}
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .link{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.20);
+      white-space:nowrap;
+      font-size: 13px;
+    }
+    .link:hover{
+      background: rgba(0,0,0,0.30);
+      text-decoration:none;
+    }
+    .small{
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .footer{
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 12.5px;
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 10px 4px;
+    }
+    .hint{
+      margin-top: 10px;
+      border: 1px dashed rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.18);
+      padding: 10px 12px;
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+    @media (min-width: 860px){
+      .card{grid-column: span 6;}
+    }
+    @media (min-width: 1120px){
+      .card{grid-column: span 4;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title-row">
+        <div>
+          <h1>MongoDB Cheat Sheets — Master Index</h1>
+          <div class="subtitle">
+            Trang index link tới <strong>16 file HTML</strong> bạn đang lưu local. Có tìm kiếm + lọc theo tag để tiện mở nhanh.
+          </div>
+        </div>
+        <div class="meta">
+          <div class="pill"><strong id="countShown">16</strong> / <strong id="countTotal">16</strong> shown</div>
+          <div class="pill">Folder: <strong>same directory</strong></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="searchbar">
+          <input id="q" class="input" type="search" placeholder="Tìm theo số / tên / tag... (vd: sharding, backup, #12, security)" />
+          <button id="clear" class="btn" type="button">Clear</button>
+          <button id="openAll" class="btn" type="button" title="Trình duyệt có thể chặn pop-up nếu mở quá nhiều tab">Open filtered (tabs)</button>
+        </div>
+
+        <div class="chips" id="chips">
+          <!-- chips injected by JS -->
+        </div>
+
+        <div class="hint">
+          Gợi ý: đặt file <strong>index.html</strong> này cùng thư mục với 16 file cheat sheet bên dưới.  
+          Nếu bạn đổi tên file, chỉ cần sửa lại trường <em>href</em> trong danh sách.
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="grid" id="grid"></div>
+
+      <div class="footer">
+        <div>
+          <span class="small">Tip: Có thể dùng <strong>Ctrl/Cmd + F</strong> hoặc ô search để tìm nhanh.</span>
+        </div>
+        <div>
+          <span class="small">Index page generated for your 16 files • Update tags/desc anytime</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // IMPORTANT:
+    // - hrefs are URL-encoded for spaces.
+    // - Keep this index.html in the same folder as the 16 HTML files.
+    const sheets = [
+      {
+        n: 1,
+        title: "MongoDB Architecture Cheat Sheet",
+        file: "1.MongoDB%20Architecture%20Cheat%20Sheet.html",
+        tags: ["architecture","basics","cluster","overview"],
+        desc: "Kiến trúc & khái niệm nền tảng (instance/DB/collection, components, tổng quan)."
+      },
+      {
+        n: 2,
+        title: "MongoDB Data Types Cheat Sheet",
+        file: "2.MongoDB%20Data%20Types%20Cheat%20Sheet.html",
+        tags: ["bson","types","schema"],
+        desc: "BSON types, ObjectId, Date, array/object patterns."
+      },
+      {
+        n: 3,
+        title: "MongoDB DDL Cheat Sheet",
+        file: "3.MongoDB%20DDL%20Cheat%20Sheet.html",
+        tags: ["ddl","collections","schema"],
+        desc: "Tạo/sửa/xoá database, collection, validation, options."
+      },
+      {
+        n: 4,
+        title: "MongoDB CRUD Operations Cheat Sheet",
+        file: "4.MongoDB%20CRUD%20Operations%20Cheat%20Sheet.html",
+        tags: ["crud","dml","queries"],
+        desc: "Insert/Find/Update/Delete, patterns dùng hàng ngày."
+      },
+      {
+        n: 5,
+        title: "MongoDB Query Operators Cheat Sheet",
+        file: "5.MongoDB%20Query%20Operators%20Cheat%20Sheet.html",
+        tags: ["operators","queries","filter"],
+        desc: "Comparison/logical/array/element operators + examples."
+      },
+      {
+        n: 6,
+        title: "MongoDB Update Operators Cheat Sheet",
+        file: "6.MongoDB%20Update%20Operators%20Cheat%20Sheet.html",
+        tags: ["operators","update","arrays"],
+        desc: "$set/$inc/$push/$pull, positional operators, arrayFilters."
+      },
+      {
+        n: 7,
+        title: "MongoDB Aggregation Framework Cheat Sheet",
+        file: "7.MongoDB%20Aggregation%20Framework%20Cheat%20Sheet.html",
+        tags: ["aggregation","pipeline","analytics"],
+        desc: "Pipeline stages, group/lookup, best practices."
+      },
+      {
+        n: 8,
+        title: "MongoDB Indexing Cheat Sheet",
+        file: "8.MongoDB%20Indexing%20Cheat%20Sheet.html",
+        tags: ["indexing","performance","queries"],
+        desc: "Single/compound/text, ESR, $indexStats, maintain indexes."
+      },
+      {
+        n: 9,
+        title: "MongoDB DCL Cheat Sheet",
+        file: "9.MongoDB%20DCL%20Cheat%20Sheet.html",
+        tags: ["security","auth","authz","roles"],
+        desc: "Users/roles/permissions (DCL) — quản trị truy cập."
+      },
+      {
+        n: 10,
+        title: "MongoDB TCL Cheat Sheet",
+        file: "10.MongoDB%20TCL%20Cheat%20Sheet.html",
+        tags: ["transactions","tcl","sessions"],
+        desc: "Transactions, sessions, ACID patterns."
+      },
+      {
+        n: 11,
+        title: "MongoDB Backup and Restore Cheat Sheet",
+        file: "11.MongoDB%20Backup%20and%20Restore%20Cheat%20Sheet.html",
+        tags: ["backup","restore","disaster-recovery","ops"],
+        desc: "mongodump/mongorestore, snapshots, strategies, verification."
+      },
+      {
+        n: 12,
+        title: "MongoDB Performance Optimization Cheat Sheet",
+        file: "12.MongoDB%20Performance%20Optimization%20Cheat%20Sheet.html",
+        tags: ["performance","indexing","monitoring","tuning"],
+        desc: "Explain(), query patterns, schema tactics, monitoring & config."
+      },
+      {
+        n: 13,
+        title: "MongoDB Replication Cheat Sheet",
+        file: "13.MongoDB%20Replication%20Cheat%20Sheet.html",
+        tags: ["replication","replica-set","ha","failover"],
+        desc: "Replica sets, elections, read preference, write concern, oplog."
+      },
+      {
+        n: 14,
+        title: "MongoDB Sharding Cheat Sheet",
+        file: "14.MongoDB%20Sharding%20Cheat%20Sheet.html",
+        tags: ["sharding","scaling","chunks","shard-key"],
+        desc: "Shard key strategy, ranged vs hashed, balancer, zones."
+      },
+      {
+        n: 15,
+        title: "MongoDB Security Cheat Sheet",
+        file: "15.MongoDB%20Security%20Cheat%20Sheet.html",
+        tags: ["security","tls","encryption","hardening","audit"],
+        desc: "Auth/authz, network hardening, TLS, encryption at rest, auditing."
+      },
+      {
+        n: 16,
+        title: "MongoDB Tools & Ecosystem Cheat Sheet",
+        file: "16.%20MongoDB%20Tools%20%26%20Ecosystem%20Cheat%20Sheet.html",
+        tags: ["tools","ecosystem","atlas","compass","drivers","cli"],
+        desc: "mongosh/tools, Compass, Atlas, drivers, observability tooling."
+      }
+    ];
+
+    // Build tag chips (dedup)
+    const allTags = Array.from(new Set(sheets.flatMap(s => s.tags))).sort((a,b)=>a.localeCompare(b));
+    const state = {
+      q: "",
+      tag: "" // single-tag filter
+    };
+
+    const els = {
+      grid: document.getElementById("grid"),
+      q: document.getElementById("q"),
+      clear: document.getElementById("clear"),
+      openAll: document.getElementById("openAll"),
+      chips: document.getElementById("chips"),
+      countShown: document.getElementById("countShown"),
+      countTotal: document.getElementById("countTotal")
+    };
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[s]));
+    }
+
+    function matches(s){
+      const q = state.q.trim().toLowerCase();
+      const tagOk = !state.tag || s.tags.includes(state.tag);
+
+      if (!q) return tagOk;
+
+      const hay = [
+        "#" + s.n,
+        String(s.n),
+        s.title,
+        decodeURIComponent(s.file),
+        s.tags.join(" "),
+        s.desc || ""
+      ].join(" ").toLowerCase();
+
+      return tagOk && hay.includes(q);
+    }
+
+    function renderChips(){
+      const base = [
+        { label: "All", value: "" },
+        ...allTags.map(t => ({ label: t, value: t }))
+      ];
+      els.chips.innerHTML = base.map(c => {
+        const active = (state.tag === c.value) ? "true" : "false";
+        return `<span class="chip" data-tag="${escapeHtml(c.value)}" data-active="${active}">${escapeHtml(c.label)}</span>`;
+      }).join("");
+      els.chips.querySelectorAll(".chip").forEach(ch => {
+        ch.addEventListener("click", () => {
+          const t = ch.getAttribute("data-tag") || "";
+          state.tag = (state.tag === t) ? "" : t;
+          renderChips();
+          render();
+        });
+      });
+    }
+
+    function render(){
+      const filtered = sheets.filter(matches);
+      els.countShown.textContent = String(filtered.length);
+      els.countTotal.textContent = String(sheets.length);
+
+      els.grid.innerHTML = filtered.map(s => {
+        const tags = s.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
+        const filePretty = decodeURIComponent(s.file);
+        return `
+          <article class="card" data-n="${s.n}">
+            <div class="row">
+              <div class="left">
+                <div class="kicker">
+                  <div class="num">${s.n}</div>
+                  <div class="name" title="${escapeHtml(filePretty)}">${escapeHtml(s.title)}</div>
+                </div>
+                <div class="desc">${escapeHtml(s.desc || "")}</div>
+                <div class="tags">${tags}</div>
+              </div>
+              <div class="actions">
+                <a class="link" href="${s.file}" target="_blank" rel="noopener">
+                  Open
+                </a>
+                <a class="link" href="${s.file}" download>
+                  Download
+                </a>
+              </div>
+            </div>
+            <div class="small" style="margin-top:10px;">
+              File: <code>${escapeHtml(filePretty)}</code>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      if (filtered.length === 0){
+        els.grid.innerHTML = `
+          <div class="card full-width" style="grid-column: span 12;">
+            <div class="desc">Không tìm thấy kết quả. Thử xoá filter/tag hoặc đổi từ khoá.</div>
+          </div>
+        `;
+      }
+    }
+
+    // Events
+    els.q.addEventListener("input", (e) => {
+      state.q = e.target.value || "";
+      render();
+    });
+
+    els.clear.addEventListener("click", () => {
+      state.q = "";
+      state.tag = "";
+      els.q.value = "";
+      renderChips();
+      render();
+      els.q.focus();
+    });
+
+    els.openAll.addEventListener("click", () => {
+      const filtered = sheets.filter(matches);
+      if (!filtered.length) return;
+
+      // NOTE: Browsers may block popups when opening many tabs.
+      filtered.forEach((s, idx) => {
+        setTimeout(() => window.open(s.file, "_blank", "noopener"), idx * 60);
+      });
+    });
+
+    // Init
+    renderChips();
+    render();
+  </script>
+</body>
+</html>

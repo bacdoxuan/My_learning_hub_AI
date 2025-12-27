@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #19 - Partitioning & Large Data Management</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #60a5fa;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #60a5fa;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #93c5fd;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #60a5fa;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #60a5fa;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #60a5fa;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #2563eb;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔵 SQL Server Partitioning & Large Data Management</h1>
+        <p>Partition Functions, Schemes & Sliding Window Strategies</p>
+        <div class="badge">Scalability & Performance</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers SQL Server table partitioning for managing large datasets: creating partition functions 
+            to define data distribution, partition schemes to map to filegroups, and sliding window strategies for 
+            efficient data lifecycle management including archiving and purging old data.
+        </p>
+        
+        <h2>🔀 Partition Functions & Schemes</h2>
+        
+        <h3>Creating & Managing Partitions</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Partition Functions</div>
+                <div class="concept-description">
+                    <strong style="color: #60a5fa;">Data distribution:</strong> Defines how data is divided based on column values<br>
+                    <strong style="color: #60a5fa;">Boundary values:</strong> LEFT or RIGHT boundary specification<br>
+                    <strong style="color: #60a5fa;">Range types:</strong> RANGE for continuous values, LIST for discrete<br>
+                    <strong style="color: #60a5fa;">Splitting:</strong> Add new partitions by splitting existing ones<br>
+                    <strong style="color: #60a5fa;">Merging:</strong> Combine partitions by removing boundaries<br>
+                    <strong style="color: #60a5fa;">Metadata only:</strong> No data movement during creation
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Partition Schemes</div>
+                <div class="concept-description">
+                    <strong style="color: #60a5fa;">Filegroup mapping:</strong> Maps partitions to physical filegroups<br>
+                    <strong style="color: #60a5fa;">Storage optimization:</strong> Place partitions on different disks/volumes<br>
+                    <strong style="color: #60a5fa;">ALL to one filegroup:</strong> Simple setup for testing<br>
+                    <strong style="color: #60a5fa;">Performance benefits:</strong> Parallel I/O, targeted maintenance<br>
+                    <strong style="color: #60a5fa;">Management:</strong> NEXT USED for adding new filegroups<br>
+                    <strong style="color: #60a5fa;">Dependency:</strong> Must align with partition function boundaries
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Create filegroups for partitioning</span>
+<span class="code-keyword">ALTER DATABASE</span> SalesDB <span class="code-keyword">ADD FILEGROUP</span> FG_2020;
+<span class="code-keyword">ALTER DATABASE</span> SalesDB <span class="code-keyword">ADD FILEGROUP</span> FG_2021;
+<span class="code-keyword">ALTER DATABASE</span> SalesDB <span class="code-keyword">ADD FILEGROUP</span> FG_2022;
+<span class="code-keyword">ALTER DATABASE</span> SalesDB <span class="code-keyword">ADD FILEGROUP</span> FG_2023;
+
+<span class="code-comment">-- Add files to filegroups</span>
+<span class="code-keyword">ALTER DATABASE</span> SalesDB <span class="code-keyword">ADD FILE</span> (
+    NAME = 'Sales_2020',
+    FILENAME = 'D:\Data\Sales_2020.ndf',
+    SIZE = 1GB
+) <span class="code-keyword">TO FILEGROUP</span> FG_2020;
+
+<span class="code-comment">-- Create partition function (RIGHT boundaries)</span>
+<span class="code-keyword">CREATE PARTITION FUNCTION</span> pf_SalesDate (<span class="code-keyword">DATETIME2</span>)
+<span class="code-keyword">AS RANGE RIGHT FOR VALUES</span> (
+    '2021-01-01 00:00:00',
+    '2022-01-01 00:00:00', 
+    '2023-01-01 00:00:00'
+);
+
+<span class="code-comment">-- Create partition scheme</span>
+<span class="code-keyword">CREATE PARTITION SCHEME</span> ps_SalesDate
+<span class="code-keyword">AS PARTITION</span> pf_SalesDate
+<span class="code-keyword">TO</span> (FG_2020, FG_2021, FG_2022, FG_2023, PRIMARY);
+
+<span class="code-comment">-- Create partitioned table</span>
+<span class="code-keyword">CREATE TABLE</span> Sales.Orders (
+    OrderID <span class="code-keyword">INT</span> <span class="code-keyword">IDENTITY</span>(1,1) <span class="code-keyword">PRIMARY KEY</span>,
+    CustomerID <span class="code-keyword">INT</span>,
+    OrderDate <span class="code-keyword">DATETIME2</span>,
+    TotalAmount <span class="code-keyword">DECIMAL</span>(10,2),
+    OrderData <span class="code-keyword">NVARCHAR</span>(MAX)
+) <span class="code-keyword">ON</span> ps_SalesDate(OrderDate);
+
+<span class="code-comment">-- Create aligned indexes</span>
+<span class="code-keyword">CREATE CLUSTERED INDEX</span> IX_Orders_OrderDate
+<span class="code-keyword">ON</span> Sales.Orders(OrderDate)
+<span class="code-keyword">ON</span> ps_SalesDate(OrderDate);
+
+<span class="code-keyword">CREATE NONCLUSTERED INDEX</span> IX_Orders_CustomerID
+<span class="code-keyword">ON</span> Sales.Orders(CustomerID)
+<span class="code-keyword">ON</span> ps_SalesDate(OrderDate);
+
+<span class="code-comment">-- Query partition information</span>
+<span class="code-keyword">SELECT</span> 
+    OBJECT_NAME(p.object_id) AS TableName,
+    p.partition_number,
+    p.rows,
+    fg.name AS FileGroupName,
+    prv.value AS BoundaryValue
+<span class="code-keyword">FROM</span> sys.partitions p
+<span class="code-keyword">INNER JOIN</span> sys.destination_data_spaces dds <span class="code-keyword">ON</span> p.partition_number = dds.destination_id
+<span class="code-keyword">INNER JOIN</span> sys.filegroups fg <span class="code-keyword">ON</span> dds.data_space_id = fg.data_space_id
+<span class="code-keyword">LEFT JOIN</span> sys.partition_range_values prv <span class="code-keyword">ON</span> prv.function_id = (
+    <span class="code-keyword">SELECT</span> function_id <span class="code-keyword">FROM</span> sys.partition_functions 
+    <span class="code-keyword">WHERE</span> name = 'pf_SalesDate'
+) <span class="code-keyword">AND</span> prv.boundary_id = p.partition_number - 1
+<span class="code-keyword">WHERE</span> OBJECT_NAME(p.object_id) = 'Orders'
+<span class="code-keyword">ORDER BY</span> p.partition_number;</code>
+        </div>
+        
+        <h2>🔄 Sliding Window Strategy</h2>
+        
+        <h3>Managing Data Lifecycle with Partitions</h3>
+        <div class="concept-box">
+            <div class="concept-title">Sliding Window Overview</div>
+            <div class="concept-description">
+                <strong style="color: #60a5fa;">Data lifecycle:</strong> Automatically manage historical data retention<br>
+                <strong style="color: #60a5fa;">Rolling partitions:</strong> Add new partitions, remove old ones<br>
+                <strong style="color: #60a5fa;">Storage optimization:</strong> Move old data to cheaper storage<br>
+                <strong style="color: #60a5fa;">Performance maintenance:</strong> Rebuild indexes on rolling windows<br>
+                <strong style="color: #60a5fa;">Compliance:</strong> Meet data retention requirements<br>
+                <strong style="color: #60a5fa;">Automation:</strong> Schedule partition maintenance jobs
+            </div>
+        </div>
+        
+        <h3>Sliding Window Implementation</h3>
+        <div class="concept-box">
+            <div class="concept-title">Key Operations</div>
+            <div class="concept-description">
+                <strong style="color: #60a5fa;">SPLIT:</strong> Add new boundary to create empty partition<br>
+                <strong style="color: #60a5fa;">MERGE:</strong> Remove boundary and combine partitions<br>
+                <strong style="color: #60a5fa;">SWITCH:</strong> Move entire partitions between tables<br>
+                <strong style="color: #60a5fa;">Filegroup management:</strong> Add/remove filegroups as needed<br>
+                <strong style="color: #60a5fa;">Index maintenance:</strong> Rebuild indexes after partition changes<br>
+                <strong style="color: #60a5fa;">Monitoring:</strong> Track partition sizes and usage patterns
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Sliding window: Add new partition for next year</span>
+<span class="code-keyword">ALTER DATABASE</span> SalesDB <span class="code-keyword">ADD FILEGROUP</span> FG_2024;
+<span class="code-keyword">ALTER DATABASE</span> SalesDB <span class="code-keyword">ADD FILE</span> (
+    NAME = 'Sales_2024',
+    FILENAME = 'E:\Data\Sales_2024.ndf',
+    SIZE = 1GB
+) <span class="code-keyword">TO FILEGROUP</span> FG_2024;
+
+<span class="code-comment">-- Alter partition scheme to include new filegroup</span>
+<span class="code-keyword">ALTER PARTITION SCHEME</span> ps_SalesDate 
+<span class="code-keyword">NEXT USED</span> FG_2024;
+
+<span class="code-comment">-- Split partition function to add new boundary</span>
+<span class="code-keyword">ALTER PARTITION FUNCTION</span> pf_SalesDate()
+<span class="code-keyword">SPLIT RANGE</span> ('2024-01-01 00:00:00');
+
+<span class="code-comment">-- Sliding window: Archive old partition</span>
+<span class="code-comment">-- Create staging table for archiving (same structure, different filegroup)</span>
+<span class="code-keyword">CREATE TABLE</span> Sales.Orders_Archive_2020 (
+    OrderID <span class="code-keyword">INT</span> <span class="code-keyword">IDENTITY</span>(1,1) <span class="code-keyword">PRIMARY KEY</span>,
+    CustomerID <span class="code-keyword">INT</span>,
+    OrderDate <span class="code-keyword">DATETIME2</span>,
+    TotalAmount <span class="code-keyword">DECIMAL</span>(10,2),
+    OrderData <span class="code-keyword">NVARCHAR</span>(MAX)
+) <span class="code-keyword">ON</span> ArchiveFG;  <span class="code-comment">-- Archive filegroup</span>
+
+<span class="code-comment">-- Switch partition 1 (2020 data) to archive table</span>
+<span class="code-keyword">ALTER TABLE</span> Sales.Orders 
+<span class="code-keyword">SWITCH PARTITION</span> 1 <span class="code-keyword">TO</span> Sales.Orders_Archive_2020;
+
+<span class="code-comment">-- Merge partition function to remove old boundary</span>
+<span class="code-keyword">ALTER PARTITION FUNCTION</span> pf_SalesDate()
+<span class="code-keyword">MERGE RANGE</span> ('2021-01-01 00:00:00');
+
+<span class="code-comment">-- Remove empty filegroup</span>
+<span class="code-keyword">ALTER DATABASE</span> SalesDB <span class="code-keyword">REMOVE FILE</span> Sales_2020;
+<span class="code-keyword">ALTER DATABASE</span> SalesDB <span class="code-keyword">REMOVE FILEGROUP</span> FG_2020;
+
+<span class="code-comment">-- Rebuild indexes on remaining partitions</span>
+<span class="code-keyword">ALTER INDEX</span> IX_Orders_OrderDate <span class="code-keyword">ON</span> Sales.Orders
+<span class="code-keyword">REBUILD PARTITION</span> = <span class="code-keyword">ALL</span>
+<span class="code-keyword">WITH</span> (SORT_IN_TEMPDB = ON, ONLINE = ON);
+
+<span class="code-comment">-- Monitor partition sizes</span>
+<span class="code-keyword">SELECT</span> 
+    OBJECT_NAME(object_id) AS TableName,
+    partition_number,
+    rows,
+    <span class="code-function">CAST</span>(used_page_count * 8 / 1024.0 <span class="code-keyword">AS</span> <span class="code-keyword">DECIMAL</span>(10,2)) AS UsedMB,
+    <span class="code-function">CAST</span>(reserved_page_count * 8 / 1024.0 <span class="code-keyword">AS</span> <span class="code-keyword">DECIMAL</span>(10,2)) AS ReservedMB
+<span class="code-keyword">FROM</span> sys.dm_db_partition_stats
+<span class="code-keyword">WHERE</span> OBJECT_NAME(object_id) = 'Orders'
+<span class="code-keyword">ORDER BY</span> partition_number;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Partitioning Benefits:</strong> Improved query performance through partition elimination. Easier maintenance with targeted operations. 
+            Better storage management with different filegroups. Support for sliding window data lifecycle management.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Partitioning Considerations:</strong> Requires Enterprise Edition for most features. Aligned indexes are crucial. 
+            Partition switching requires exact schema match. Monitor for partition skew.
+        </div>
+        
+        <h2>📊 Partitioning Best Practices</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Aspect</th>
+                <th>Best Practice</th>
+                <th>Rationale</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                <td><strong>Partition Key</strong></td>
+                <td>Use date/time columns</td>
+                <td>Natural progression for sliding windows</td>
+                </tr>
+                <tr>
+                <td><strong>Boundary Values</strong></td>
+                <td>RIGHT boundaries for dates</td>
+                <td>Inclusive upper bounds, exclusive lower bounds</td>
+                </tr>
+                <tr>
+                <td><strong>Filegroups</strong></td>
+                <td>Separate filegroups per partition</td>
+                <td>Independent backup/restore, storage optimization</td>
+                </tr>
+                <tr>
+                <td><strong>Index Alignment</strong></td>
+                <td>All indexes on partition scheme</td>
+                <td>Partition elimination for all queries</td>
+                </tr>
+                <tr>
+                <td><strong>Maintenance</strong></td>
+                <td>Automate sliding window operations</td>
+                <td>Consistent data lifecycle management</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Sliding Window Checklist</h3>
+            <ul>
+                <li>Define data retention policy (how long to keep data)</li>
+                <li>Choose appropriate partition key (usually date-based)</li>
+                <li>Create partition function with initial boundaries</li>
+                <li>Set up partition scheme with appropriate filegroups</li>
+                <li>Create partitioned tables with aligned indexes</li>
+                <li>Implement partition splitting for adding new periods</li>
+                <li>Create staging tables for archiving old data</li>
+                <li>Implement partition switching for data movement</li>
+                <li>Automate partition merging for removing old boundaries</li>
+                <li>Schedule index maintenance on partition changes</li>
+                <li>Monitor partition sizes and query performance</li>
+                <li>Test partition elimination in execution plans</li>
+                <li>Implement proper error handling in maintenance scripts</li>
+                <li>Document partition boundaries and filegroup mappings</li>
+                <li>Plan for storage growth and filegroup additions</li>
+                <li>Test backup/restore of individual partitions</li>
+                <li>Monitor for partition skew and rebalance if needed</li>
+                <li>Implement alerting for partition maintenance failures</li>
+                <li>Document runbook for emergency partition operations</li>
+                <li>Review and adjust retention policies periodically</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Basic Partitioning:</strong> Create a partitioned table using date ranges and verify partition elimination in queries.</li>
+                <li><strong>Partition Maintenance:</strong> Implement SPLIT and MERGE operations on a partition function.</li>
+                <li><strong>Sliding Window:</strong> Set up a complete sliding window scenario with archiving old partitions and adding new ones.</li>
+                <li><strong>Performance Testing:</strong> Compare query performance on partitioned vs non-partitioned tables with large datasets.</li>
+                <li><strong>Advanced Scenarios:</strong> Implement partition switching for ETL processes and data archiving.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/18-json-xml.html" class="nav-btn">← Previous: JSON & XML in SQL Server</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/20-security-backup-ha.html" class="nav-btn">Next: Security + Backup/Restore + HA/DR + Monitoring →</a>
+        </div>
+    </div>
+</body>
+</html>

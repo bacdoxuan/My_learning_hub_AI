@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Cheat Sheet #4 - DML CRUD Operations</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #fff;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(56,239,125,0.3);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #38ef7d;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #38ef7d;
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #38ef7d;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-bool {
+      color: #ff7b72;
+    }
+    .code-prop {
+      color: #7ee787;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(17,153,142,0.2), rgba(56,239,125,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #38ef7d;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(56,239,125,0.2);
+      color: #38ef7d;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-blue {
+      background: rgba(52,152,219,0.2);
+      color: #3498db;
+    }
+    .tag-orange {
+      background: rgba(243,156,18,0.2);
+      color: #f39c12;
+    }
+    .tag-red {
+      background: rgba(231,76,60,0.2);
+      color: #e74c3c;
+    }
+    .tag-purple {
+      background: rgba(155,89,182,0.2);
+      color: #9b59b6;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(52,152,219,0.1);
+      border-left: 3px solid #3498db;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(231,76,60,0.1);
+      border-left: 3px solid #e74c3c;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(46,204,113,0.1);
+      border-left: 3px solid #2ecc71;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .section-title {
+      color: #38ef7d;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(56,239,125,0.3);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .comparison-table th {
+      background: rgba(56,239,125,0.2);
+      color: #38ef7d;
+    }
+    .comparison-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .crud-icon {
+      font-size: 3em;
+      text-align: center;
+      margin: 10px 0;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    @media (max-width: 768px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🍃 MongoDB Cheat Sheet #4</h1>
+      <div class="subtitle">DML - CRUD Operations</div>
+      <div class="badge">✍️ Create • Read • Update • Delete</div>
+    </div>
+
+    <!-- CRUD Overview -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">CRUD Operations Overview</span>
+        </div>
+        <table class="comparison-table">
+          <tr>
+            <th>Operation</th>
+            <th>SQL</th>
+            <th>MongoDB</th>
+            <th>Mô tả</th>
+          </tr>
+          <tr>
+            <td><strong>CREATE</strong></td>
+            <td><code>INSERT INTO</code></td>
+            <td><code>insertOne(), insertMany()</code></td>
+            <td>Thêm document mới</td>
+          </tr>
+          <tr>
+            <td><strong>READ</strong></td>
+            <td><code>SELECT</code></td>
+            <td><code>find(), findOne()</code></td>
+            <td>Truy vấn documents</td>
+          </tr>
+          <tr>
+            <td><strong>UPDATE</strong></td>
+            <td><code>UPDATE</code></td>
+            <td><code>updateOne(), updateMany(), replaceOne()</code></td>
+            <td>Cập nhật documents</td>
+          </tr>
+          <tr>
+            <td><strong>DELETE</strong></td>
+            <td><code>DELETE</code></td>
+            <td><code>deleteOne(), deleteMany()</code></td>
+            <td>Xóa documents</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- CREATE - INSERT -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">➕</span>
+          <span class="card-title">CREATE - insertOne()</span>
+        </div>
+        <div class="highlight">
+          Thêm một document vào collection
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Insert một document</span><br>
+          db.users.<span class="code-method">insertOne</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"Nguyễn Văn A"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">email</span>: <span class="code-string">"a@example.com"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">age</span>: <span class="code-number">25</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">status</span>: <span class="code-string">"active"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">createdAt</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>()<br>
+          })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Response</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-prop">acknowledged</span>: <span class="code-bool">true</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">insertedId</span>: <span class="code-method">ObjectId</span>(<span class="code-string">"507f1f77bcf86cd799439011"</span>)<br>
+          }
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Insert với _id tự định nghĩa</span><br>
+          db.products.<span class="code-method">insertOne</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">_id</span>: <span class="code-string">"PROD001"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"Laptop"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">price</span>: <span class="code-number">999.99</span><br>
+          })
+        </div>
+
+        <div class="warning-box">
+          ⚠️ Nếu _id đã tồn tại → <strong>DuplicateKeyError</strong>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">➕➕</span>
+          <span class="card-title">CREATE - insertMany()</span>
+        </div>
+        <div class="highlight">
+          Thêm nhiều documents cùng lúc
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Insert nhiều documents</span><br>
+          db.users.<span class="code-method">insertMany</span>([<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"User 1"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">email</span>: <span class="code-string">"user1@test.com"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">age</span>: <span class="code-number">20</span><br>
+          &nbsp;&nbsp;},<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"User 2"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">email</span>: <span class="code-string">"user2@test.com"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">age</span>: <span class="code-number">30</span><br>
+          &nbsp;&nbsp;},<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"User 3"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">email</span>: <span class="code-string">"user3@test.com"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">age</span>: <span class="code-number">35</span><br>
+          &nbsp;&nbsp;}<br>
+          ])
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Response</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-prop">acknowledged</span>: <span class="code-bool">true</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">insertedIds</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'0'</span>: <span class="code-method">ObjectId</span>(<span class="code-string">"..."</span>),<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'1'</span>: <span class="code-method">ObjectId</span>(<span class="code-string">"..."</span>),<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">'2'</span>: <span class="code-method">ObjectId</span>(<span class="code-string">"..."</span>)<br>
+          &nbsp;&nbsp;}<br>
+          }
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// ordered: false - tiếp tục insert khi lỗi</span><br>
+          db.users.<span class="code-method">insertMany</span>([...], { <span class="code-prop">ordered</span>: <span class="code-bool">false</span> })
+        </div>
+
+        <div class="tip-box">
+          ✅ <strong>ordered: true</strong> (default) - dừng khi gặp lỗi<br>
+          ✅ <strong>ordered: false</strong> - tiếp tục insert các docs còn lại
+        </div>
+      </div>
+    </div>
+
+    <!-- READ - FIND -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔍</span>
+          <span class="card-title">READ - find()</span>
+        </div>
+        <div class="highlight">
+          Truy vấn nhiều documents
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Tìm tất cả documents</span><br>
+          db.users.<span class="code-method">find</span>()<br>
+          db.users.<span class="code-method">find</span>({})<br><br>
+          
+          <span class="code-comment">// Tìm với điều kiện</span><br>
+          db.users.<span class="code-method">find</span>({ <span class="code-prop">status</span>: <span class="code-string">"active"</span> })<br><br>
+          
+          <span class="code-comment">// Nhiều điều kiện (AND)</span><br>
+          db.users.<span class="code-method">find</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">status</span>: <span class="code-string">"active"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">age</span>: { <span class="code-keyword">$gte</span>: <span class="code-number">18</span> }<br>
+          })
+        </div>
+
+        <div class="section-title">Projection (Chọn fields)</div>
+        <div class="code-block">
+          <span class="code-comment">// Chỉ lấy name và email</span><br>
+          db.users.<span class="code-method">find</span>({}, {<br>
+          &nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-number">1</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">email</span>: <span class="code-number">1</span><br>
+          })<br>
+          <span class="code-comment">// _id tự động included</span><br><br>
+          
+          <span class="code-comment">// Loại bỏ _id</span><br>
+          db.users.<span class="code-method">find</span>({}, {<br>
+          &nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-number">1</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">email</span>: <span class="code-number">1</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">_id</span>: <span class="code-number">0</span><br>
+          })<br><br>
+          
+          <span class="code-comment">// Loại trừ fields</span><br>
+          db.users.<span class="code-method">find</span>({}, {<br>
+          &nbsp;&nbsp;<span class="code-prop">password</span>: <span class="code-number">0</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">ssn</span>: <span class="code-number">0</span><br>
+          })
+        </div>
+
+        <div class="warning-box">
+          ⚠️ Không thể mix inclusion (1) và exclusion (0) ngoại trừ _id
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🎯</span>
+          <span class="card-title">READ - findOne()</span>
+        </div>
+        <div class="highlight">
+          Truy vấn một document đầu tiên match
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Tìm một document</span><br>
+          db.users.<span class="code-method">findOne</span>({ <span class="code-prop">email</span>: <span class="code-string">"a@example.com"</span> })<br><br>
+          
+          <span class="code-comment">// Với projection</span><br>
+          db.users.<span class="code-method">findOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-method">ObjectId</span>(<span class="code-string">"..."</span>) },<br>
+          &nbsp;&nbsp;{ <span class="code-prop">name</span>: <span class="code-number">1</span>, <span class="code-prop">email</span>: <span class="code-number">1</span> }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Trả về null nếu không tìm thấy</span><br>
+          <span class="code-keyword">const</span> user = db.users.<span class="code-method">findOne</span>({ <span class="code-prop">email</span>: <span class="code-string">"notfound@test.com"</span> })<br>
+          <span class="code-comment">// user === null</span>
+        </div>
+
+        <div class="section-title">Sort, Limit, Skip</div>
+        <div class="code-block">
+          <span class="code-comment">// Sort (1: asc, -1: desc)</span><br>
+          db.users.<span class="code-method">find</span>().<span class="code-method">sort</span>({ <span class="code-prop">age</span>: <span class="code-number">-1</span> })<br>
+          db.users.<span class="code-method">find</span>().<span class="code-method">sort</span>({ <span class="code-prop">name</span>: <span class="code-number">1</span>, <span class="code-prop">age</span>: <span class="code-number">-1</span> })<br><br>
+          
+          <span class="code-comment">// Limit - giới hạn số kết quả</span><br>
+          db.users.<span class="code-method">find</span>().<span class="code-method">limit</span>(<span class="code-number">10</span>)<br><br>
+          
+          <span class="code-comment">// Skip - bỏ qua n documents</span><br>
+          db.users.<span class="code-method">find</span>().<span class="code-method">skip</span>(<span class="code-number">20</span>)<br><br>
+          
+          <span class="code-comment">// Pagination (trang 3, 10 items/trang)</span><br>
+          db.users.<span class="code-method">find</span>()<br>
+          &nbsp;&nbsp;.<span class="code-method">sort</span>({ <span class="code-prop">createdAt</span>: <span class="code-number">-1</span> })<br>
+          &nbsp;&nbsp;.<span class="code-method">skip</span>(<span class="code-number">20</span>)<br>
+          &nbsp;&nbsp;.<span class="code-method">limit</span>(<span class="code-number">10</span>)
+        </div>
+      </div>
+    </div>
+
+    <!-- READ - Advanced -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">READ - Count & Distinct</span>
+        </div>
+        
+        <div class="section-title">Count Documents</div>
+        <div class="code-block">
+          <span class="code-comment">// Đếm tất cả documents</span><br>
+          db.users.<span class="code-method">countDocuments</span>({})<br><br>
+          
+          <span class="code-comment">// Đếm với điều kiện</span><br>
+          db.users.<span class="code-method">countDocuments</span>({ <span class="code-prop">status</span>: <span class="code-string">"active"</span> })<br><br>
+          
+          <span class="code-comment">// Estimated count (nhanh hơn, ít chính xác)</span><br>
+          db.users.<span class="code-method">estimatedDocumentCount</span>()
+        </div>
+
+        <div class="section-title">Distinct Values</div>
+        <div class="code-block">
+          <span class="code-comment">// Lấy các giá trị unique của field</span><br>
+          db.users.<span class="code-method">distinct</span>(<span class="code-string">"status"</span>)<br>
+          <span class="code-comment">// → ["active", "inactive", "pending"]</span><br><br>
+          
+          <span class="code-comment">// Distinct với query</span><br>
+          db.users.<span class="code-method">distinct</span>(<span class="code-string">"city"</span>, { <span class="code-prop">age</span>: { <span class="code-keyword">$gte</span>: <span class="code-number">18</span> } })<br><br>
+          
+          <span class="code-comment">// Distinct trên nested field</span><br>
+          db.users.<span class="code-method">distinct</span>(<span class="code-string">"address.city"</span>)
+        </div>
+
+        <div class="section-title">Exists & Type</div>
+        <div class="code-block">
+          <span class="code-comment">// Kiểm tra field tồn tại</span><br>
+          db.users.<span class="code-method">find</span>({ <span class="code-prop">phone</span>: { <span class="code-keyword">$exists</span>: <span class="code-bool">true</span> } })<br><br>
+          
+          <span class="code-comment">// Kiểm tra kiểu dữ liệu</span><br>
+          db.users.<span class="code-method">find</span>({ <span class="code-prop">age</span>: { <span class="code-keyword">$type</span>: <span class="code-string">"int"</span> } })<br>
+          db.users.<span class="code-method">find</span>({ <span class="code-prop">age</span>: { <span class="code-keyword">$type</span>: <span class="code-string">"string"</span> } })
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔎</span>
+          <span class="card-title">READ - Query Arrays & Objects</span>
+        </div>
+        
+        <div class="section-title">Query Arrays</div>
+        <div class="code-block">
+          <span class="code-comment">// Array chứa giá trị</span><br>
+          db.posts.<span class="code-method">find</span>({ <span class="code-prop">tags</span>: <span class="code-string">"mongodb"</span> })<br><br>
+          
+          <span class="code-comment">// Array chứa tất cả giá trị</span><br>
+          db.posts.<span class="code-method">find</span>({ <span class="code-prop">tags</span>: { <span class="code-keyword">$all</span>: [<span class="code-string">"mongodb"</span>, <span class="code-string">"nosql"</span>] } })<br><br>
+          
+          <span class="code-comment">// Kích thước array</span><br>
+          db.posts.<span class="code-method">find</span>({ <span class="code-prop">tags</span>: { <span class="code-keyword">$size</span>: <span class="code-number">3</span> } })<br><br>
+          
+          <span class="code-comment">// Element tại index</span><br>
+          db.posts.<span class="code-method">find</span>({ <span class="code-string">"tags.0"</span>: <span class="code-string">"mongodb"</span> })<br><br>
+          
+          <span class="code-comment">// $elemMatch - match nhiều điều kiện</span><br>
+          db.orders.<span class="code-method">find</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">items</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$elemMatch</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">qty</span>: { <span class="code-keyword">$gt</span>: <span class="code-number">10</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">price</span>: { <span class="code-keyword">$lt</span>: <span class="code-number">100</span> }<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          })
+        </div>
+
+        <div class="section-title">Query Embedded Documents</div>
+        <div class="code-block">
+          <span class="code-comment">// Dot notation</span><br>
+          db.users.<span class="code-method">find</span>({ <span class="code-string">"address.city"</span>: <span class="code-string">"Hà Nội"</span> })<br><br>
+          
+          <span class="code-comment">// Nested fields</span><br>
+          db.users.<span class="code-method">find</span>({ <span class="code-string">"address.geo.lat"</span>: { <span class="code-keyword">$gt</span>: <span class="code-number">20</span> } })<br><br>
+          
+          <span class="code-comment">// Match exact document</span><br>
+          db.users.<span class="code-method">find</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">address</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">city</span>: <span class="code-string">"Hà Nội"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">zip</span>: <span class="code-string">"100000"</span><br>
+          &nbsp;&nbsp;}<br>
+          })
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATE -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">✏️</span>
+          <span class="card-title">UPDATE - updateOne()</span>
+        </div>
+        <div class="highlight">
+          Cập nhật document đầu tiên match
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Update một document</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">email</span>: <span class="code-string">"a@example.com"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$set</span>: { <span class="code-prop">status</span>: <span class="code-string">"inactive"</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Response</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-prop">acknowledged</span>: <span class="code-bool">true</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">matchedCount</span>: <span class="code-number">1</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">modifiedCount</span>: <span class="code-number">1</span><br>
+          }
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Update nhiều fields</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-method">ObjectId</span>(<span class="code-string">"..."</span>) },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$set</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"New Name"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">age</span>: <span class="code-number">30</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">updatedAt</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>()<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Upsert - insert nếu không tồn tại</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">email</span>: <span class="code-string">"new@test.com"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$set</span>: { <span class="code-prop">name</span>: <span class="code-string">"New User"</span> } },<br>
+          &nbsp;&nbsp;{ <span class="code-prop">upsert</span>: <span class="code-bool">true</span> }<br>
+          )
+        </div>
+
+        <div class="tip-box">
+          ✅ <strong>upsert: true</strong> - Tạo document mới nếu không tìm thấy
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">✏️✏️</span>
+          <span class="card-title">UPDATE - updateMany()</span>
+        </div>
+        <div class="highlight">
+          Cập nhật tất cả documents match
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Update nhiều documents</span><br>
+          db.users.<span class="code-method">updateMany</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">status</span>: <span class="code-string">"pending"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$set</span>: { <span class="code-prop">status</span>: <span class="code-string">"active"</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Response</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-prop">acknowledged</span>: <span class="code-bool">true</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">matchedCount</span>: <span class="code-number">150</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">modifiedCount</span>: <span class="code-number">150</span><br>
+          }
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Tăng giá trị số</span><br>
+          db.products.<span class="code-method">updateMany</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">category</span>: <span class="code-string">"electronics"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$inc</span>: { <span class="code-prop">price</span>: <span class="code-number">10</span> } }<br>
+          )<br><br>
+          
+          <span class="code-comment">// Xóa field</span><br>
+          db.users.<span class="code-method">updateMany</span>(<br>
+          &nbsp;&nbsp;{},<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$unset</span>: { <span class="code-prop">tempField</span>: <span class="code-string">""</span> } }<br>
+          )
+        </div>
+
+        <div class="section-title">Common Update Operators</div>
+        <div class="flex-row">
+          <span class="tag">$set</span>
+          <span class="tag">$unset</span>
+          <span class="tag">$inc</span>
+          <span class="tag">$mul</span>
+          <span class="tag-blue tag">$rename</span>
+          <span class="tag-blue tag">$min</span>
+          <span class="tag-blue tag">$max</span>
+          <span class="tag-orange tag">$currentDate</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATE - Replace & FindAndModify -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔄</span>
+          <span class="card-title">UPDATE - replaceOne()</span>
+        </div>
+        <div class="highlight">
+          Thay thế toàn bộ document (giữ _id)
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Replace toàn bộ document</span><br>
+          db.users.<span class="code-method">replaceOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-method">ObjectId</span>(<span class="code-string">"..."</span>) },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"Completely New"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">email</span>: <span class="code-string">"new@test.com"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">age</span>: <span class="code-number">25</span><br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="warning-box">
+          ⚠️ <strong>replaceOne()</strong> xóa tất cả fields cũ (trừ _id) và thay bằng document mới
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="section-title">updateOne() vs replaceOne()</div>
+            <div class="code-block">
+              <span class="code-comment">// updateOne - giữ fields khác</span><br>
+              <span class="code-keyword">$set</span>: { name: <span class="code-string">"New"</span> }
+            </div>
+          </div>
+          <div>
+            <div class="section-title">&nbsp;</div>
+            <div class="code-block">
+              <span class="code-comment">// replaceOne - xóa hết</span><br>
+              { name: <span class="code-string">"New"</span> }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔍✏️</span>
+          <span class="card-title">UPDATE - findOneAndUpdate()</span>
+        </div>
+        <div class="highlight">
+          Update và return document (trước hoặc sau update)
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Update và return document cũ (default)</span><br>
+          db.users.<span class="code-method">findOneAndUpdate</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">email</span>: <span class="code-string">"a@example.com"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$set</span>: { <span class="code-prop">status</span>: <span class="code-string">"inactive"</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Return document sau khi update</span><br>
+          db.users.<span class="code-method">findOneAndUpdate</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">email</span>: <span class="code-string">"a@example.com"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$inc</span>: { <span class="code-prop">loginCount</span>: <span class="code-number">1</span> } },<br>
+          &nbsp;&nbsp;{ <span class="code-prop">returnDocument</span>: <span class="code-string">"after"</span> }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Với projection và sort</span><br>
+          db.users.<span class="code-method">findOneAndUpdate</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">status</span>: <span class="code-string">"active"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$set</span>: { <span class="code-prop">lastProcessed</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>() } },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">sort</span>: { <span class="code-prop">priority</span>: <span class="code-number">-1</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">projection</span>: { <span class="code-prop">name</span>: <span class="code-number">1</span>, <span class="code-prop">email</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">returnDocument</span>: <span class="code-string">"after"</span><br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="info-box">
+          💡 Hữu ích cho atomic operations - lấy và update trong một operation
+        </div>
+      </div>
+    </div>
+
+    <!-- DELETE -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🗑️</span>
+          <span class="card-title">DELETE - deleteOne()</span>
+        </div>
+        <div class="highlight">
+          Xóa document đầu tiên match
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Xóa một document</span><br>
+          db.users.<span class="code-method">deleteOne</span>({ <span class="code-prop">email</span>: <span class="code-string">"a@example.com"</span> })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Response</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-prop">acknowledged</span>: <span class="code-bool">true</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">deletedCount</span>: <span class="code-number">1</span><br>
+          }
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Xóa theo _id</span><br>
+          db.users.<span class="code-method">deleteOne</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">_id</span>: <span class="code-method">ObjectId</span>(<span class="code-string">"507f1f77bcf86cd799439011"</span>)<br>
+          })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Xóa với điều kiện phức tạp</span><br>
+          db.logs.<span class="code-method">deleteOne</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">level</span>: <span class="code-string">"debug"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">timestamp</span>: { <span class="code-keyword">$lt</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>(<span class="code-string">"2024-01-01"</span>) }<br>
+          })
+        </div>
+
+        <div class="warning-box">
+          ⚠️ Nếu nhiều documents match, chỉ document đầu tiên (theo natural order) bị xóa
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🗑️🗑️</span>
+          <span class="card-title">DELETE - deleteMany()</span>
+        </div>
+        <div class="highlight">
+          Xóa tất cả documents match
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Xóa nhiều documents</span><br>
+          db.users.<span class="code-method">deleteMany</span>({ <span class="code-prop">status</span>: <span class="code-string">"inactive"</span> })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Response</span><br>
+          {<br>
+          &nbsp;&nbsp;<span class="code-prop">acknowledged</span>: <span class="code-bool">true</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">deletedCount</span>: <span class="code-number">150</span><br>
+          }
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Xóa tất cả documents trong collection</span><br>
+          db.logs.<span class="code-method">deleteMany</span>({})
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Xóa documents cũ hơn 30 ngày</span><br>
+          <span class="code-keyword">const</span> thirtyDaysAgo = <span class="code-keyword">new</span> <span class="code-method">Date</span>()<br>
+          thirtyDaysAgo.<span class="code-method">setDate</span>(thirtyDaysAgo.<span class="code-method">getDate</span>() - <span class="code-number">30</span>)<br><br>
+          
+          db.logs.<span class="code-method">deleteMany</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">createdAt</span>: { <span class="code-keyword">$lt</span>: thirtyDaysAgo }<br>
+          })
+        </div>
+
+        <div class="warning-box">
+          ⚠️ <strong>CẢNH BÁO:</strong> deleteMany({}) xóa TẤT CẢ documents!
+        </div>
+      </div>
+    </div>
+
+    <!-- DELETE - FindAndDelete -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔍🗑️</span>
+          <span class="card-title">DELETE - findOneAndDelete()</span>
+        </div>
+        <div class="highlight">
+          Xóa và return document đã xóa
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Xóa và return document</span><br>
+          db.users.<span class="code-method">findOneAndDelete</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">email</span>: <span class="code-string">"a@example.com"</span><br>
+          })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Với sort - xóa document có priority cao nhất</span><br>
+          db.tasks.<span class="code-method">findOneAndDelete</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">status</span>: <span class="code-string">"pending"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-prop">sort</span>: { <span class="code-prop">priority</span>: <span class="code-number">-1</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Với projection</span><br>
+          db.users.<span class="code-method">findOneAndDelete</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">status</span>: <span class="code-string">"deleted"</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">projection</span>: { <span class="code-prop">name</span>: <span class="code-number">1</span>, <span class="code-prop">email</span>: <span class="code-number">1</span> }<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="info-box">
+          💡 Hữu ích khi cần log hoặc backup document trước khi xóa
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <span class="card-title">Bulk Write Operations</span>
+        </div>
+        <div class="highlight">
+          Thực hiện nhiều operations trong một request
+        </div>
+        
+        <div class="code-block">
+          db.users.<span class="code-method">bulkWrite</span>([<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">insertOne</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">document</span>: { <span class="code-prop">name</span>: <span class="code-string">"User 1"</span>, <span class="code-prop">age</span>: <span class="code-number">25</span> }<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;},<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">updateOne</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">filter</span>: { <span class="code-prop">name</span>: <span class="code-string">"User 2"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">update</span>: { <span class="code-keyword">$set</span>: { <span class="code-prop">age</span>: <span class="code-number">30</span> } }<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;},<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">deleteOne</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">filter</span>: { <span class="code-prop">status</span>: <span class="code-string">"deleted"</span> }<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;},<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">replaceOne</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">filter</span>: { <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">replacement</span>: { <span class="code-prop">name</span>: <span class="code-string">"New"</span>, <span class="code-prop">age</span>: <span class="code-number">40</span> }<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          ])
+        </div>
+
+        <div class="tip-box">
+          ✅ Giảm network round-trips<br>
+          ✅ Tăng performance khi có nhiều operations
+        </div>
+      </div>
+    </grid>
+
+    <!-- Quick Reference -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">📚</span>
+          <span class="card-title">Quick Reference - CRUD Commands</span>
+        </div>
+        <table class="comparison-table">
+          <tr>
+            <th>Operation</th>
+            <th>Command</th>
+            <th>Mô tả</th>
+          </tr>
+          <tr>
+            <td rowspan="2"><strong>CREATE</strong></td>
+            <td><code>insertOne(doc)</code></td>
+            <td>Thêm 1 document</td>
+          </tr>
+          <tr>
+            <td><code>insertMany([docs])</code></td>
+            <td>Thêm nhiều documents</td>
+          </tr>
+          <tr>
+            <td rowspan="6"><strong>READ</strong></td>
+            <td><code>find(query)</code></td>
+            <td>Tìm nhiều documents</td>
+          </tr>
+          <tr>
+            <td><code>findOne(query)</code></td>
+            <td>Tìm 1 document</td>
+          </tr>
+          <tr>
+            <td><code>find().sort({field: 1/-1})</code></td>
+            <td>Sắp xếp kết quả</td>
+          </tr>
+          <tr>
+            <td><code>find().limit(n)</code></td>
+            <td>Giới hạn số kết quả</td>
+          </tr>
+          <tr>
+            <td><code>countDocuments(query)</code></td>
+            <td>Đếm documents</td>
+          </tr>
+          <tr>
+            <td><code>distinct(field, query)</code></td>
+            <td>Giá trị unique</td>
+          </tr>
+          <tr>
+            <td rowspan="4"><strong>UPDATE</strong></td>
+            <td><code>updateOne(filter, update)</code></td>
+            <td>Update 1 document</td>
+          </tr>
+          <tr>
+            <td><code>updateMany(filter, update)</code></td>
+            <td>Update nhiều documents</td>
+          </tr>
+          <tr>
+            <td><code>replaceOne(filter, doc)</code></td>
+            <td>Thay thế toàn bộ document</td>
+          </tr>
+          <tr>
+            <td><code>findOneAndUpdate(filter, update)</code></td>
+            <td>Update và return document</td>
+          </tr>
+          <tr>
+            <td rowspan="3"><strong>DELETE</strong></td>
+            <td><code>deleteOne(filter)</code></td>
+            <td>Xóa 1 document</td>
+          </tr>
+          <tr>
+            <td><code>deleteMany(filter)</code></td>
+            <td>Xóa nhiều documents</td>
+          </tr>
+          <tr>
+            <td><code>findOneAndDelete(filter)</code></td>
+            <td>Xóa và return document</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>📚 MongoDB Cheat Sheet Series | Part 4 of 16</p>
+      <p>Created with Monica AI | December 2024</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MySQL Cheat Sheet #4 - Performance & Optimization</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #fff;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(245,87,108,0.3);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f5576c;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #f5576c;
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #f5576c;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-prop {
+      color: #7ee787;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(240,147,251,0.2), rgba(245,87,108,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #f5576c;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(245,87,108,0.2);
+      color: #f5576c;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-blue {
+      background: rgba(52,152,219,0.2);
+      color: #3498db;
+    }
+    .tag-green {
+      background: rgba(46,204,113,0.2);
+      color: #2ecc71;
+    }
+    .tag-purple {
+      background: rgba(155,89,182,0.2);
+      color: #9b59b6;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(52,152,219,0.1);
+      border-left: 3px solid #3498db;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(231,76,60,0.1);
+      border-left: 3px solid #e74c3c;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(46,204,113,0.1);
+      border-left: 3px solid #2ecc71;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .section-title {
+      color: #f5576c;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(245,87,108,0.3);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .comparison-table th {
+      background: rgba(245,87,108,0.2);
+      color: #f5576c;
+    }
+    .comparison-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    @media (max-width: 768px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>⚡ MySQL Cheat Sheet #4</h1>
+      <div class="subtitle">Performance & Optimization — Indexing, EXPLAIN, Query Tuning</div>
+      <div class="badge">🚀 EXPLAIN • Indexing • Optimization</div>
+    </div>
+
+    <!-- Indexing Overview -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">Index Types & Strategies</span>
+        </div>
+        
+        <table class="comparison-table">
+          <tr>
+            <th>Index Type</th>
+            <th>Best For</th>
+            <th>Use Cases</th>
+          </tr>
+          <tr>
+            <td><strong>B-Tree (Default)</strong></td>
+            <td>Range queries, ORDER BY, equality</td>
+            <td>Most common scenarios</td>
+          </tr>
+          <tr>
+            <td><strong>Hash</strong></td>
+            <td>Exact equality matches only</td>
+            <td>Memory tables, key-value lookups</td>
+          </tr>
+          <tr>
+            <td><strong>Full-Text</strong></td>
+            <td>Text search in large text columns</td>
+            <td>Search engines, content systems</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- B-Tree Indexes -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🌳</span>
+          <span class="card-title">B-Tree Indexes</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Simple B-Tree index</span>
+          <span class="code-keyword">CREATE INDEX</span> idx_email <span class="code-keyword">ON</span> customers(email);
+          
+          <span class="code-comment">-- Composite B-Tree index (multi-column)</span>
+          <span class="code-keyword">CREATE INDEX</span> idx_customer_date <span class="code-keyword">ON</span> orders(customer_id, order_date);
+          
+          <span class="code-comment">-- Unique index</span>
+          <span class="code-keyword">CREATE UNIQUE INDEX</span> idx_email_unique <span class="code-keyword">ON</span> customers(email);
+        </div>
+
+        <div class="highlight">
+          <strong>B-Tree Benefits:</strong><br>
+          • Efficient range queries (>, <, BETWEEN)<br>
+          • Supports ORDER BY and GROUP BY operations<br>
+          • Default index type in MySQL/InnoDB
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">-- Good index design for analytical queries</span>
+          <span class="code-keyword">CREATE TABLE</span> sales_data (
+            sale_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            customer_id <span class="code-keyword">INT NOT NULL</span>,
+            product_id <span class="code-keyword">INT NOT NULL</span>,
+            sale_date <span class="code-keyword">DATE</span>,
+            amount <span class="code-keyword">DECIMAL</span>(<span class="code-number">12</span>, <span class="code-number">2</span>),
+            region <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>)
+          );
+          
+          <span class="code-comment">-- Indices for common queries</span>
+          <span class="code-keyword">CREATE INDEX</span> idx_customer_date <span class="code-keyword">ON</span> sales_data(customer_id, sale_date);
+          <span class="code-keyword">CREATE INDEX</span> idx_product_region <span class="code-keyword">ON</span> sales_data(product_id, region);
+          <span class="code-keyword">CREATE INDEX</span> idx_sale_date <span class="code-keyword">ON</span> sales_data(sale_date);
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">#️⃣</span>
+          <span class="card-title">Hash & Full-Text Indexes</span>
+        </div>
+        
+        <div class="section-title">Hash Indexes</div>
+        <div class="code-block">
+          <span class="code-comment">-- Hash index (good for equality checks only)</span>
+          <span class="code-keyword">CREATE INDEX</span> idx_email_hash <span class="code-keyword">ON</span> customers(email) <span class="code-keyword">USING HASH</span>;
+          
+          <span class="code-comment">-- Benefits:</span>
+          <span class="code-comment">-- • Very fast for exact match queries (=)</span>
+          <span class="code-comment">-- • Memory engine only in standard MySQL</span>
+          <span class="code-comment">-- • Not suitable for range queries</span>
+        </div>
+
+        <div class="section-title">Full-Text Indexes</div>
+        <div class="code-block">
+          <span class="code-comment">-- Create full-text index for search</span>
+          <span class="code-keyword">ALTER TABLE</span> products 
+            <span class="code-keyword">ADD FULLTEXT INDEX</span> ft_product_search (product_name, description);
+          
+          <span class="code-comment">-- Natural language search</span>
+          <span class="code-keyword">SELECT</span> 
+            product_id,
+            product_name,
+            <span class="code-keyword">MATCH</span>(product_name, description) <span class="code-keyword">AGAINST</span>(<span class="code-string">'laptop'</span> <span class="code-keyword">IN NATURAL LANGUAGE MODE</span>) <span class="code-keyword">as</span> relevance
+          <span class="code-keyword">FROM</span> products
+          <span class="code-keyword">WHERE</span> <span class="code-keyword">MATCH</span>(product_name, description) <span class="code-keyword">AGAINST</span>(<span class="code-string">'laptop'</span> <span class="code-keyword">IN NATURAL LANGUAGE MODE</span>)
+          <span class="code-keyword">ORDER BY</span> relevance <span class="code-keyword">DESC</span>;
+          
+          <span class="code-comment">-- Boolean search with operators</span>
+          <span class="code-keyword">SELECT</span> 
+            product_id,
+            product_name
+          <span class="code-keyword">FROM</span> products
+          <span class="code-keyword">WHERE</span> <span class="code-keyword">MATCH</span>(product_name, description) <span class="code-keyword">AGAINST</span>(<span class="code-string">'+laptop -refurbished'</span> <span class="code-keyword">IN BOOLEAN MODE</span>);
+        </div>
+
+        <div class="info-box">
+          💡 <strong>Full-Text Search:</strong> Supports + (must include), - (must exclude), * (wildcard), "exact phrase"
+        </div>
+      </div>
+    </div>
+
+    <!-- Index Best Practices -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">✅</span>
+          <span class="card-title">When to Index</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Index columns in WHERE clauses</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> products
+          <span class="code-keyword">WHERE</span> category_id = <span class="code-number">5</span> <span class="code-keyword">AND</span> price > <span class="code-number">100</span>;  <span class="code-comment">-- Index both columns</span>
+          
+          <span class="code-comment">-- Index columns in JOIN conditions</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders o
+          <span class="code-keyword">JOIN</span> customers c <span class="code-keyword">ON</span> o.customer_id = c.customer_id;  <span class="code-comment">-- Index foreign key</span>
+          
+          <span class="code-comment">-- Index columns in ORDER BY</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders
+          <span class="code-keyword">ORDER BY</span> order_date <span class="code-keyword">DESC LIMIT</span> <span class="code-number">10</span>;  <span class="code-comment">-- Index order_date</span>
+        </div>
+
+        <div class="section-title">Index Cardinality Guidelines</div>
+        <div class="highlight">
+          Minimum cardinality for index effectiveness: >= 10% unique values<br>
+          For 1,000 rows: index if >= 100 unique values
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">-- Check index cardinality</span>
+          <span class="code-keyword">SHOW INDEX</span> <span class="code-keyword">FROM</span> table_name;
+          
+          <span class="code-comment">-- Analyze table to update statistics</span>
+          <span class="code-keyword">ANALYZE TABLE</span> table_name;
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">❌</span>
+          <span class="card-title">When NOT to Index</span>
+        </div>
+        
+        <table class="comparison-table">
+          <tr>
+            <th>Avoid Indexing</th>
+            <th>Reason</th>
+          </tr>
+          <tr>
+            <td>Low cardinality columns</td>
+            <td>Many duplicate values (boolean, enum)</td>
+          </tr>
+          <tr>
+            <td>Rarely queried columns</td>
+            <td>Not used in WHERE, JOIN, or ORDER BY</td>
+          </tr>
+          <tr>
+            <td>Small tables (&lt;1000 rows)</td>
+            <td>Full table scan is faster</td>
+          </tr>
+          <tr>
+            <td>Frequently updated columns</td>
+            <td>Index maintenance overhead</td>
+          </tr>
+          <tr>
+            <td>TEXT/BLOB columns</td>
+            <td>Use full-text instead</td>
+          </tr>
+        </table>
+
+        <div class="warning-box">
+          ⚠️ Too many indexes slow down INSERT/UPDATE operations and consume disk space
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPLAIN Analysis -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔍</span>
+          <span class="card-title">EXPLAIN Query Analysis</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-keyword">EXPLAIN SELECT</span> * <span class="code-keyword">FROM</span> customers <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>;
+          
+          <span class="code-comment">-- Output columns:</span>
+          <span class="code-comment">-- id: SELECT statement identifier</span>
+          <span class="code-comment">-- select_type: Type of SELECT (SIMPLE, PRIMARY, SUBQUERY, etc.)</span>
+          <span class="code-comment">-- table: Table being accessed</span>
+          <span class="code-comment">-- type: Join type (const, ref, range, index, ALL)</span>
+          <span class="code-comment">-- possible_keys: Indexes that could be used</span>
+          <span class="code-comment">-- key: Actually used index</span>
+          <span class="code-comment">-- key_len: Length of used index</span>
+          <span class="code-comment">-- ref: Column(s) compared with index</span>
+          <span class="code-comment">-- rows: Estimated rows examined</span>
+          <span class="code-comment">-- filtered: Percentage of filtered rows</span>
+          <span class="code-comment">-- Extra: Additional info</span>
+        </div>
+
+        <div class="section-title">Access Types (Best to Worst)</div>
+        <div class="code-block">
+          <span class="code-comment">-- CONST: Direct lookup by primary/unique key (BEST)</span>
+          <span class="code-keyword">EXPLAIN SELECT</span> * <span class="code-keyword">FROM</span> customers <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>;
+          
+          <span class="code-comment">-- REF: Lookup using non-unique index</span>
+          <span class="code-keyword">EXPLAIN SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">5</span>;
+          
+          <span class="code-comment">-- RANGE: Queries with range conditions</span>
+          <span class="code-keyword">EXPLAIN SELECT</span> * <span class="code-keyword">FROM</span> orders 
+          <span class="code-keyword">WHERE</span> order_date <span class="code-keyword">BETWEEN</span> <span class="code-string">'2024-01-01'</span> <span class="code-keyword">AND</span> <span class="code-string">'2024-12-31'</span>;
+          
+          <span class="code-comment">-- INDEX: Full index scan</span>
+          <span class="code-keyword">EXPLAIN SELECT</span> order_date <span class="code-keyword">FROM</span> orders <span class="code-keyword">ORDER BY</span> order_date;
+          
+          <span class="code-comment">-- ALL: Full table scan (WORST)</span>
+          <span class="code-keyword">EXPLAIN SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> <span class="code-keyword">YEAR</span>(order_date) = <span class="code-number">2024</span>;
+        </div>
+
+        <div class="tip-box">
+          ✅ Target: <strong>const</strong>, <strong>ref</strong>, or <strong>range</strong>. Avoid <strong>ALL</strong> (full table scan) on large tables.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <span class="card-title">EXPLAIN ANALYZE</span>
+        </div>
+        
+        <div class="highlight">
+          <strong>EXPLAIN ANALYZE</strong> executes the query and shows actual timing and row counts.
+        </div>
+
+        <div class="code-block">
+          <span class="code-keyword">EXPLAIN ANALYZE SELECT</span> 
+            o.order_id,
+            c.email,
+            <span class="code-keyword">SUM</span>(oi.quantity * oi.unit_price) <span class="code-keyword">as</span> order_total
+          <span class="code-keyword">FROM</span> orders o
+          <span class="code-keyword">JOIN</span> customers c <span class="code-keyword">ON</span> o.customer_id = c.customer_id
+          <span class="code-keyword">JOIN</span> order_items oi <span class="code-keyword">ON</span> o.order_id = oi.order_id
+          <span class="code-keyword">WHERE</span> o.order_date >= <span class="code-string">'2024-01-01'</span>
+          <span class="code-keyword">GROUP BY</span> o.order_id, c.email;
+        </div>
+
+        <div class="info-box">
+          💡 <strong>EXPLAIN ANALYZE shows:</strong><br>
+          • Estimated rows vs actual rows<br>
+          • Loop count and execution time<br>
+          • Helps identify query inefficiencies<br>
+          • Actual I/O and CPU costs
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Problems -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🚨</span>
+          <span class="card-title">Common Performance Problems</span>
+        </div>
+        
+        <div class="section-title">1. Missing Index</div>
+        <div class="code-block">
+          <span class="code-comment">-- BEFORE: Using full table scan</span>
+          <span class="code-keyword">EXPLAIN SELECT</span> * <span class="code-keyword">FROM</span> employees <span class="code-keyword">WHERE</span> department_id = <span class="code-number">3</span>;
+          <span class="code-comment">-- type: ALL, rows: 100000 (scans entire table)</span>
+          
+          <span class="code-comment">-- AFTER: Add index</span>
+          <span class="code-keyword">CREATE INDEX</span> idx_dept <span class="code-keyword">ON</span> employees(department_id);
+          <span class="code-keyword">EXPLAIN SELECT</span> * <span class="code-keyword">FROM</span> employees <span class="code-keyword">WHERE</span> department_id = <span class="code-number">3</span>;
+          <span class="code-comment">-- type: ref, rows: 500 (uses index)</span>
+        </div>
+
+        <div class="section-title">2. Index Not Used Due to Function</div>
+        <div class="code-block">
+          <span class="code-comment">-- BAD: Function prevents index use</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders
+          <span class="code-keyword">WHERE</span> <span class="code-keyword">YEAR</span>(order_date) = <span class="code-number">2024</span>;  <span class="code-comment">-- Index on order_date not used</span>
+          
+          <span class="code-comment">-- GOOD: Rewrite to use index</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders
+          <span class="code-keyword">WHERE</span> order_date >= <span class="code-string">'2024-01-01'</span> 
+            <span class="code-keyword">AND</span> order_date < <span class="code-string">'2025-01-01'</span>;  <span class="code-comment">-- Index on order_date used</span>
+        </div>
+
+        <div class="section-title">3. Wrong Join Order</div>
+        <div class="code-block">
+          <span class="code-comment">-- Suboptimal: Large table joined first</span>
+          <span class="code-keyword">SELECT</span> o.order_id, c.email
+          <span class="code-keyword">FROM</span> orders o
+          <span class="code-keyword">JOIN</span> customers c <span class="code-keyword">ON</span> o.customer_id = c.customer_id
+          <span class="code-keyword">WHERE</span> c.country = <span class="code-string">'USA'</span>;
+          
+          <span class="code-comment">-- Better: Filter large table first</span>
+          <span class="code-keyword">SELECT</span> o.order_id, c.email
+          <span class="code-keyword">FROM</span> customers c
+          <span class="code-keyword">JOIN</span> orders o <span class="code-keyword">ON</span> o.customer_id = c.customer_id
+          <span class="code-keyword">WHERE</span> c.country = <span class="code-string">'USA'</span>;
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔄</span>
+          <span class="card-title">N+1 Query Problem</span>
+        </div>
+        
+        <div class="highlight">
+          <strong>N+1 Problem:</strong> Executing one query to get N items, then N queries to get related data.
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">-- BAD: Multiple queries in application loop</span>
+          <span class="code-comment">-- Loop through customers and query orders for each</span>
+          <span class="code-comment">-- for each customer:</span>
+          <span class="code-comment">--     SELECT * FROM orders WHERE customer_id = ?;</span>
+          <span class="code-comment">-- Results in N+1 queries!</span>
+          
+          <span class="code-comment">-- GOOD: Single query with JOIN</span>
+          <span class="code-keyword">SELECT</span> c.customer_id, c.email, <span class="code-keyword">COUNT</span>(o.order_id) <span class="code-keyword">as</span> order_count
+          <span class="code-keyword">FROM</span> customers c
+          <span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id
+          <span class="code-keyword">GROUP BY</span> c.customer_id, c.email;
+        </div>
+
+        <div class="warning-box">
+          ⚠️ N+1 queries are a common performance anti-pattern in ORMs. Use JOINs or batch queries instead.
+        </div>
+      </div>
+    </div>
+
+    <!-- Query Optimization Techniques -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚡</span>
+          <span class="card-title">Query Optimization Techniques</span>
+        </div>
+        
+        <div class="section-title">1. Use SELECT with Specific Columns</div>
+        <div class="code-block">
+          <span class="code-comment">-- BAD: SELECT *</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> employees
+          <span class="code-keyword">WHERE</span> department_id = <span class="code-number">5</span>;
+          
+          <span class="code-comment">-- GOOD: Select needed columns only</span>
+          <span class="code-keyword">SELECT</span> employee_id, employee_name, salary
+          <span class="code-keyword">FROM</span> employees
+          <span class="code-keyword">WHERE</span> department_id = <span class="code-number">5</span>;
+        </div>
+
+        <div class="section-title">2. Optimize DISTINCT Usage</div>
+        <div class="code-block">
+          <span class="code-comment">-- BAD: DISTINCT after JOINs</span>
+          <span class="code-keyword">SELECT DISTINCT</span> c.customer_id, c.email
+          <span class="code-keyword">FROM</span> customers c
+          <span class="code-keyword">JOIN</span> orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id;
+          
+          <span class="code-comment">-- GOOD: Use subquery or GROUP BY</span>
+          <span class="code-keyword">SELECT</span> customer_id, email
+          <span class="code-keyword">FROM</span> customers
+          <span class="code-keyword">WHERE</span> customer_id <span class="code-keyword">IN</span> (<span class="code-keyword">SELECT DISTINCT</span> customer_id <span class="code-keyword">FROM</span> orders);
+        </div>
+
+        <div class="section-title">3. Proper Use of LIMIT</div>
+        <div class="code-block">
+          <span class="code-comment">-- For pagination</span>
+          <span class="code-keyword">SELECT</span> *
+          <span class="code-keyword">FROM</span> customers
+          <span class="code-keyword">ORDER BY</span> customer_id
+          <span class="code-keyword">LIMIT</span> <span class="code-number">20</span> <span class="code-keyword">OFFSET</span> <span class="code-number">0</span>;  <span class="code-comment">-- First page</span>
+          
+          <span class="code-comment">-- OFFSET becomes slow with large numbers</span>
+          <span class="code-comment">-- Better: Use keyset pagination</span>
+          <span class="code-keyword">SELECT</span> *
+          <span class="code-keyword">FROM</span> customers
+          <span class="code-keyword">WHERE</span> customer_id > <span class="code-number">1000</span>
+          <span class="code-keyword">ORDER BY</span> customer_id
+          <span class="code-keyword">LIMIT</span> <span class="code-number">20</span>;
+        </div>
+
+        <div class="section-title">4. Optimize Aggregate Functions</div>
+        <div class="code-block">
+          <span class="code-comment">-- Bad: GROUP BY with unnecessary columns</span>
+          <span class="code-keyword">SELECT</span> o.order_id, o.customer_id, <span class="code-keyword">SUM</span>(oi.quantity)
+          <span class="code-keyword">FROM</span> orders o
+          <span class="code-keyword">JOIN</span> order_items oi <span class="code-keyword">ON</span> o.order_id = oi.order_id
+          <span class="code-keyword">GROUP BY</span> o.order_id, o.customer_id;  <span class="code-comment">-- order_id already unique</span>
+          
+          <span class="code-comment">-- Good: GROUP BY minimal columns</span>
+          <span class="code-keyword">SELECT</span> o.order_id, <span class="code-keyword">SUM</span>(oi.quantity) <span class="code-keyword">as</span> total_items
+          <span class="code-keyword">FROM</span> orders o
+          <span class="code-keyword">JOIN</span> order_items oi <span class="code-keyword">ON</span> o.order_id = oi.order_id
+          <span class="code-keyword">GROUP BY</span> o.order_id;
+        </div>
+
+        <div class="section-title">5. Avoid Subqueries in SELECT</div>
+        <div class="code-block">
+          <span class="code-comment">-- BAD: Correlated subquery for each row</span>
+          <span class="code-keyword">SELECT</span> 
+            customer_id,
+            email,
+            (<span class="code-keyword">SELECT COUNT</span>(*) <span class="code-keyword">FROM</span> orders o <span class="code-keyword">WHERE</span> o.customer_id = c.customer_id) <span class="code-keyword">as</span> order_count
+          <span class="code-keyword">FROM</span> customers c;
+          
+          <span class="code-comment">-- GOOD: Single pass with LEFT JOIN and GROUP BY</span>
+          <span class="code-keyword">SELECT</span> 
+            c.customer_id,
+            c.email,
+            <span class="code-keyword">COUNT</span>(o.order_id) <span class="code-keyword">as</span> order_count
+          <span class="code-keyword">FROM</span> customers c
+          <span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id
+          <span class="code-keyword">GROUP BY</span> c.customer_id, c.email;
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">Performance Tuning for Analysts</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Optimize time-series analysis</span>
+          <span class="code-keyword">WITH</span> monthly_metrics <span class="code-keyword">AS</span> (
+            <span class="code-keyword">SELECT</span> 
+              <span class="code-keyword">DATE_FORMAT</span>(order_date, <span class="code-string">'%Y-%m'</span>) <span class="code-keyword">as</span> report_month,
+              customer_id,
+              <span class="code-keyword">COUNT</span>(*) <span class="code-keyword">as</span> order_count,
+              <span class="code-keyword">SUM</span>(total_amount) <span class="code-keyword">as</span> monthly_revenue
+            <span class="code-keyword">FROM</span> orders
+            <span class="code-keyword">WHERE</span> order_date >= <span class="code-keyword">DATE_SUB</span>(<span class="code-keyword">NOW</span>(), <span class="code-keyword">INTERVAL</span> <span class="code-number">24</span> <span class="code-keyword">MONTH</span>)
+            <span class="code-keyword">GROUP BY</span> report_month, customer_id
+          )
+          <span class="code-keyword">SELECT</span> 
+            report_month,
+            <span class="code-keyword">COUNT</span>(<span class="code-keyword">DISTINCT</span> customer_id) <span class="code-keyword">as</span> active_customers,
+            <span class="code-keyword">SUM</span>(order_count) <span class="code-keyword">as</span> total_orders,
+            <span class="code-keyword">ROUND</span>(<span class="code-keyword">SUM</span>(monthly_revenue), <span class="code-number">2</span>) <span class="code-keyword">as</span> monthly_revenue,
+            <span class="code-keyword">ROUND</span>(<span class="code-keyword">AVG</span>(monthly_revenue), <span class="code-number">2</span>) <span class="code-keyword">as</span> avg_customer_value
+          <span class="code-keyword">FROM</span> monthly_metrics
+          <span class="code-keyword">GROUP BY</span> report_month
+          <span class="code-keyword">ORDER BY</span> report_month <span class="code-keyword">DESC</span>;
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">-- Create materialized view for frequently accessed reports</span>
+          <span class="code-keyword">CREATE TABLE</span> monthly_sales_summary <span class="code-keyword">AS</span>
+          <span class="code-keyword">SELECT</span> 
+            <span class="code-keyword">DATE_FORMAT</span>(order_date, <span class="code-string">'%Y-%m'</span>) <span class="code-keyword">as</span> report_month,
+            customer_id,
+            <span class="code-keyword">COUNT</span>(*) <span class="code-keyword">as</span> order_count,
+            <span class="code-keyword">SUM</span>(total_amount) <span class="code-keyword">as</span> monthly_revenue
+          <span class="code-keyword">FROM</span> orders
+          <span class="code-keyword">WHERE</span> order_date >= <span class="code-keyword">DATE_SUB</span>(<span class="code-keyword">NOW</span>(), <span class="code-keyword">INTERVAL</span> <span class="code-number">24</span> <span class="code-keyword">MONTH</span>)
+          <span class="code-keyword">GROUP BY</span> <span class="code-keyword">DATE_FORMAT</span>(order_date, <span class="code-string">'%Y-%m'</span>), customer_id;
+          
+          <span class="code-comment">-- Create index on materialized view</span>
+          <span class="code-keyword">CREATE INDEX</span> idx_summary_month <span class="code-keyword">ON</span> monthly_sales_summary(report_month);
+        </div>
+
+        <div class="info-box">
+          💡 Materialized views (summary tables) dramatically improve performance for frequently accessed analytical queries. Refresh periodically.
+        </div>
+      </div>
+    </div>
+
+    <!-- Learning Checklist -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">✅</span>
+          <span class="card-title">Learning Checklist</span>
+        </div>
+        
+        <div class="two-col">
+          <div>
+            <div class="list-item">Understand B-Tree, Hash, and Full-Text index types</div>
+            <div class="list-item">Create appropriate indexes for query patterns</div>
+            <div class="list-item">Read and interpret EXPLAIN output</div>
+            <div class="list-item">Use EXPLAIN ANALYZE for actual performance metrics</div>
+          </div>
+          <div>
+            <div class="list-item">Identify missing indexes and incorrect join orders</div>
+            <div class="list-item">Refactor queries to eliminate performance issues</div>
+            <div class="list-item">Apply optimization techniques to analytical queries</div>
+            <div class="list-item">Monitor slow query logs</div>
+          </div>
+        </div>
+
+        <div class="tag">indexing</div>
+        <div class="tag">explain</div>
+        <div class="tag">optimization</div>
+        <div class="tag">performance</div>
+        <div class="tag">query-tuning</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>MySQL Cheat Sheet #4 - Performance & Optimization • Complete MySQL Knowledge Base</p>
+    </div>
+  </div>
+</body>
+</html>

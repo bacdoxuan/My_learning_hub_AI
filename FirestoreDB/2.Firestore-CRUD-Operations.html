@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Cheat Sheet #2 - CRUD Operations</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .concept-section {
+            background: #1a2844;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .concept-title {
+            color: #764ba2;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .concept-text {
+            color: #a0aec0;
+            margin-bottom: 15px;
+        }
+        .code-block {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #764ba2;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .code-block code {
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .code-keyword { color: #667eea; }
+        .code-string { color: #38ef7d; }
+        .code-method { color: #fbbf24; }
+        .code-number { color: #f87171; }
+        .code-comment { color: #6b7280; font-style: italic; }
+        .info-box {
+            background: rgba(102, 126, 234, 0.1);
+            border-left: 3px solid #667eea;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid #ef4444;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .tip-box {
+            background: rgba(118, 75, 162, 0.1);
+            border-left: 3px solid #764ba2;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a2844;
+            margin: 20px 0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            background: #334155;
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #334155;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 10px 16px;
+            background: transparent;
+            border: none;
+            color: #a0aec0;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active {
+            color: #764ba2;
+            border-bottom-color: #764ba2;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .checklist {
+            background: #1a2844;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .checkbox-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            align-items: flex-start;
+        }
+        input[type="checkbox"] {
+            margin-top: 3px;
+            cursor: pointer;
+        }
+        @media (max-width: 768px) {
+            .content { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="hero-badge">Module 2 of 7</div>
+            <h1>CRUD Operations</h1>
+            <p style="color: rgba(255,255,255,0.8); margin-top: 10px;">Create, Read, Update, and Delete operations</p>
+        </div>
+
+        <div class="content">
+            <div class="concept-section">
+                <div class="concept-title">✍️ Create Operations</div>
+                <div class="concept-text">
+                    Two main methods for adding data:
+                </div>
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(event, 'create-add')">add()</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'create-set')">set()</button>
+                </div>
+                <div id="create-add" class="tab-content active">
+                    <div class="code-block"><code>
+<span class="code-comment">// Auto-generates document ID</span>
+<span class="code-keyword">const</span> docRef = <span class="code-keyword">await</span> <span class="code-method">addDoc</span>(
+  <span class="code-method">collection</span>(db, <span class="code-string">"users"</span>),
+  {
+    first: <span class="code-string">"Ada"</span>,
+    last: <span class="code-string">"Lovelace"</span>,
+    born: <span class="code-number">1815</span>
+  }
+);
+console.<span class="code-method">log</span>(docRef.id);
+                    </code></div>
+                </div>
+                <div id="create-set" class="tab-content">
+                    <div class="code-block"><code>
+<span class="code-comment">// Use custom document ID</span>
+<span class="code-keyword">await</span> <span class="code-method">setDoc</span>(
+  <span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, <span class="code-string">"user123"</span>),
+  { first: <span class="code-string">"Ada"</span>, last: <span class="code-string">"Lovelace"</span> }
+);
+                    </code></div>
+                </div>
+                <div class="tip-box">
+                    💡 <strong>set() with merge:</strong> Use {merge: true} to avoid overwriting existing data
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">📖 Read Operations</div>
+                <div class="concept-text">
+                    Retrieve data with get() or real-time listeners:
+                </div>
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(event, 'read-get')">get()</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'read-single')">Single Doc</button>
+                </div>
+                <div id="read-get" class="tab-content active">
+                    <div class="code-block"><code>
+<span class="code-comment">// Get all documents</span>
+<span class="code-keyword">const</span> querySnapshot = <span class="code-keyword">await</span> <span class="code-method">getDocs</span>(
+  <span class="code-method">collection</span>(db, <span class="code-string">"users"</span>)
+);
+querySnapshot.<span class="code-method">forEach</span>((doc) => {
+  console.<span class="code-method">log</span>(doc.id, <span class="code-string">"=>"</span>, doc.<span class="code-method">data</span>());
+});
+                    </code></div>
+                </div>
+                <div id="read-single" class="tab-content">
+                    <div class="code-block"><code>
+<span class="code-comment">// Get specific document</span>
+<span class="code-keyword">const</span> docSnap = <span class="code-keyword">await</span> <span class="code-method">getDoc</span>(
+  <span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, <span class="code-string">"user123"</span>)
+);
+<span class="code-keyword">if</span> (docSnap.<span class="code-method">exists</span>()) {
+  console.<span class="code-method">log</span>(docSnap.<span class="code-method">data</span>());
+}
+                    </code></div>
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">♻️ Update Operations</div>
+                <div class="concept-text">
+                    Modify existing documents without replacing them:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">await</span> <span class="code-method">updateDoc</span>(
+  <span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, <span class="code-string">"user123"</span>),
+  {
+    age: <span class="code-number">30</span>,
+    <span class="code-string">"address.city"</span>: <span class="code-string">"London"</span>
+  }
+);
+                </code></div>
+                <div class="warning-box">
+                    ⚠️ updateDoc() only updates specified fields, unlike set() which replaces entire document
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🗑️ Delete Operations</div>
+                <div class="concept-text">
+                    Remove documents or fields:
+                </div>
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab(event, 'delete-doc')">Delete Doc</button>
+                    <button class="tab-btn" onclick="switchTab(event, 'delete-field')">Delete Field</button>
+                </div>
+                <div id="delete-doc" class="tab-content active">
+                    <div class="code-block"><code>
+<span class="code-keyword">await</span> <span class="code-method">deleteDoc</span>(
+  <span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, <span class="code-string">"user123"</span>)
+);
+                    </code></div>
+                </div>
+                <div id="delete-field" class="tab-content">
+                    <div class="code-block"><code>
+<span class="code-keyword">await</span> <span class="code-method">updateDoc</span>(
+  <span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, <span class="code-string">"user123"</span>),
+  { age: <span class="code-method">deleteField</span>() }
+);
+                    </code></div>
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">📦 Batch Operations</div>
+                <div class="concept-text">
+                    Perform multiple writes atomically:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">const</span> batch = <span class="code-method">writeBatch</span>(db);
+
+<span class="code-comment">// Set, update, or delete multiple docs</span>
+batch.<span class="code-method">set</span>(<span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, <span class="code-string">"user1"</span>), {...});
+batch.<span class="code-method">update</span>(<span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, <span class="code-string">"user2"</span>), {...});
+batch.<span class="code-method">delete</span>(<span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, <span class="code-string">"user3"</span>));
+
+<span class="code-keyword">await</span> batch.<span class="code-method">commit</span>();
+                </code></div>
+                <div class="info-box">
+                    <strong>Batch limits:</strong> Up to 500 writes per batch operation
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">⚡ Transactions</div>
+                <div class="concept-text">
+                    Ensure multiple reads and writes succeed together:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">await</span> <span class="code-method">runTransaction</span>(db, <span class="code-keyword">async</span> (transaction) => {
+  <span class="code-keyword">const</span> docSnap = <span class="code-keyword">await</span> transaction.<span class="code-method">get</span>(docRef);
+  <span class="code-keyword">const</span> newValue = docSnap.<span class="code-method">data</span>().value + <span class="code-number">1</span>;
+  transaction.<span class="code-method">update</span>(docRef, { value: newValue });
+});
+                </code></div>
+                <div class="warning-box">
+                    ⚠️ Transactions can be retried. Keep transaction logic idempotent
+                </div>
+            </div>
+        </div>
+
+        <div class="concept-section" style="margin-bottom: 30px;">
+            <div class="concept-title">📋 CRUD Operations Comparison</div>
+            <table>
+                <tr>
+                    <th>Operation</th>
+                    <th>Method</th>
+                    <th>Overwrites?</th>
+                    <th>Use Case</th>
+                </tr>
+                <tr>
+                    <td>Create</td>
+                    <td>addDoc()</td>
+                    <td>N/A</td>
+                    <td>Auto-generate IDs</td>
+                </tr>
+                <tr>
+                    <td>Create</td>
+                    <td>setDoc()</td>
+                    <td>Yes (default)</td>
+                    <td>Custom IDs or overwrite</td>
+                </tr>
+                <tr>
+                    <td>Read</td>
+                    <td>getDocs()</td>
+                    <td>N/A</td>
+                    <td>Read multiple docs</td>
+                </tr>
+                <tr>
+                    <td>Read</td>
+                    <td>getDoc()</td>
+                    <td>N/A</td>
+                    <td>Read single doc</td>
+                </tr>
+                <tr>
+                    <td>Update</td>
+                    <td>updateDoc()</td>
+                    <td>No</td>
+                    <td>Modify specific fields</td>
+                </tr>
+                <tr>
+                    <td>Delete</td>
+                    <td>deleteDoc()</td>
+                    <td>N/A</td>
+                    <td>Remove entire document</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="checklist">
+            <div class="concept-title">✅ Learning Checklist</div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c1">
+                <label for="c1">Know the difference between add() and set()</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c2">
+                <label for="c2">Perform all CRUD operations in your code</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c3">
+                <label for="c3">Use updateDoc() for partial updates</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c4">
+                <label for="c4">Implement batch operations for bulk writes</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c5">
+                <label for="c5">Use transactions for dependent operations</label>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px;">
+            <a href="index.html" style="color: #667eea; text-decoration: none; font-weight: 600;">← Back to Index</a>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(event, tabId) {
+            const parent = event.target.closest('.concept-section');
+            const tabs = parent.querySelectorAll('.tab-content');
+            const btns = parent.querySelectorAll('.tab-btn');
+
+            btns.forEach(btn => btn.classList.remove('active'));
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+    </script>
+</body>
+</html>

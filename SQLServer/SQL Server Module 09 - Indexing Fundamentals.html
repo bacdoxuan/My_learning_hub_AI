@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #9 - Indexing Fundamentals</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #f97316;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #fb923c;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #fb923c;
+            border-bottom: 2px solid #f97316;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #fed7aa;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #f97316;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #fb923c;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #fb923c;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #fb923c;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #fb923c;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #fb923c;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #fb923c;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #f97316;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #ea580c;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟠 SQL Server Indexing Fundamentals</h1>
+        <p>Master Clustered, Nonclustered & Included Indexes with Performance Optimization</p>
+        <div class="badge">Performance Core</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers the foundation of SQL Server indexing: clustered and nonclustered indexes, included columns, 
+            SARGability concepts, covering indexes, and maintenance basics like fillfactor and fragmentation. 
+            Understanding these fundamentals is crucial for query performance optimization.
+        </p>
+        
+        <h2>🏗️ Index Types: Clustered vs Nonclustered</h2>
+        
+        <h3>Clustered Index</h3>
+        <div class="concept-box">
+            <div class="concept-title">Clustered Index Characteristics</div>
+            <div class="concept-description">
+                <strong style="color: #fb923c;">Table organization:</strong> Determines physical storage order of data rows<br>
+                <strong style="color: #fb923c;">One per table:</strong> Only one clustered index allowed per table<br>
+                <strong style="color: #fb923c;">Leaf level:</strong> Contains actual data pages (not row pointers)<br>
+                <strong style="color: #fb923c;">Best for:</strong> Range queries, ORDER BY on key columns, primary key lookups<br>
+                <strong style="color: #fb923c;">Performance impact:</strong> Updates to key columns cause row movement
+            </div>
+        </div>
+        
+        <h3>Nonclustered Index</h3>
+        <div class="concept-box">
+            <div class="concept-title">Nonclustered Index Characteristics</div>
+            <div class="concept-description">
+                <strong style="color: #fb923c;">Separate structure:</strong> Independent of data storage, contains pointers to data<br>
+                <strong style="color: #fb923c;">Multiple allowed:</strong> Up to 999 per table in SQL Server<br>
+                <strong style="color: #fb923c;">Leaf level:</strong> Contains index key + bookmark (clustered key or RID)<br>
+                <strong style="color: #fb923c;">Best for:</strong> Exact match lookups, covering queries, foreign key columns<br>
+                <strong style="color: #fb923c;">Lookup cost:</strong> Additional I/O for data retrieval (key lookup)
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Clustered index on primary key (default)</span>
+<span class="code-keyword">CREATE CLUSTERED INDEX</span> IX_Orders_OrderDate <span class="code-keyword">ON</span> Orders (OrderDate);
+
+<span class="code-comment">-- Nonclustered index on foreign key</span>
+<span class="code-keyword">CREATE NONCLUSTERED INDEX</span> IX_Orders_CustomerID <span class="code-keyword">ON</span> Orders (CustomerID);
+
+<span class="code-comment">-- Composite clustered index</span>
+<span class="code-keyword">CREATE CLUSTERED INDEX</span> IX_Sales_Composite <span class="code-keyword">ON</span> Sales (RegionID, ProductID, SaleDate);</code>
+        </div>
+        
+        <h2>📎 Included Columns</h2>
+        
+        <h3>Key Columns vs Included Columns</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Key Columns</div>
+                <div class="concept-description">
+                    <strong style="color: #fb923c;">Sorting/searching:</strong> Used for index ordering and seek operations<br>
+                    <strong style="color: #fb923c;">Maximum size:</strong> 900 bytes total for all key columns<br>
+                    <strong style="color: #fb923c;">Selectivity:</strong> Choose highly selective columns for better performance<br>
+                    <strong style="color: #fb923c;">Order matters:</strong> Column order affects usage for composite indexes
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Included Columns</div>
+                <div class="concept-description">
+                    <strong style="color: #fb923c;">Covering queries:</strong> Stored in leaf level to avoid key lookups<br>
+                    <strong style="color: #fb923c;">No size limit:</strong> Can include large columns (VARCHAR(MAX), etc.)<br>
+                    <strong style="color: #fb923c;">No sorting:</strong> Not used for ordering, only for data retrieval<br>
+                    <strong style="color: #fb923c;">Performance boost:</strong> Eliminates need to access base table
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Index with included columns for covering query</span>
+<span class="code-keyword">CREATE NONCLUSTERED INDEX</span> IX_Orders_Covering
+<span class="code-keyword">ON</span> Orders (CustomerID)
+<span class="code-keyword">INCLUDE</span> (OrderDate, TotalAmount, Status);
+
+<span class="code-comment">-- This query is now covered by the index (no key lookup)</span>
+<span class="code-keyword">SELECT</span> CustomerID, OrderDate, TotalAmount
+<span class="code-keyword">FROM</span> Orders
+<span class="code-keyword">WHERE</span> CustomerID = 123;
+
+<span class="code-comment">-- Key vs Include: Choose wisely</span>
+<span class="code-comment">-- Key: CustomerID (selective, used in WHERE)</span>
+<span class="code-comment">-- Include: OrderDate, TotalAmount (needed in SELECT, not WHERE)</span></code>
+        </div>
+        
+        <h2>🔍 Covering Indexes</h2>
+        
+        <h3>Eliminating Key Lookups</h3>
+        <div class="concept-box">
+            <div class="concept-title">Covering Index Benefits</div>
+            <div class="concept-description">
+                <strong style="color: #fb923c;">Complete data access:</strong> Index contains all columns needed by query<br>
+                <strong style="color: #fb923c;">No base table access:</strong> Eliminates expensive key lookups<br>
+                <strong style="color: #fb923c;">Performance gain:</strong> Especially beneficial for OLTP workloads<br>
+                <strong style="color: #fb923c;">Storage cost:</strong> Larger indexes, but fewer I/Os per query<br>
+                <strong style="color: #fb923c;">Maintenance overhead:</strong> Updates affect index size
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Example: Covering index for common query pattern</span>
+<span class="code-keyword">CREATE NONCLUSTERED INDEX</span> IX_Products_CategoryPrice
+<span class="code-keyword">ON</span> Products (CategoryID, Price)
+<span class="code-keyword">INCLUDE</span> (ProductName, InStock);
+
+<span class="code-comment">-- Query covered by index</span>
+<span class="code-keyword">SELECT</span> ProductName, Price, InStock
+<span class="code-keyword">FROM</span> Products
+<span class="code-keyword">WHERE</span> CategoryID = 5
+    <span class="code-keyword">AND</span> Price <span class="code-keyword">BETWEEN</span> 10 <span class="code-keyword">AND</span> 100
+<span class="code-keyword">ORDER BY</span> Price;
+
+<span class="code-comment">-- Check if index is covering using execution plan</span>
+<span class="code-comment">-- Look for "Index Seek" without "Key Lookup" operator</span></code>
+        </div>
+        
+        <h2>🎯 SARGability</h2>
+        
+        <h3>Search Argument Able Predicates</h3>
+        <div class="concept-box">
+            <div class="concept-title">SARGable vs Non-SARGable</div>
+            <div class="concept-description">
+                <strong style="color: #fb923c;">SARGable operations:</strong> Can utilize index seeks (equality, range, LIKE 'prefix%')<br>
+                <strong style="color: #fb923c;">Non-SARGable:</strong> Force index scans or table scans (functions on column, LIKE '%suffix')<br>
+                <strong style="color: #fb923c;">Common pitfalls:</strong> ISNULL(), CONVERT(), UPPER() on indexed columns<br>
+                <strong style="color: #fb923c;">Optimization:</strong> Rewrite queries to make predicates SARGable<br>
+                <strong style="color: #fb923c;">Index design:</strong> Consider computed columns for common transformations
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- SARGable: Uses index seek</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Orders <span class="code-keyword">WHERE</span> OrderDate >= '2023-01-01';
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Products <span class="code-keyword">WHERE</span> ProductName <span class="code-keyword">LIKE</span> 'Apple%';
+
+<span class="code-comment">-- Non-SARGable: Forces scan</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Orders <span class="code-keyword">WHERE</span> <span class="code-function">YEAR</span>(OrderDate) = 2023;  <span class="code-comment">-- Function on column</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Products <span class="code-keyword">WHERE</span> ProductName <span class="code-keyword">LIKE</span> '%Apple';  <span class="code-comment">-- Leading wildcard</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Orders <span class="code-keyword">WHERE</span> <span class="code-function">ISNULL</span>(ShipDate, '9999-12-31') > GETDATE();
+
+<span class="code-comment">-- Make SARGable: Computed column</span>
+<span class="code-keyword">ALTER TABLE</span> Orders <span class="code-keyword">ADD</span> OrderYear <span class="code-keyword">AS</span> <span class="code-function">YEAR</span>(OrderDate) <span class="code-keyword">PERSISTED</span>;
+<span class="code-keyword">CREATE INDEX</span> IX_Orders_OrderYear <span class="code-keyword">ON</span> Orders (OrderYear);
+
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Orders <span class="code-keyword">WHERE</span> OrderYear = 2023;  <span class="code-comment">-- Now SARGable</span></code>
+        </div>
+        
+        <h2>⚙️ Index Maintenance: Fillfactor & Fragmentation</h2>
+        
+        <h3>Fillfactor</h3>
+        <div class="concept-box">
+            <div class="concept-title">Fillfactor Settings</div>
+            <div class="concept-description">
+                <strong style="color: #fb923c;">Page fullness:</strong> Percentage of space to fill on index pages (1-100)<br>
+                <strong style="color: #fb923c;">Default 0/100:</strong> Fill pages completely, reserve space for new rows<br>
+                <strong style="color: #fb923c;">Write-heavy tables:</strong> Lower fillfactor (70-90) for inserts<br>
+                <strong style="color: #fb923c;">Read-only tables:</strong> Fillfactor 100 for maximum density<br>
+                <strong style="color: #fb923c;">Rebuild impact:</strong> Recreates index with new fillfactor
+            </div>
+        </div>
+        
+        <h3>Fragmentation Basics</h3>
+        <div class="concept-box">
+            <div class="concept-title">Understanding Fragmentation</div>
+            <div class="concept-description">
+                <strong style="color: #fb923c;">Logical fragmentation:</strong> Out-of-order pages in index (affects range scans)<br>
+                <strong style="color: #fb923c;">Physical fragmentation:</strong> Pages not contiguous on disk (affects large I/Os)<br>
+                <strong style="color: #fb923c;">Monitoring:</strong> sys.dm_db_index_physical_stats for fragmentation %<br>
+                <strong style="color: #fb923c;">Rebuild vs Reorganize:</strong> Rebuild for >30% frag, reorganize for 5-30%<br>
+                <strong style="color: #fb923c;">Prevention:</strong> Proper fillfactor, regular maintenance
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Create index with fillfactor</span>
+<span class="code-keyword">CREATE NONCLUSTERED INDEX</span> IX_Orders_CustomerDate
+<span class="code-keyword">ON</span> Orders (CustomerID, OrderDate)
+<span class="code-keyword">WITH</span> (FILLFACTOR = 80);
+
+<span class="code-comment">-- Check fragmentation</span>
+<span class="code-keyword">SELECT</span> 
+    object_name(i.object_id) AS TableName,
+    i.name AS IndexName,
+    ps.avg_fragmentation_in_percent,
+    ps.fragment_count,
+    ps.page_count
+<span class="code-keyword">FROM</span> sys.dm_db_index_physical_stats(DB_ID(), NULL, NULL, NULL, NULL) ps
+<span class="code-keyword">INNER JOIN</span> sys.indexes i <span class="code-keyword">ON</span> ps.object_id = i.object_id <span class="code-keyword">AND</span> ps.index_id = i.index_id
+<span class="code-keyword">WHERE</span> ps.avg_fragmentation_in_percent > 10;
+
+<span class="code-comment">-- Rebuild fragmented index</span>
+<span class="code-keyword">ALTER INDEX</span> IX_Orders_CustomerDate <span class="code-keyword">ON</span> Orders <span class="code-keyword">REBUILD</span> <span class="code-keyword">WITH</span> (FILLFACTOR = 80);
+
+<span class="code-comment">-- Reorganize (online, less disruptive)</span>
+<span class="code-keyword">ALTER INDEX</span> IX_Orders_CustomerDate <span class="code-keyword">ON</span> Orders <span class="code-keyword">REORGANIZE</span>;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Index Design Principles:</strong> Choose clustered index for most frequently accessed column(s). Use included columns to create covering indexes. 
+            Always consider SARGability when writing WHERE clauses. Monitor fragmentation and maintain with appropriate fillfactor.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Common Mistakes:</strong> Creating too many indexes increases maintenance overhead. Ignoring SARGability leads to poor performance. 
+            Not monitoring fragmentation causes degraded query performance over time.
+        </div>
+        
+        <h2>📊 Index Strategy Comparison</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Aspect</th>
+                <th>Clustered Index</th>
+                <th>Nonclustered Index</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Data Storage</strong></td>
+                <td>Contains actual data rows</td>
+                <td>Contains pointers to data</td>
+                </tr>
+                <tr>
+                    <td><strong>Per Table Limit</strong></td>
+                <td>1</td>
+                <td>999</td>
+                </tr>
+                <tr>
+                    <td><strong>Best For</strong></td>
+                <td>Range queries, ORDER BY</td>
+                <td>Exact matches, covering queries</td>
+                </tr>
+                <tr>
+                    <td><strong>Maintenance Cost</strong></td>
+                <td>Higher (reorders data)</td>
+                <td>Lower (separate structure)</td>
+                </tr>
+                <tr>
+                    <td><strong>Lookup Cost</strong></td>
+                <td>None (data is there)</td>
+                <td>Key lookup for non-covered queries</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Understand clustered index structure and when to use it</li>
+                <li>Create nonclustered indexes for selective queries</li>
+                <li>Use included columns to create covering indexes</li>
+                <li>Differentiate between key and included columns</li>
+                <li>Identify covering indexes to eliminate key lookups</li>
+                <li>Write SARGable WHERE clauses for index utilization</li>
+                <li>Avoid common non-SARGable patterns</li>
+                <li>Use computed columns to make queries SARGable</li>
+                <li>Set appropriate fillfactor for different workloads</li>
+                <li>Monitor index fragmentation using DMVs</li>
+                <li>Perform index maintenance (rebuild vs reorganize)</li>
+                <li>Analyze execution plans for index usage</li>
+                <li>Design composite indexes with proper column order</li>
+                <li>Balance index benefits against maintenance costs</li>
+                <li>Use included columns for large data types</li>
+                <li>Optimize for range queries vs exact matches</li>
+                <li>Monitor index usage with sys.dm_db_index_usage_stats</li>
+                <li>Remove unused indexes to reduce overhead</li>
+                <li>Consider index storage and memory implications</li>
+                <li>Test index performance with realistic workloads</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Index Creation:</strong> Create clustered and nonclustered indexes on a sales table. Compare query performance for different access patterns.</li>
+                <li><strong>Covering Indexes:</strong> Identify queries that perform key lookups and create covering indexes to eliminate them. Measure performance improvement.</li>
+                <li><strong>SARGability:</strong> Rewrite non-SARGable queries using computed columns or alternative approaches. Compare execution plans before and after.</li>
+                <li><strong>Maintenance:</strong> Check fragmentation on existing indexes and perform appropriate maintenance operations. Set proper fillfactor for write-heavy tables.</li>
+                <li><strong>Index Strategy:</strong> Design an indexing strategy for a complex OLTP workload, balancing read and write performance.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/08-apply-derived-tables.html" class="nav-btn">← Previous: APPLY, Derived Tables, Temp Tables & Table Variables</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/10-advanced-indexing.html" class="nav-btn">Next: Advanced Indexing: Filtered, Columnstore, Indexed View →</a>
+        </div>
+    </div>
+</body>
+</html>

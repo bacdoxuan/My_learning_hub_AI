@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knowledge Hub - Database Technologies</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .tech-card {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 30px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tech-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .tech-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border-color: #3b82f6;
+        }
+
+        .tech-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .tech-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #f1f5f9;
+        }
+
+        .tech-description {
+            color: #cbd5e1;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .tech-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 25px;
+        }
+
+        .tech-features li {
+            padding: 5px 0;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .tech-features li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #3b82f6;
+        }
+
+        .tech-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 8px;
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .tech-link:hover {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.2));
+            border-color: #3b82f6;
+            transform: translateX(5px);
+        }
+
+        .stats-section {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #3b82f6;
+            display: block;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .features-section {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .feature-card {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 10px;
+        }
+
+        .feature-desc {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        footer {
+            background: #0f172a;
+            border-top: 1px solid #334155;
+            padding: 40px 20px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .footer-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 15px;
+        }
+
+        .footer-desc {
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: #60a5fa;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: #3b82f6;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .tech-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .tech-card {
+                padding: 25px;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Database Knowledge Hub</h1>
+            <p class="subtitle">Tổng hợp kiến thức database từ cơ bản đến nâng cao</p>
+        </header>
+
+        <div class="stats-section">
+            <h2 style="margin-bottom: 10px; color: #f1f5f9;">📊 Thống Kê</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-number">6</span>
+                    <div class="stat-label">Công Nghệ Database</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">70+</span>
+                    <div class="stat-label">Modules Học Tập</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">100+</span>
+                    <div class="stat-label">Cheat Sheets</div>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">∞</span>
+                    <div class="stat-label">Knowledge</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="tech-grid">
+            <div class="tech-card" onclick="window.open('FirestoreDB/index.html', '_blank')">
+                <span class="tech-icon">🔥</span>
+                <h3 class="tech-title">Firestore Database</h3>
+                <p class="tech-description">Cloud NoSQL database từ Google với real-time synchronization, offline support, và scalability tự động.</p>
+                <ul class="tech-features">
+                    <li>Real-time listeners & offline sync</li>
+                    <li>Document-oriented structure</li>
+                    <li>Security rules & authentication</li>
+                    <li>Query optimization & indexing</li>
+                </ul>
+                <a href="FirestoreDB/index.html" class="tech-link" onclick="event.stopPropagation()">
+                    Khám Phá →
+                </a>
+            </div>
+
+            <div class="tech-card" onclick="window.open('MongoDB/MongoDB Cheat Sheets - Master Index (links to 16 HTML files).html', '_blank')">
+                <span class="tech-icon">🍃</span>
+                <h3 class="tech-title">MongoDB</h3>
+                <p class="tech-description">Leading NoSQL database với document model linh hoạt, powerful query language, và horizontal scaling.</p>
+                <ul class="tech-features">
+                    <li>Document-based storage</li>
+                    <li>Aggregation framework</li>
+                    <li>Indexing & performance</li>
+                    <li>Replication & sharding</li>
+                </ul>
+                <a href="MongoDB/MongoDB Cheat Sheets - Master Index (links to 16 HTML files).html" class="tech-link" onclick="event.stopPropagation()">
+                    Khám Phá →
+                </a>
+            </div>
+
+            <div class="tech-card" onclick="window.open('MySQL/index.html', '_blank')">
+                <span class="tech-icon">🐬</span>
+                <h3 class="tech-title">MySQL</h3>
+                <p class="tech-description">Relational database management system phổ biến nhất thế giới với performance và reliability vượt trội.</p>
+                <ul class="tech-features">
+                    <li>ACID compliance</li>
+                    <li>Stored procedures & triggers</li>
+                    <li>Advanced indexing</li>
+                    <li>Replication & clustering</li>
+                </ul>
+                <a href="MySQL/index.html" class="tech-link" onclick="event.stopPropagation()">
+                    Khám Phá →
+                </a>
+            </div>
+
+            <div class="tech-card" onclick="window.open('PostgreSQL/index-postgresql.html', '_blank')">
+                <span class="tech-icon">🐘</span>
+                <h3 class="tech-title">PostgreSQL</h3>
+                <p class="tech-description">Advanced open-source relational database với JSON support, full-text search, và extensibility mạnh mẽ.</p>
+                <ul class="tech-features">
+                    <li>JSONB & array support</li>
+                    <li>Window functions & CTEs</li>
+                    <li>PL/pgSQL programming</li>
+                    <li>Advanced data types</li>
+                </ul>
+                <a href="PostgreSQL/index-postgresql.html" class="tech-link" onclick="event.stopPropagation()">
+                    Khám Phá →
+                </a>
+            </div>
+
+            <div class="tech-card" onclick="window.open('SQLServer/Index.html', '_blank')">
+                <span class="tech-icon">🗄️</span>
+                <h3 class="tech-title">SQL Server</h3>
+                <p class="tech-description">Enterprise relational database từ Microsoft với business intelligence, analytics, và cloud integration.</p>
+                <ul class="tech-features">
+                    <li>T-SQL programming</li>
+                    <li>Business Intelligence</li>
+                    <li>Always On availability</li>
+                    <li>Integration Services</li>
+                </ul>
+                <a href="SQLServer/Index.html" class="tech-link" onclick="event.stopPropagation()">
+                    Khám Phá →
+                </a>
+            </div>
+
+            <div class="tech-card" onclick="window.open('Sqlite3/index-sqlite.html', '_blank')">
+                <span class="tech-icon">🪶</span>
+                <h3 class="tech-title">SQLite3</h3>
+                <p class="tech-description">Self-contained, serverless, zero-configuration SQL database engine - perfect cho embedded applications.</p>
+                <ul class="tech-features">
+                    <li>Serverless architecture</li>
+                    <li>Single file database</li>
+                    <li>Cross-platform compatibility</li>
+                    <li>Zero configuration</li>
+                </ul>
+                <a href="Sqlite3/index-sqlite.html" class="tech-link" onclick="event.stopPropagation()">
+                    Khám Phá →
+                </a>
+            </div>
+        </div>
+
+        <div class="features-section">
+            <h2 style="margin-bottom: 20px; color: #f1f5f9;">✨ Tính Năng Nổi Bật</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">📚</span>
+                    <div class="feature-title">Learning Path</div>
+                    <div class="feature-desc">Lộ trình học tập rõ ràng từ cơ bản đến nâng cao cho mỗi công nghệ</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🔍</span>
+                    <div class="feature-title">Interactive Search</div>
+                    <div class="feature-desc">Tìm kiếm và lọc nội dung nhanh chóng với giao diện thân thiện</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🎯</span>
+                    <div class="feature-title">Practice Projects</div>
+                    <div class="feature-desc">Dự án thực tế để áp dụng kiến thức vào các tình huống thực tế</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📖</span>
+                    <div class="feature-title">Cheat Sheets</div>
+                    <div class="feature-desc">Tài liệu tham khảo nhanh với syntax và best practices</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">🌐</span>
+                    <div class="feature-title">Cloud Ready</div>
+                    <div class="feature-desc">Tối ưu cho hosting tĩnh với Cloudflare Pages hoặc GitHub Pages</div>
+                </div>
+                <div class="feature-card">
+                    <span class="feature-icon">📱</span>
+                    <div class="feature-title">Responsive Design</div>
+                    <div class="feature-desc">Giao diện tương thích với mọi thiết bị và kích thước màn hình</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-title">🚀 Ready for Cloudflare Pages</div>
+            <div class="footer-desc">
+                Knowledge Hub này đã được tối ưu hóa cho việc deploy lên Cloudflare Pages. 
+                Chỉ cần push code lên GitHub repository và connect với Cloudflare Pages để có website tĩnh miễn phí với CDN toàn cầu.
+            </div>
+            <div class="footer-links">
+                <a href="https://pages.cloudflare.com/" class="footer-link" target="_blank">Cloudflare Pages</a>
+                <a href="https://github.com/" class="footer-link" target="_blank">GitHub</a>
+                <a href="https://developers.cloudflare.com/pages/" class="footer-link" target="_blank">Documentation</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Add smooth scrolling and animation effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate cards on scroll
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver(function(entries) {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all tech cards
+            const techCards = document.querySelectorAll('.tech-card');
+            techCards.forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+
+            // Add click animation
+            techCards.forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // Create ripple effect
+                    const ripple = document.createElement('div');
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.background = 'rgba(59, 130, 246, 0.3)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+                    ripple.style.left = '50%';
+                    ripple.style.top = '50%';
+                    ripple.style.width = '20px';
+                    ripple.style.height = '20px';
+                    ripple.style.marginLeft = '-10px';
+                    ripple.style.marginTop = '-10px';
+                    
+                    this.style.position = 'relative';
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+
+            // Add ripple animation CSS
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes ripple {
+                    to {
+                        transform: scale(4);
+                        opacity: 0;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Animate stats numbers
+            const statNumbers = document.querySelectorAll('.stat-number');
+            statNumbers.forEach(stat => {
+                const finalValue = stat.textContent;
+                const numericValue = parseInt(finalValue.replace('+', ''));
+                
+                if (!isNaN(numericValue)) {
+                    let currentValue = 0;
+                    const increment = numericValue / 50;
+                    const timer = setInterval(() => {
+                        currentValue += increment;
+                        if (currentValue >= numericValue) {
+                            stat.textContent = finalValue;
+                            clearInterval(timer);
+                        } else {
+                            stat.textContent = Math.floor(currentValue) + (finalValue.includes('+') ? '+' : '');
+                        }
+                    }, 30);
+                }
+            });
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                const techCards = document.querySelectorAll('.tech-card');
+                const focusedCard = document.activeElement;
+                
+                if (focusedCard.classList.contains('tech-card')) {
+                    focusedCard.style.outline = '2px solid #3b82f6';
+                    focusedCard.style.outlineOffset = '4px';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

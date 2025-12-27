@@ -1,0 +1,287 @@
+# POSTGRESQL KNOWLEDGE BASE GENERATOR
+
+## OBJECTIVE
+Create 8 production-ready HTML files (1 index + 7 modules) for PostgreSQL documentation with modern dark theme and interactive features.
+
+---
+
+## INPUT SOURCES
+
+### Visual References (Provided Files)
+Analyze uploaded MongoDB HTML files to replicate:
+- Dark theme styling (gradients, colors, layout)
+- Interactive features (search, filters, multi-tab opening)
+- Code syntax highlighting patterns
+- Component styles (cards, tables, highlight boxes)
+
+### Content Sources (Auto-Research)
+Extract from official documentation:
+- postgresql.org/docs
+- neon.com/postgresql
+- roadmap.sh/postgresql-dba
+
+Research topics per module:
+1. **Foundations**: RDBMS concepts, rich data types (JSON/JSONB, Arrays, UUID), DDL/DML, psql basics
+2. **Advanced Querying**: JOINs, CTEs, window functions (RANK, ROW_NUMBER, LEAD/LAG), ROLLUP/CUBE
+3. **Indexing**: B-tree/Hash/GIN/GiST/BRIN indexes, EXPLAIN ANALYZE, query optimization, vacuuming
+4. **PL/pgSQL**: Stored procedures vs functions, control structures, triggers, cursors, error handling
+5. **JSONB**: JSONB vs JSON, operators (?/@>/<@), jsonb_set/jsonb_array_elements, GIN indexing, JSON Path
+6. **Partitioning**: Declarative partitioning (Range/List/Hash), partition pruning, sharding (postgres_fdw, Citus)
+7. **Administration**: User roles, row-level security, replication, backup/recovery, monitoring
+
+Code examples: SQL, PL/pgSQL (multi-language where applicable)
+
+PostgreSQL vs MySQL comparison tables where relevant
+
+---
+
+## OUTPUT SPECIFICATIONS
+
+### File Structure
+index.html # Master navigation with search/filter
+1.PostgreSQL-Foundations-DataTypes.html # Green gradient (#2ecc71 to #27ae60)
+2.PostgreSQL-Advanced-Querying.html # Blue gradient (#3498db to #2980b9)
+3.PostgreSQL-Indexing-Performance.html # Purple gradient (#9b59b6 to #8e44ad)
+4.PostgreSQL-PL-pgSQL-Programming.html # Orange gradient (#e67e22 to #d35400)
+5.PostgreSQL-JSONB-SemiStructured.html # Red gradient (#e74c3c to #c0392b)
+6.PostgreSQL-Partitioning-Sharding.html # Yellow gradient (#f39c12 to #e67e22)
+7.PostgreSQL-Administration-Security.html # Dark gradient (#34495e to #2c3e50)
+
+text
+
+### Module Content Pattern
+Each module includes:
+- Hero header with gradient background and module badge
+- 2-column responsive grid (concepts + code examples)
+- Syntax-highlighted SQL/PL/pgSQL code blocks
+- Comparison tables (PostgreSQL vs MySQL, Best practices vs Anti-patterns)
+- Highlight boxes (💡 info blue, ⚠️ warning red, ✅ tip green, 🎯 best practice purple)
+- Learning checklist
+
+### Index.html Features
+- 7 module cards with tags (foundations, queries, indexing, plpgsql, jsonb, partitioning, admin)
+- Live search with tag filtering
+- "Open Filtered" multi-tab button
+- Learning timeline (Weeks 1-18 progression)
+- 3 practice projects (Analytics Dashboard, E-commerce, Multi-Tenant SaaS)
+- Resources (official docs, roadmap.sh, tools)
+
+---
+
+## TECHNICAL REQUIREMENTS
+
+### Styling
+- Vanilla CSS inline in `<style>` tag
+- Dark theme: #0f172a background, #e2e8f0 text
+- Syntax highlighting: .code-keyword, .code-string, .code-function, .code-number, .code-comment
+- Responsive: mobile <768px, tablet 768-1120px, desktop >1120px
+
+### Functionality
+- Vanilla JavaScript inline in `<script>` tag
+- Live search (module name, tags, description)
+- Tag chip filtering with "Clear" button
+- Live counter: "X / 7 modules shown"
+
+### Format
+- Self-contained files (no external dependencies)
+- Relative links with URL encoding
+- File size <5MB each
+- Title: "PostgreSQL Cheat Sheet #X - Module Name"
+
+---
+
+## KEY DIFFERENTIATION FROM MYSQL
+
+Include PostgreSQL-specific features:
+- Advanced data types (JSONB, Arrays, geometric types)
+- Superior index types (GIN, GiST, BRIN)
+- Full procedural language (PL/pgSQL)
+- Declarative partitioning
+- Row-level security
+- Logical replication
+- Advanced analytics (window functions, ROLLUP/CUBE)
+
+Comparison tables highlighting PostgreSQL advantages over MySQL where relevant.
+
+---
+
+## EXECUTION WORKFLOW
+
+1. Parse MongoDB HTML references for styling patterns
+2. Research PostgreSQL documentation for 7 modules
+3. Generate 8 complete HTML files with PostgreSQL content in MongoDB style
+4. Validate accuracy, functionality, consistency
+5. Output all files to Assets tab
+
+---
+
+## DELIVERABLES
+
+8 complete HTML files ready for deployment. Each file functional, visually consistent, and containing accurate PostgreSQL documentation.
+
+BEGIN EXECUTION.
+
+
+
+POSTGRESQL KNOWLEDGE BASE - Module Structure
+Module Breakdown (8 files total)
+INDEX.HTML - Master Navigation
+
+PostgreSQL overview vs MySQL comparison
+
+7 Module cards (tags, descriptions, links)
+
+Learning timeline (Weeks 1-18)
+
+3 Practice Projects
+
+Resources & certifications
+
+MODULE 1: Foundations & Data Types 🟢
+
+RDBMS architecture, ACID properties
+​
+
+Rich data types (JSON/JSONB, Arrays, hstore, UUID, geometric)
+​
+
+DDL operations (CREATE, ALTER, DROP)
+​
+
+Basic CRUD with psql
+​
+
+Installation & configuration
+​
+
+MODULE 2: Advanced Querying 🔵
+
+JOINs (INNER, LEFT, RIGHT, FULL, CROSS)
+​
+
+Subqueries & CTEs
+​
+
+Window Functions (ROW_NUMBER, RANK, LEAD/LAG, FIRST_VALUE)
+​
+
+ROLLUP, CUBE, GROUPING SETS
+​
+
+Set operations (UNION, INTERSECT, EXCEPT)
+​
+
+MODULE 3: Indexing & Performance 🟣
+
+Advanced index types (B-tree, Hash, GIN, GiST, BRIN, SP-GiST)
+​
+
+Index optimization strategies
+​
+
+EXPLAIN & EXPLAIN ANALYZE
+​
+
+Query planner configuration
+​
+
+Vacuuming & autovacuum
+​
+
+MODULE 4: PL/pgSQL Programming 🟠
+
+Stored procedures vs functions
+​
+
+Control structures (IF, LOOP, WHILE, FOR)
+​
+
+Error handling & exceptions
+​
+
+Cursors & dynamic SQL
+​
+
+Triggers (BEFORE, AFTER, INSTEAD OF)
+​
+
+MODULE 5: JSONB & Semi-Structured Data 🔴
+
+JSONB vs JSON differences
+​
+
+JSONB operators (?, ?&, ?|, @>, <@)
+​
+
+Advanced functions (jsonb_set, jsonb_array_elements)
+​
+
+GIN indexing for JSONB
+​
+
+JSON Path queries (PostgreSQL 12+)
+​
+
+MODULE 6: Partitioning & Sharding 🟡
+
+Declarative partitioning (Range, List, Hash)
+​
+
+Partition pruning optimization
+​
+
+Inheritance-based partitioning
+​
+
+Sharding strategies (postgres_fdw, Citus)
+​
+
+Partition maintenance automation
+​
+
+MODULE 7: Administration & Security ⚫
+
+User roles & privileges (GRANT, REVOKE)
+​
+
+Row-level security (RLS)
+​
+
+Replication (streaming, logical)
+​
+
+Backup & recovery (pg_dump, PITR)
+​
+
+Connection pooling (PgBouncer)
+​
+
+Monitoring & logging
+​
+
+🎯 Practice Projects
+Project 1 (Modules 1-2): Analytics Dashboard
+
+Time-series data with advanced data types
+
+Complex analytical queries with window functions
+
+CTE-based reporting queries
+
+Project 2 (Modules 3-5): E-commerce Platform
+
+Full-text search with GIN indexes
+
+JSONB for product attributes & metadata
+
+PL/pgSQL procedures for order processing
+
+Project 3 (Modules 6-7): Multi-Tenant SaaS System
+
+Hash partitioning by tenant_id
+
+Row-level security for tenant isolation
+
+Automated partition management
+
+Replication setup for high availability

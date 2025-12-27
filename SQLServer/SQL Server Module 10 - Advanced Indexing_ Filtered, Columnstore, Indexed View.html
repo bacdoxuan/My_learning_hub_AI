@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #10 - Advanced Indexing: Filtered, Columnstore, Indexed View</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #a855f7;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #c084fc;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #c084fc;
+            border-bottom: 2px solid #a855f7;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #d8b4fe;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #a855f7;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #c084fc;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #c084fc;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #c084fc;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #c084fc;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #c084fc;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #c084fc;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #a855f7;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #9333ea;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟣 SQL Server Advanced Indexing</h1>
+        <p>Filtered Indexes, Columnstore Analytics & Indexed Views</p>
+        <div class="badge">Performance Core</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module explores advanced indexing techniques: filtered indexes for selective data subsets, 
+            columnstore indexes for analytical workloads, and indexed views for precomputed aggregations. 
+            These specialized indexes provide significant performance benefits for specific query patterns.
+        </p>
+        
+        <h2>🔍 Filtered Indexes</h2>
+        
+        <h3>Selective Predicates for Better Performance</h3>
+        <div class="concept-box">
+            <div class="concept-title">Filtered Index Benefits</div>
+            <div class="concept-description">
+                <strong style="color: #c084fc;">Subset indexing:</strong> Index only rows matching a WHERE condition<br>
+                <strong style="color: #c084fc;">Reduced size:</strong> Smaller index footprint for selective data<br>
+                <strong style="color: #c084fc;">Improved performance:</strong> Faster seeks on filtered data<br>
+                <strong style="color: #c084fc;">Maintenance efficiency:</strong> Less overhead for updates<br>
+                <strong style="color: #c084fc;">Best for:</strong> Status columns, date ranges, sparse data
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Filtered index for active orders only</span>
+<span class="code-keyword">CREATE NONCLUSTERED INDEX</span> IX_Orders_Active
+<span class="code-keyword">ON</span> Orders (CustomerID, OrderDate)
+<span class="code-keyword">WHERE</span> Status = 'Active';
+
+<span class="code-comment">-- Query benefits from filtered index</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Orders
+<span class="code-keyword">WHERE</span> Status = 'Active' <span class="code-keyword">AND</span> CustomerID = 123;
+
+<span class="code-comment">-- Filtered index on date range</span>
+<span class="code-keyword">CREATE NONCLUSTERED INDEX</span> IX_Sales_Recent
+<span class="code-keyword">ON</span> Sales (ProductID, SaleDate, Amount)
+<span class="code-keyword">WHERE</span> SaleDate >= '2023-01-01';
+
+<span class="code-comment">-- Filtered unique index</span>
+<span class="code-keyword">CREATE UNIQUE NONCLUSTERED INDEX</span> IX_Users_ActiveEmail
+<span class="code-keyword">ON</span> Users (Email)
+<span class="code-keyword">WHERE</span> IsActive = 1;</code>
+        </div>
+        
+        <h2>📊 Columnstore Indexes</h2>
+        
+        <h3>Columnar Storage for Analytics</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Clustered Columnstore</div>
+                <div class="concept-description">
+                    <strong style="color: #c084fc;">Primary storage:</strong> Replaces rowstore, stores data in columns<br>
+                    <strong style="color: #c084fc;">Compression:</strong> Excellent compression ratios (10x better)<br>
+                    <strong style="color: #c084fc;">Batch processing:</strong> Optimized for large analytical queries<br>
+                    <strong style="color: #c084fc;">Read performance:</strong> Fast aggregations, but slow single-row lookups<br>
+                    <strong style="color: #c084fc;">Best for:</strong> Data warehouses, reporting databases
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Nonclustered Columnstore</div>
+                <div class="concept-description">
+                    <strong style="color: #c084fc;">Copy of data:</strong> Maintains rowstore table, adds columnar copy<br>
+                    <strong style="color: #c084fc;">Hybrid approach:</strong> OLTP + analytics on same table<br>
+                    <strong style="color: #c084fc;">Real-time analytics:</strong> Query columnstore for reports, rowstore for transactions<br>
+                    <strong style="color: #c084fc;">Updateable:</strong> Supports DML operations on rowstore<br>
+                    <strong style="color: #c084fc;">Best for:</strong> Operational analytics, mixed workloads
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Clustered columnstore for data warehouse</span>
+<span class="code-keyword">CREATE CLUSTERED COLUMNSTORE INDEX</span> IX_FactSales_Columnstore
+<span class="code-keyword">ON</span> FactSales;
+
+<span class="code-comment">-- Nonclustered columnstore for operational analytics</span>
+<span class="code-keyword">CREATE NONCLUSTERED COLUMNSTORE INDEX</span> IX_Sales_Columnstore
+<span class="code-keyword">ON</span> Sales (ProductID, RegionID, SaleDate, Amount);
+
+<span class="code-comment">-- Query leverages columnstore for aggregations</span>
+<span class="code-keyword">SELECT</span> ProductID, <span class="code-function">SUM</span>(Amount), <span class="code-function">AVG</span>(Amount)
+<span class="code-keyword">FROM</span> Sales
+<span class="code-keyword">WHERE</span> SaleDate >= '2023-01-01'
+<span class="code-keyword">GROUP BY</span> ProductID
+<span class="code-keyword">ORDER BY</span> <span class="code-function">SUM</span>(Amount) <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- Columnstore with delta store for mixed workloads</span>
+<span class="code-comment">-- SQL Server automatically manages row groups and delta stores</span></code>
+        </div>
+        
+        <h2>👁️ Indexed Views</h2>
+        
+        <h3>Materialized Aggregations When Appropriate</h3>
+        <div class="concept-box">
+            <div class="concept-title">Indexed View Benefits & Limitations</div>
+            <div class="concept-description">
+                <strong style="color: #c084fc;">Precomputed results:</strong> Stores view results physically<br>
+                <strong style="color: #c084fc;">Automatic maintenance:</strong> Updates when base tables change<br>
+                <strong style="color: #c084fc;">Query substitution:</strong> Optimizer can use indexed view automatically<br>
+                <strong style="color: #c084fc;">Schema binding required:</strong> Prevents changes to base tables<br>
+                <strong style="color: #c084fc;">Best for:</strong> Complex aggregations, frequently queried summaries<br>
+                <strong style="color: #c084fc;">Considerations:</strong> Storage cost, maintenance overhead, concurrency impact
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Create indexed view for sales summary</span>
+<span class="code-keyword">CREATE VIEW</span> SalesSummary <span class="code-keyword">WITH</span> SCHEMABINDING <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> 
+    ProductID,
+    <span class="code-function">COUNT_BIG</span>(*) AS SaleCount,
+    <span class="code-function">SUM</span>(Amount) AS TotalAmount,
+    <span class="code-function">AVG</span>(Amount) AS AvgAmount
+<span class="code-keyword">FROM</span> dbo.Sales
+<span class="code-keyword">GROUP BY</span> ProductID;
+
+<span class="code-comment">-- Create unique clustered index on view</span>
+<span class="code-keyword">CREATE UNIQUE CLUSTERED INDEX</span> IX_SalesSummary_ProductID
+<span class="code-keyword">ON</span> SalesSummary (ProductID);
+
+<span class="code-comment">-- Query automatically uses indexed view</span>
+<span class="code-keyword">SELECT</span> ProductID, TotalAmount
+<span class="code-keyword">FROM</span> SalesSummary
+<span class="code-keyword">WHERE</span> ProductID <span class="code-keyword">IN</span> (1, 2, 3);
+
+<span class="code-comment">-- Complex indexed view with joins</span>
+<span class="code-keyword">CREATE VIEW</span> CustomerProductSummary <span class="code-keyword">WITH</span> SCHEMABINDING <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> 
+    c.CustomerID,
+    p.ProductID,
+    <span class="code-function">COUNT_BIG</span>(*) AS PurchaseCount,
+    <span class="code-function">SUM</span>(s.Amount) AS TotalSpent
+<span class="code-keyword">FROM</span> dbo.Customers c
+<span class="code-keyword">INNER JOIN</span> dbo.Sales s <span class="code-keyword">ON</span> c.CustomerID = s.CustomerID
+<span class="code-keyword">INNER JOIN</span> dbo.Products p <span class="code-keyword">ON</span> s.ProductID = p.ProductID
+<span class="code-keyword">GROUP BY</span> c.CustomerID, p.ProductID;
+
+<span class="code-keyword">CREATE UNIQUE CLUSTERED INDEX</span> IX_CustomerProductSummary
+<span class="code-keyword">ON</span> CustomerProductSummary (CustomerID, ProductID);</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 When to Use Each:</strong> Filtered indexes for selective queries on large tables. Columnstore for analytical workloads needing compression and speed. 
+            Indexed views for expensive aggregations queried frequently - but only when the benefits outweigh maintenance costs.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Important Considerations:</strong> Filtered indexes require query predicates to match exactly. Columnstore indexes are not good for OLTP point queries. 
+            Indexed views require SCHEMABINDING and can impact base table modifications.
+        </div>
+        
+        <h2>📊 Advanced Index Comparison</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Index Type</th>
+                <th>Best Use Case</th>
+                <th>Storage Impact</th>
+                <th>Maintenance Cost</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Filtered</strong></td>
+                <td>Selective predicates, sparse data</td>
+                <td>Low (subset only)</td>
+                <td>Low (fewer rows)</td>
+                </tr>
+                <tr>
+                    <td><strong>Clustered Columnstore</strong></td>
+                <td>Data warehouse, pure analytics</td>
+                <td>High compression</td>
+                <td>Medium (rebuild segments)</td>
+                </tr>
+                <tr>
+                    <td><strong>Nonclustered Columnstore</strong></td>
+                <td>Operational analytics, mixed workload</td>
+                <td>Additional copy</td>
+                <td>Medium</td>
+                </tr>
+                <tr>
+                <td><strong>Indexed View</strong></td>
+                <td>Precomputed aggregations</td>
+                <td>Depends on result set</td>
+                <td>High (base table changes)</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Create filtered indexes for selective WHERE clauses</li>
+                <li>Understand when filtered indexes provide benefits</li>
+                <li>Use filtered unique indexes for conditional uniqueness</li>
+                <li>Implement clustered columnstore indexes for data warehouses</li>
+                <li>Create nonclustered columnstore for operational analytics</li>
+                <li>Understand columnstore compression and batch processing</li>
+                <li>Recognize limitations of columnstore for OLTP queries</li>
+                <li>Create indexed views with SCHEMABINDING</li>
+                <li>Use COUNT_BIG() in indexed view definitions</li>
+                <li>Understand automatic indexed view matching by optimizer</li>
+                <li>Monitor indexed view usage and maintenance costs</li>
+                <li>Choose appropriate index type based on workload</li>
+                <li>Handle columnstore delta stores and row groups</li>
+                <li>Optimize filtered indexes for status-based queries</li>
+                <li>Use indexed views for complex join aggregations</li>
+                <li>Balance storage costs with performance benefits</li>
+                <li>Test advanced indexes with realistic data volumes</li>
+                <li>Monitor advanced index performance and maintenance</li>
+                <li>Understand columnstore segment elimination</li>
+                <li>Apply advanced indexing to real-world scenarios</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Filtered Indexes:</strong> Create filtered indexes for active records in a large table. Compare query performance with and without the filtered index.</li>
+                <li><strong>Columnstore Indexes:</strong> Implement clustered columnstore on a fact table and run analytical queries. Measure compression ratios and query performance.</li>
+                <li><strong>Indexed Views:</strong> Create an indexed view for monthly sales summaries. Verify that queries automatically use the indexed view and measure performance improvement.</li>
+                <li><strong>Hybrid Approach:</strong> Combine filtered and columnstore indexes on the same table for different query patterns. Analyze execution plans for different query types.</li>
+                <li><strong>Optimization:</strong> Design an indexing strategy using advanced techniques for a mixed OLTP and analytics workload.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/09-indexing-fundamentals.html" class="nav-btn">← Previous: Indexing Fundamentals</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/11-execution-plans.html" class="nav-btn">Next: Execution Plans & Query Optimizer Basics →</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #2 - Data Types, Schema & DDL</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #10b981;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #34d399;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #34d399;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #6ee7b7;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #34d399;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #fbbf24;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #34d399;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #34d399;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #34d399;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #34d399;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #059669;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟢 SQL Server Data Types, Schema & DDL</h1>
+        <p>Master T-SQL Data Types, Schema Design, and DDL Operations</p>
+        <div class="badge">Foundation</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers essential T-SQL data types, collation settings, computed columns, identity vs sequence for auto-generation, 
+            and DDL operations (CREATE, ALTER, DROP). Learn to design robust schemas with proper constraints and understand best practices for data integrity.
+        </p>
+        
+        <h2>📊 T-SQL Data Types</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Numeric Types</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Exact:</strong> INT, BIGINT, SMALLINT, TINYINT, DECIMAL(p,s), NUMERIC<br>
+                    <strong style="color: #34d399;">Approximate:</strong> FLOAT(n), REAL<br>
+                    <strong style="color: #34d399;">Money:</strong> MONEY, SMALLMONEY
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">String Types</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Fixed-length:</strong> CHAR(n), NCHAR(n)<br>
+                    <strong style="color: #34d399;">Variable-length:</strong> VARCHAR(n), NVARCHAR(n)<br>
+                    <strong style="color: #34d399;">Large objects:</strong> TEXT, NTEXT, VARCHAR(MAX), NVARCHAR(MAX)
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Date/Time Types</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Legacy:</strong> DATETIME, SMALLDATETIME<br>
+                    <strong style="color: #34d399;">Modern:</strong> DATE, TIME, DATETIME2, DATETIMEOFFSET<br>
+                    <strong style="color: #34d399;">SQL Server 2022:</strong> DATE_BUCKET for time series
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Other Types</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Binary:</strong> BINARY, VARBINARY, IMAGE<br>
+                    <strong style="color: #34d399;">Special:</strong> BIT, UNIQUEIDENTIFIER, XML, JSON (via NVARCHAR)<br>
+                    <strong style="color: #34d399;">Spatial:</strong> GEOGRAPHY, GEOMETRY
+                </div>
+            </div>
+        </div>
+        
+        <h3>Data Type Selection Guidelines</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Data Type</th>
+                    <th>Use Case</th>
+                    <th>Storage</th>
+                    <th>Considerations</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>INT</strong></td>
+                    <td>Integer values (-2B to +2B)</td>
+                    <td>4 bytes</td>
+                    <td>Most common for IDs, counts</td>
+                </tr>
+                <tr>
+                    <td><strong>DECIMAL(10,2)</strong></td>
+                    <td>Financial calculations</td>
+                    <td>5 bytes</td>
+                    <td>Exact precision for money</td>
+                </tr>
+                <tr>
+                    <td><strong>NVARCHAR(50)</strong></td>
+                    <td>Unicode text (international)</td>
+                    <td>2*n + 2 bytes</td>
+                    <td>Supports all languages</td>
+                </tr>
+                <tr>
+                    <td><strong>DATETIME2</strong></td>
+                    <td>High-precision timestamps</td>
+                    <td>6-8 bytes</td>
+                    <td>Better than DATETIME</td>
+                </tr>
+                <tr>
+                    <td><strong>BIT</strong></td>
+                    <td>Boolean flags</td>
+                    <td>1 byte (for 8 bits)</td>
+                    <td>Use for true/false values</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Example table with various data types</span>
+<span class="code-keyword">CREATE TABLE</span> Employees (
+    EmployeeID <span class="code-keyword">INT</span> <span class="code-keyword">PRIMARY KEY</span>,
+    FirstName <span class="code-keyword">NVARCHAR(50)</span> <span class="code-keyword">NOT NULL</span>,
+    LastName <span class="code-keyword">NVARCHAR(50)</span> <span class="code-keyword">NOT NULL</span>,
+    Email <span class="code-keyword">NVARCHAR(100)</span> <span class="code-keyword">UNIQUE</span>,
+    HireDate <span class="code-keyword">DATETIME2</span> <span class="code-keyword">DEFAULT</span> GETDATE(),
+    Salary <span class="code-keyword">DECIMAL(10,2)</span>,
+    IsActive <span class="code-keyword">BIT</span> <span class="code-keyword">DEFAULT</span> 1,
+    ProfileImage <span class="code-keyword">VARBINARY(MAX)</span>
+);</code>
+        </div>
+        
+        <h2>🔤 Collation</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">What is Collation?</div>
+            <div class="concept-description">
+                Collation defines how SQL Server sorts and compares character data. It affects case sensitivity, accent sensitivity, 
+                and sort order. Server-level collation is set during installation, but can be overridden at database, column, or query level.
+            </div>
+        </div>
+        
+        <h3>Common Collations</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Collation</th>
+                    <th>Description</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>SQL_Latin1_General_CP1_CI_AS</strong></td>
+                    <td>Case-insensitive, accent-sensitive</td>
+                    <td>Legacy default, common for English</td>
+                </tr>
+                <tr>
+                    <td><strong>SQL_Latin1_General_CP1_CS_AS</strong></td>
+                    <td>Case-sensitive, accent-sensitive</td>
+                    <td>Security-sensitive applications</td>
+                </tr>
+                <tr>
+                    <td><strong>Latin1_General_100_CI_AS</strong></td>
+                    <td>Modern Windows collation</td>
+                    <td>New applications, better Unicode</td>
+                </tr>
+                <tr>
+                    <td><strong>Latin1_General_BIN2</strong></td>
+                    <td>Binary collation</td>
+                    <td>Performance-critical lookups</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Create database with specific collation</span>
+<span class="code-keyword">CREATE DATABASE</span> MyAppDB
+<span class="code-keyword">COLLATE</span> Latin1_General_100_CI_AS;
+
+<span class="code-comment">-- Column-level collation override</span>
+<span class="code-keyword">CREATE TABLE</span> Products (
+    ProductID <span class="code-keyword">INT</span> <span class="code-keyword">PRIMARY KEY</span>,
+    ProductName <span class="code-keyword">NVARCHAR(100)</span> <span class="code-keyword">COLLATE</span> SQL_Latin1_General_CP1_CS_AS,
+    Description <span class="code-keyword">NVARCHAR(MAX)</span>
+);</code>
+        </div>
+        
+        <h2>🧮 Computed Columns & Auto-Generation</h2>
+        
+        <h3>Computed Columns</h3>
+        <div class="concept-box">
+            <div class="concept-title">Types of Computed Columns</div>
+            <div class="concept-description">
+                <strong style="color: #34d399;">Non-persisted:</strong> Calculated at query time, no storage cost<br>
+                <strong style="color: #34d399;">Persisted:</strong> Stored on disk, faster queries but uses space<br>
+                <strong style="color: #34d399;">Indexed:</strong> Can be indexed for performance (persisted required)
+            </div>
+        </div>
+        
+        <h3>Identity vs Sequence</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>IDENTITY</th>
+                <th>SEQUENCE</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Scope</strong></td>
+                    <td>Table-specific</td>
+                    <td>Database-wide</td>
+                </tr>
+                <tr>
+                    <td><strong>Flexibility</strong></td>
+                    <td>Limited (auto-increment only)</td>
+                    <td>Highly flexible (increment, cycle, etc.)</td>
+                </tr>
+                <tr>
+                    <td><strong>Multi-table use</strong></td>
+                <td>No</td>
+                <td>Yes</td>
+                </tr>
+                <tr>
+                    <td><strong>Pre-SQL Server 2012</strong></td>
+                <td>Available</td>
+                <td>Not available</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Computed column examples</span>
+<span class="code-keyword">CREATE TABLE</span> Orders (
+    OrderID <span class="code-keyword">INT</span> <span class="code-keyword">IDENTITY(1,1)</span> <span class="code-keyword">PRIMARY KEY</span>,
+    CustomerID <span class="code-keyword">INT</span>,
+    OrderDate <span class="code-keyword">DATETIME2</span>,
+    Subtotal <span class="code-keyword">DECIMAL(10,2)</span>,
+    TaxRate <span class="code-keyword">DECIMAL(5,4)</span> <span class="code-keyword">DEFAULT</span> 0.08,
+    <span class="code-comment">-- Non-persisted computed column</span>
+    TaxAmount <span class="code-keyword">AS</span> (Subtotal * TaxRate),
+    <span class="code-comment">-- Persisted computed column</span>
+    TotalAmount <span class="code-keyword">AS</span> (Subtotal + (Subtotal * TaxRate)) <span class="code-keyword">PERSISTED</span>
+);
+
+<span class="code-comment">-- Sequence example</span>
+<span class="code-keyword">CREATE SEQUENCE</span> dbo.OrderNumberSeq
+    <span class="code-keyword">START WITH</span> 1000
+    <span class="code-keyword">INCREMENT BY</span> 1;
+
+<span class="code-keyword">INSERT INTO</span> Orders (CustomerID, OrderDate, Subtotal)
+<span class="code-keyword">VALUES</span> (1, GETDATE(), 100.00);</code>
+        </div>
+        
+        <h2>🔧 DDL Operations</h2>
+        
+        <h3>CREATE, ALTER, DROP Syntax</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create schema</span>
+<span class="code-keyword">CREATE SCHEMA</span> Sales;
+
+<span class="code-comment">-- Create table with constraints</span>
+<span class="code-keyword">CREATE TABLE</span> Sales.Orders (
+    OrderID <span class="code-keyword">INT</span> <span class="code-keyword">IDENTITY(1,1)</span> <span class="code-keyword">PRIMARY KEY</span>,
+    CustomerID <span class="code-keyword">INT</span> <span class="code-keyword">NOT NULL</span>,
+    OrderDate <span class="code-keyword">DATETIME2</span> <span class="code-keyword">DEFAULT</span> GETDATE(),
+    Status <span class="code-keyword">TINYINT</span> <span class="code-keyword">CHECK</span> (Status <span class="code-keyword">BETWEEN</span> 1 <span class="code-keyword">AND</span> 5),
+    <span class="code-keyword">CONSTRAINT</span> FK_Orders_Customers <span class="code-keyword">FOREIGN KEY</span> (CustomerID) 
+        <span class="code-keyword">REFERENCES</span> Sales.Customers(CustomerID)
+);
+
+<span class="code-comment">-- Alter table</span>
+<span class="code-keyword">ALTER TABLE</span> Sales.Orders 
+    <span class="code-keyword">ADD</span> ShipDate <span class="code-keyword">DATETIME2</span> <span class="code-keyword">NULL</span>;
+
+<span class="code-keyword">ALTER TABLE</span> Sales.Orders 
+    <span class="code-keyword">ALTER COLUMN</span> Status <span class="code-keyword">TINYINT</span> <span class="code-keyword">NOT NULL</span>;
+
+<span class="code-comment">-- Drop table</span>
+<span class="code-keyword">DROP TABLE</span> Sales.Orders;</code>
+        </div>
+        
+        <h3>Constraints</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Constraint Type</th>
+                    <th>Description</th>
+                    <th>Syntax Example</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>PRIMARY KEY</strong></td>
+                    <td>Unique identifier for rows</td>
+                    <td><code>ID INT PRIMARY KEY</code></td>
+                </tr>
+                <tr>
+                    <td><strong>FOREIGN KEY</strong></td>
+                    <td>References primary key in another table</td>
+                    <td><code>FOREIGN KEY (ID) REFERENCES Table(ID)</code></td>
+                </tr>
+                <tr>
+                    <td><strong>UNIQUE</strong></td>
+                    <td>Allows NULL, prevents duplicates</td>
+                    <td><code>Email NVARCHAR(100) UNIQUE</code></td>
+                </tr>
+                <tr>
+                    <td><strong>CHECK</strong></td>
+                    <td>Validates data against condition</td>
+                    <td><code>CHECK (Age >= 18)</code></td>
+                </tr>
+                <tr>
+                    <td><strong>DEFAULT</strong></td>
+                    <td>Provides default value</td>
+                    <td><code>Status TINYINT DEFAULT 1</code></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="info-box">
+            <strong>💡 Key Point:</strong> Constraints are automatically enforced by SQL Server. Use them to maintain data integrity 
+            rather than relying on application code alone.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Production Notes:</strong> ALTER TABLE operations can be expensive on large tables - plan for downtime. 
+            Always test DDL changes in a development environment first. Be cautious with DROP operations - they cannot be rolled back.
+        </div>
+        
+        <h2>📊 Comparison: Data Types & Constraints</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Aspect</th>
+                    <th>SQL Server</th>
+                    <th>PostgreSQL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Auto-increment</strong></td>
+                    <td>IDENTITY or SEQUENCE</td>
+                    <td>SERIAL or SEQUENCE</td>
+                </tr>
+                <tr>
+                    <td><strong>Unicode default</strong></td>
+                    <td>NVARCHAR (explicit)</td>
+                    <td>TEXT (always Unicode)</td>
+                </tr>
+                <tr>
+                    <td><strong>Computed columns</strong></td>
+                    <td>Yes, persisted or not</td>
+                    <td>Generated columns</td>
+                </tr>
+                <tr>
+                    <td><strong>Check constraints</strong></td>
+                    <td>Yes, with expressions</td>
+                    <td>Yes, with expressions</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Identify appropriate data types for common scenarios (IDs, text, dates, money)</li>
+                <li>Understand storage implications of different data types</li>
+                <li>Configure database and column-level collations</li>
+                <li>Differentiate between IDENTITY and SEQUENCE for auto-generated values</li>
+                <li>Create and use computed columns (persisted and non-persisted)</li>
+                <li>Write CREATE TABLE statements with proper constraints</li>
+                <li>Use ALTER TABLE to modify existing table structures</li>
+                <li>Implement PRIMARY KEY, FOREIGN KEY, UNIQUE, CHECK, and DEFAULT constraints</li>
+                <li>Understand when to use DROP vs ALTER vs CREATE for schema changes</li>
+                <li>Design schemas that enforce data integrity at the database level</li>
+                <li>Handle collation conflicts in multi-language applications</li>
+                <li>Use system views to inspect table structures and constraints</li>
+                <li>Plan safe schema changes for production environments</li>
+                <li>Understand the impact of computed columns on performance</li>
+                <li>Implement naming conventions for tables, columns, and constraints</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Data Type Selection:</strong> Design a table schema for an e-commerce application with products, customers, and orders. Choose appropriate data types and explain your choices.</li>
+                <li><strong>Constraints Implementation:</strong> Create a database with tables for a library system (Books, Authors, Borrowers). Implement all types of constraints with meaningful business rules.</li>
+                <li><strong>Computed Columns:</strong> Add computed columns to calculate total price (quantity * unit_price) and discount amounts in an order details table.</li>
+                <li><strong>Identity vs Sequence:</strong> Compare the use of IDENTITY columns vs sequences by creating examples where each is more appropriate.</li>
+                <li><strong>Schema Modification:</strong> Start with a basic table and progressively modify it using ALTER TABLE commands, documenting the changes and their purposes.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/01-overview-tooling.html" class="nav-btn">← Previous: Overview & Tooling</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/03-crud-filtering-sorting.html" class="nav-btn">Next: CRUD + Filtering + Sorting →</a>
+        </div>
+    </div>
+</body>
+</html>

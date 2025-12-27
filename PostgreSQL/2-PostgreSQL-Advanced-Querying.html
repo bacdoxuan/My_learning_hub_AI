@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Cheat Sheet #2 - Advanced Querying</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 50px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #3498db; border-radius: 8px; padding: 25px; transition: all 0.3s ease; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(52, 152, 219, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #3498db; margin-bottom: 12px; }
+        .concept-description { color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.9em; line-height: 1.5; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-number { color: #ffeaa7; }
+        .code-comment { color: #636e72; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); border-radius: 8px; overflow: hidden; }
+        th { background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(41, 128, 185, 0.2)); color: #3498db; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #3498db; }
+        td { padding: 12px 15px; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        tr:hover { background: rgba(52, 152, 219, 0.1); }
+        .highlight-box { background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .info-box { background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; color: #85c1e9; }
+        .warning-box { background: rgba(230, 126, 34, 0.1); border-left: 4px solid #e67e22; padding: 20px; border-radius: 8px; margin: 20px 0; color: #fdb462; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 10px 0; padding-left: 30px; position: relative; color: #cbd5e1; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #3498db; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3); }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .hero h1 { font-size: 1.8em; } }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔵 PostgreSQL Advanced Querying</h1>
+        <p>Master JOINs, CTEs, Window Functions, and Analytics</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            Advanced querying allows you to perform complex data analysis and reporting. Learn JOINs for combining tables, 
+            CTEs for readable recursive queries, window functions for analytics, and aggregations like ROLLUP and CUBE.
+        </p>
+        
+        <h2>🔗 JOIN Operations</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>JOIN Type</th>
+                    <th>Description</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>INNER JOIN</strong></td>
+                    <td>Only matching records from both tables</td>
+                    <td>Find users with posts</td>
+                </tr>
+                <tr>
+                    <td><strong>LEFT JOIN</strong></td>
+                    <td>All from left, matching from right</td>
+                    <td>Find users and their posts (even if no posts)</td>
+                </tr>
+                <tr>
+                    <td><strong>RIGHT JOIN</strong></td>
+                    <td>All from right, matching from left</td>
+                    <td>Find posts and their authors (rarely used)</td>
+                </tr>
+                <tr>
+                    <td><strong>FULL JOIN</strong></td>
+                    <td>All from both tables</td>
+                    <td>Find all users and posts with nulls for unmatched</td>
+                </tr>
+                <tr>
+                    <td><strong>CROSS JOIN</strong></td>
+                    <td>Cartesian product</td>
+                    <td>Generate all combinations</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>JOIN Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- INNER JOIN: Only users with posts</span>
+<span class="code-keyword">SELECT</span> u.id, u.email, <span class="code-function">COUNT</span>(p.id) <span class="code-keyword">as</span> post_count
+<span class="code-keyword">FROM</span> users u
+<span class="code-keyword">INNER JOIN</span> posts p <span class="code-keyword">ON</span> u.id = p.user_id
+<span class="code-keyword">GROUP BY</span> u.id
+<span class="code-keyword">ORDER BY</span> post_count <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- LEFT JOIN: All users, even without posts</span>
+<span class="code-keyword">SELECT</span> u.id, u.email, <span class="code-function">COUNT</span>(p.id) <span class="code-keyword">as</span> post_count
+<span class="code-keyword">FROM</span> users u
+<span class="code-keyword">LEFT JOIN</span> posts p <span class="code-keyword">ON</span> u.id = p.user_id
+<span class="code-keyword">GROUP BY</span> u.id;
+
+<span class="code-comment">-- FULL JOIN: Find unmatched records</span>
+<span class="code-keyword">SELECT</span> <span class="code-keyword">COALESCE</span>(u.id, p.user_id) <span class="code-keyword">as</span> user_id
+<span class="code-keyword">FROM</span> users u
+<span class="code-keyword">FULL JOIN</span> posts p <span class="code-keyword">ON</span> u.id = p.user_id
+<span class="code-keyword">WHERE</span> u.id <span class="code-keyword">IS NULL OR</span> p.user_id <span class="code-keyword">IS NULL</span>;</code>
+        </div>
+        
+        <h2>📝 Common Table Expressions (CTEs)</h2>
+        <p style="color: #cbd5e1; margin-bottom: 15px;">
+            CTEs make complex queries readable and reusable. Use WITH clause to define temporary result sets.
+        </p>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Simple CTE</span>
+<span class="code-keyword">WITH</span> active_users <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> id, email 
+    <span class="code-keyword">FROM</span> users 
+    <span class="code-keyword">WHERE</span> is_active = true
+)
+<span class="code-keyword">SELECT</span> au.email, <span class="code-function">COUNT</span>(p.id) <span class="code-keyword">as</span> posts
+<span class="code-keyword">FROM</span> active_users au
+<span class="code-keyword">LEFT JOIN</span> posts p <span class="code-keyword">ON</span> au.id = p.user_id
+<span class="code-keyword">GROUP BY</span> au.id, au.email;
+
+<span class="code-comment">-- Multiple CTEs</span>
+<span class="code-keyword">WITH</span> user_counts <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> user_id, <span class="code-function">COUNT</span>(*) <span class="code-keyword">as</span> cnt <span class="code-keyword">FROM</span> posts <span class="code-keyword">GROUP BY</span> user_id
+),
+top_users <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> user_id <span class="code-keyword">FROM</span> user_counts <span class="code-keyword">WHERE</span> cnt > <span class="code-number">10</span>
+)
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> top_users;
+
+<span class="code-comment">-- Recursive CTE (generate series)</span>
+<span class="code-keyword">WITH RECURSIVE</span> nums <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-number">1</span> <span class="code-keyword">as</span> n
+    <span class="code-keyword">UNION ALL</span>
+    <span class="code-keyword">SELECT</span> n + <span class="code-number">1</span> <span class="code-keyword">FROM</span> nums <span class="code-keyword">WHERE</span> n < <span class="code-number">100</span>
+)
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> nums;</code>
+        </div>
+        
+        <h2>🪟 Window Functions</h2>
+        <p style="color: #cbd5e1; margin-bottom: 15px;">
+            Window functions compute values across a set of rows related to the current row. Essential for analytics.
+        </p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                    <th>Example Use</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>ROW_NUMBER()</code></td>
+                    <td>Assigns unique sequential number</td>
+                    <td>Rank products by sales</td>
+                </tr>
+                <tr>
+                    <td><code>RANK()</code></td>
+                    <td>Ranks with gaps on ties</td>
+                    <td>Sports leaderboards</td>
+                </tr>
+                <tr>
+                    <td><code>DENSE_RANK()</code></td>
+                    <td>Ranks without gaps</td>
+                    <td>Consistent ranking</td>
+                </tr>
+                <tr>
+                    <td><code>LAG()</code></td>
+                    <td>Access previous row value</td>
+                    <td>Month-over-month changes</td>
+                </tr>
+                <tr>
+                    <td><code>LEAD()</code></td>
+                    <td>Access next row value</td>
+                    <td>Predict next values</td>
+                </tr>
+                <tr>
+                    <td><code>FIRST_VALUE()</code></td>
+                    <td>First value in window</td>
+                    <td>Compare to baseline</td>
+                </tr>
+                <tr>
+                    <td><code>LAST_VALUE()</code></td>
+                    <td>Last value in window</td>
+                    <td>Latest data point</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Window Function Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- ROW_NUMBER with ORDER BY</span>
+<span class="code-keyword">SELECT</span>
+    product_name,
+    sales,
+    <span class="code-function">ROW_NUMBER</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> sales <span class="code-keyword">DESC</span>) <span class="code-keyword">as</span> rank
+<span class="code-keyword">FROM</span> products;
+
+<span class="code-comment">-- RANK with PARTITION BY</span>
+<span class="code-keyword">SELECT</span>
+    category,
+    product_name,
+    sales,
+    <span class="code-function">RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> category <span class="code-keyword">ORDER BY</span> sales <span class="code-keyword">DESC</span>) <span class="code-keyword">as</span> category_rank
+<span class="code-keyword">FROM</span> products;
+
+<span class="code-comment">-- LAG for month-over-month</span>
+<span class="code-keyword">SELECT</span>
+    month,
+    revenue,
+    <span class="code-function">LAG</span>(revenue) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> month) <span class="code-keyword">as</span> prev_month,
+    revenue - <span class="code-function">LAG</span>(revenue) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> month) <span class="code-keyword">as</span> change
+<span class="code-keyword">FROM</span> monthly_sales;
+
+<span class="code-comment">-- Running total</span>
+<span class="code-keyword">SELECT</span>
+    date,
+    amount,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> date) <span class="code-keyword">as</span> running_total
+<span class="code-keyword">FROM</span> transactions;</code>
+        </div>
+        
+        <h2>📊 ROLLUP & CUBE</h2>
+        <p style="color: #cbd5e1; margin-bottom: 15px;">
+            Generate multi-level aggregates efficiently without writing multiple queries.
+        </p>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- ROLLUP: Hierarchical grouping (subtotals at each level)</span>
+<span class="code-keyword">SELECT</span>
+    year, quarter, month, <span class="code-function">SUM</span>(sales) <span class="code-keyword">as</span> total
+<span class="code-keyword">FROM</span> sales_data
+<span class="code-keyword">GROUP BY ROLLUP</span> (year, quarter, month);
+
+<span class="code-comment">-- CUBE: All combinations of grouping</span>
+<span class="code-keyword">SELECT</span>
+    region, product, <span class="code-function">SUM</span>(sales) <span class="code-keyword">as</span> total
+<span class="code-keyword">FROM</span> sales_data
+<span class="code-keyword">GROUP BY CUBE</span> (region, product);
+
+<span class="code-comment">-- GROUPING SETS: Specific combinations</span>
+<span class="code-keyword">SELECT</span>
+    region, product, <span class="code-function">SUM</span>(sales)
+<span class="code-keyword">FROM</span> sales_data
+<span class="code-keyword">GROUP BY GROUPING SETS</span> (
+    (region, product),
+    (region),
+    (product),
+    ()
+);</code>
+        </div>
+        
+        <h2>🎯 Set Operations</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Operation</th>
+                    <th>Description</th>
+                    <th>Syntax</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>UNION</strong></td>
+                    <td>Combine results, remove duplicates</td>
+                    <td>SELECT ... UNION SELECT ...</td>
+                </tr>
+                <tr>
+                    <td><strong>UNION ALL</strong></td>
+                    <td>Combine results, keep duplicates</td>
+                    <td>SELECT ... UNION ALL SELECT ...</td>
+                </tr>
+                <tr>
+                    <td><strong>INTERSECT</strong></td>
+                    <td>Common rows in both queries</td>
+                    <td>SELECT ... INTERSECT SELECT ...</td>
+                </tr>
+                <tr>
+                    <td><strong>EXCEPT</strong></td>
+                    <td>Rows in first but not second</td>
+                    <td>SELECT ... EXCEPT SELECT ...</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- UNION: Combine active and inactive users</span>
+<span class="code-keyword">SELECT</span> id, email, <span class="code-string">'active'</span> <span class="code-keyword">as</span> status <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> is_active = true
+<span class="code-keyword">UNION</span>
+<span class="code-keyword">SELECT</span> id, email, <span class="code-string">'inactive'</span> <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> is_active = false;
+
+<span class="code-comment">-- EXCEPT: Find users without posts</span>
+<span class="code-keyword">SELECT</span> id <span class="code-keyword">FROM</span> users
+<span class="code-keyword">EXCEPT</span>
+<span class="code-keyword">SELECT DISTINCT</span> user_id <span class="code-keyword">FROM</span> posts;</code>
+        </div>
+        
+        <h2>✅ Learning Checklist</h2>
+        <ul class="checklist">
+            <li>Master all JOIN types and use cases</li>
+            <li>Write readable CTEs for complex queries</li>
+            <li>Use window functions for analytics</li>
+            <li>Understand OVER and PARTITION BY clauses</li>
+            <li>Generate aggregates with ROLLUP/CUBE/GROUPING SETS</li>
+            <li>Combine queries with set operations</li>
+            <li>Optimize window frame definitions</li>
+            <li>Use EXPLAIN to understand query execution</li>
+        </ul>
+        
+        <div class="info-box">
+            <strong>💡 Pro Tip:</strong> Window functions are computed after JOINs and WHERE clauses, making them perfect for ranking, 
+            comparison, and analytics without subqueries.
+        </div>
+        
+        <a href="index-postgresql.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

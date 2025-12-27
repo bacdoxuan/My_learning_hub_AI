@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MySQL Knowledge Base — Master Index</title>
+  <meta name="description" content="Complete MySQL Knowledge Base with 7 progressive modules covering foundations to advanced administration and security. Interactive search and filtering." />
+  <style>
+    :root{
+      --bg1:#0f172a;
+      --bg2:#0b1222;
+      --card:rgba(255,255,255,0.06);
+      --card2:rgba(255,255,255,0.04);
+      --border:rgba(255,255,255,0.10);
+      --text:rgba(255,255,255,0.92);
+      --muted:rgba(255,255,255,0.68);
+      --accent:#7dd3fc;
+      --accent2:#a78bfa;
+      --ok:#34d399;
+      --warn:#fbbf24;
+      --bad:#fb7185;
+      --chip:rgba(125,211,252,0.14);
+      --shadow: 0 14px 50px rgba(0,0,0,0.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(167,139,250,0.25), transparent 60%),
+        radial-gradient(900px 600px at 80% 0%, rgba(125,211,252,0.20), transparent 55%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+      min-height:100vh;
+    }
+    a{color:inherit; text-decoration:none}
+    a:hover{text-decoration:underline}
+    .container{
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 18px 60px;
+    }
+    header{
+      background: linear-gradient(135deg, rgba(125,211,252,0.18), rgba(167,139,250,0.14));
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px 18px 14px;
+      box-shadow: var(--shadow);
+    }
+    .title-row{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 14px;
+    }
+    h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: 0.2px;
+    }
+    .subtitle{
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13.5px;
+      line-height: 1.45;
+    }
+    .meta{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid var(--border);
+      background: rgba(0,0,0,0.18);
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+    .pill strong{color:var(--text); font-weight: 600}
+    .controls{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .searchbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .input{
+      flex: 1 1 340px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.22);
+      padding: 12px 12px;
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+    }
+    .input::placeholder{color: rgba(255,255,255,0.45)}
+    .btn{
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.07);
+      padding: 12px 12px;
+      color: var(--text);
+      cursor:pointer;
+      font-size: 13.5px;
+    }
+    .btn:hover{background: rgba(255,255,255,0.10)}
+    .chips{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .chip{
+      border:1px solid var(--border);
+      background: var(--chip);
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12.5px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .chip[data-active="true"]{
+      outline: 2px solid rgba(125,211,252,0.55);
+      background: rgba(125,211,252,0.22);
+    }
+    main{margin-top: 16px;}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+    }
+    .card{
+      grid-column: span 12;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 14px 14px 12px;
+    }
+    .card:hover{
+      background: rgba(255,255,255,0.075);
+    }
+    .row{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .left{
+      display:flex;
+      flex-direction:column;
+      gap: 6px;
+      min-width: 0;
+    }
+    .kicker{
+      display:flex;
+      align-items:center;
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    .num{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.22);
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .name{
+      font-size: 15.5px;
+      font-weight: 650;
+      letter-spacing: 0.2px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      max-width: 860px;
+    }
+    .desc{
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .tags{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top: 6px;
+    }
+    .tag{
+      font-size: 12px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card2);
+      color: rgba(255,255,255,0.78);
+    }
+    .tag.ok{border-color: rgba(52,211,153,0.35); background: rgba(52,211,153,0.10); color: rgba(167,243,208,0.95)}
+    .tag.warn{border-color: rgba(251,191,36,0.35); background: rgba(251,191,36,0.10); color: rgba(253,230,138,0.95)}
+    .tag.bad{border-color: rgba(251,113,133,0.35); background: rgba(251,113,133,0.10); color: rgba(254,205,211,0.95)}
+    .actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .link{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.20);
+      white-space:nowrap;
+      font-size: 13px;
+    }
+    .link:hover{
+      background: rgba(0,0,0,0.30);
+      text-decoration:none;
+    }
+    .small{
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .footer{
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 12.5px;
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 10px 4px;
+    }
+    .hint{
+      margin-top: 10px;
+      border: 1px dashed rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.18);
+      padding: 10px 12px;
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 12.5px;
+      line-height: 1.45;
+    }
+    .timeline-section{
+      margin-top: 24px;
+      padding: 18px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .timeline-title{
+      font-size: 16px;
+      font-weight: 650;
+      margin-bottom: 14px;
+      color: var(--accent);
+    }
+    .timeline-grid{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+    .timeline-item{
+      padding: 12px;
+      background: rgba(0,0,0,0.18);
+      border-radius: 10px;
+      border-left: 3px solid var(--accent);
+    }
+    .timeline-weeks{
+      font-weight: 600;
+      color: var(--accent);
+      font-size: 12px;
+    }
+    .timeline-module{
+      font-weight: 650;
+      margin: 4px 0;
+    }
+    .timeline-desc{
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .project-section{
+      margin-top: 24px;
+      padding: 18px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .project-grid{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .project-card{
+      padding: 14px;
+      background: rgba(0,0,0,0.18);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+    .project-title{
+      font-weight: 650;
+      color: var(--ok);
+      margin-bottom: 6px;
+    }
+    .project-desc{
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .resources-section{
+      margin-top: 24px;
+      padding: 18px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .resource-list{
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .resource-item{
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.18);
+      border-radius: 8px;
+      font-size: 12px;
+    }
+    .resource-link{
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .resource-link:hover{
+      text-decoration: underline;
+    }
+    @media (min-width: 860px){
+      .card{grid-column: span 6;}
+    }
+    @media (min-width: 1120px){
+      .card{grid-column: span 4;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="title-row">
+        <div>
+          <h1>MySQL Knowledge Base — Master Index</h1>
+          <div class="subtitle">
+            Complete knowledge base with <strong>7 progressive modules</strong> from MySQL foundations to advanced administration and security. Interactive search and filtering enabled.
+          </div>
+        </div>
+        <div class="meta">
+          <div class="pill"><strong id="countShown">7</strong> / <strong id="countTotal">7</strong> shown</div>
+          <div class="pill">Folder: <strong>same directory</strong></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="searchbar">
+          <input id="q" class="input" type="search" placeholder="Search by module number/name/tag... (e.g: joins, indexing, #4, security)" />
+          <button id="clear" class="btn" type="button">Clear</button>
+          <button id="openAll" class="btn" type="button" title="Browser may block popups if opening too many tabs">Open Filtered (tabs)</button>
+        </div>
+
+        <div class="chips" id="chips">
+          <!-- chips injected by JS -->
+        </div>
+
+        <div class="hint">
+          <strong>Tip:</strong> Place this <strong>index.html</strong> file in the same directory as the 7 module cheat sheets below. If you rename files, simply update the <em>href</em> field in the list.
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="grid" id="grid"></div>
+
+      <!-- Learning Timeline Section -->
+      <div class="timeline-section">
+        <div class="timeline-title">📚 Learning Progression Timeline</div>
+        <div class="timeline-grid">
+          <div class="timeline-item">
+            <div class="timeline-weeks">Weeks 1-2</div>
+            <div class="timeline-module">Module 1: Foundations</div>
+            <div class="timeline-desc">Install MySQL, understand RDBMS, master data types and basic CRUD operations</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-weeks">Weeks 3-5</div>
+            <div class="timeline-module">Module 2: Database Design</div>
+            <div class="timeline-desc">Learn normalization (1NF, 2NF, 3NF), design ER models, implement constraints</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-weeks">Weeks 6-8</div>
+            <div class="timeline-module">Module 3: Intermediate Querying</div>
+            <div class="timeline-desc">Master JOINs, subqueries, CTEs, and window functions for complex analysis</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-weeks">Weeks 9-11</div>
+            <div class="timeline-module">Module 4: Performance & Optimization</div>
+            <div class="timeline-desc">Understand indexing strategies, read EXPLAIN plans, optimize queries</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-weeks">Weeks 12-14</div>
+            <div class="timeline-module">Module 5: Programmability</div>
+            <div class="timeline-desc">Create stored procedures, functions, triggers, and views</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-weeks">Weeks 15-18</div>
+            <div class="timeline-module">Module 6: Administration</div>
+            <div class="timeline-desc">Manage transactions, setup replication, implement backup and recovery</div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-weeks">Weeks 19-20</div>
+            <div class="timeline-module">Module 7: Security</div>
+            <div class="timeline-desc">Implement RBAC, setup encryption, prevent SQL injection, enable auditing</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Practice Projects Section -->
+      <div class="project-section">
+        <div class="timeline-title">🛠️ Recommended Practice Projects</div>
+        <div class="project-grid">
+          <div class="project-card">
+            <div class="project-title">Project 1: E-Commerce Database</div>
+            <div class="project-desc">Design a normalized database for an online store with customers, products, orders, and payments. Covers Modules 1-2.</div>
+          </div>
+          <div class="project-card">
+            <div class="project-title">Project 2: Sales Analytics Dashboard</div>
+            <div class="project-desc">Create complex queries with JOINs and CTEs, build window functions for ranking and trends, optimize using EXPLAIN. Covers Modules 3-4.</div>
+          </div>
+          <div class="project-card">
+            <div class="project-title">Project 3: Production Database System</div>
+            <div class="project-desc">Build stored procedures for business logic, implement triggers for audit trails, setup replication and security. Covers Modules 5-7.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resources Section -->
+      <div class="resources-section">
+        <div class="timeline-title">🔗 Advanced Resources for Continuous Learning</div>
+        <div class="resource-list">
+          <div class="resource-item">
+            <a href="https://dev.mysql.com/doc" class="resource-link" target="_blank">MySQL Official Documentation</a>
+          </div>
+          <div class="resource-item">
+            <a href="https://dev.mysql.com/doc/refman/8.0/en/explain-output.html" class="resource-link" target="_blank">MySQL Query Optimization: Understanding EXPLAIN</a>
+          </div>
+          <div class="resource-item">
+            <a href="https://www.percona.com/software/mysql-database/percona-server" class="resource-link" target="_blank">Percona Server for MySQL</a>
+          </div>
+          <div class="resource-item">
+            <a href="https://mariadb.org/" class="resource-link" target="_blank">MariaDB: MySQL-compatible alternative</a>
+          </div>
+          <div class="resource-item">
+            <a href="https://dev.mysql.com/doc/refman/8.0/en/partitioning.html" class="resource-link" target="_blank">Database Architecture: Sharding, Partitioning</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div>
+          <span class="small">Tip: Use <strong>Ctrl/Cmd + F</strong> or the search box for quick finding.</span>
+        </div>
+        <div>
+          <span class="small">MySQL Knowledge Base • 7 modules • Generated for comprehensive learning</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // IMPORTANT:
+    // - hrefs are URL-encoded for spaces.
+    // - Keep this index.html in the same folder as the 7 HTML module files.
+    const sheets = [
+      {
+        n: 1,
+        title: "MySQL Foundations",
+        file: "1.MySQL-Foundations.html",
+        tags: ["foundations","crud","ddl","dml","datatypes","rdbms"],
+        desc: "RDBMS fundamentals, data types, DDL/DML commands, and basic CRUD operations for MySQL beginners."
+      },
+      {
+        n: 2,
+        title: "Database Design",
+        file: "2.MySQL-Database-Design.html",
+        tags: ["normalization","er-modeling","constraints","relationships","database-design"],
+        desc: "Master normalization forms (1NF, 2NF, 3NF), ER modeling, and database constraints for optimal design."
+      },
+      {
+        n: 3,
+        title: "Intermediate Querying",
+        file: "3.MySQL-Intermediate-Querying.html",
+        tags: ["joins","subqueries","ctes","window-functions","analytics"],
+        desc: "Advanced querying with JOINs, subqueries, CTEs, and window functions for complex data analysis."
+      },
+      {
+        n: 4,
+        title: "Performance & Optimization",
+        file: "4.MySQL-Performance-Optimization.html",
+        tags: ["indexing","explain","optimization","performance","query-tuning"],
+        desc: "Query optimization techniques, indexing strategies, EXPLAIN analysis, and performance tuning."
+      },
+      {
+        n: 5,
+        title: "Programmability",
+        file: "5.MySQL-Programmability.html",
+        tags: ["stored-procedures","functions","triggers","views","programmability"],
+        desc: "Stored procedures, user-defined functions, triggers, and views for database programmability."
+      },
+      {
+        n: 6,
+        title: "Advanced Administration",
+        file: "6.MySQL-Administration.html",
+        tags: ["transactions","replication","backup","recovery","partitioning"],
+        desc: "ACID transactions, concurrency control, replication, backup/recovery, and table partitioning."
+      },
+      {
+        n: 7,
+        title: "Security",
+        file: "7.MySQL-Security.html",
+        tags: ["security","rbac","encryption","sql-injection","audit","permissions"],
+        desc: "Role-based access control, encryption, SQL injection prevention, and audit logging for secure databases."
+      }
+    ];
+
+    // Build tag chips (dedup)
+    const allTags = Array.from(new Set(sheets.flatMap(s => s.tags))).sort((a,b)=>a.localeCompare(b));
+    const state = {
+      q: "",
+      tag: "" // single-tag filter
+    };
+
+    const els = {
+      grid: document.getElementById("grid"),
+      q: document.getElementById("q"),
+      clear: document.getElementById("clear"),
+      openAll: document.getElementById("openAll"),
+      chips: document.getElementById("chips"),
+      countShown: document.getElementById("countShown"),
+      countTotal: document.getElementById("countTotal")
+    };
+
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[s]));
+    }
+
+    function matches(s){
+      const q = state.q.trim().toLowerCase();
+      const tagOk = !state.tag || s.tags.includes(state.tag);
+
+      if (!q) return tagOk;
+
+      const hay = [
+        "#" + s.n,
+        String(s.n),
+        s.title,
+        decodeURIComponent(s.file),
+        s.tags.join(" "),
+        s.desc || ""
+      ].join(" ").toLowerCase();
+
+      return tagOk && hay.includes(q);
+    }
+
+    function renderChips(){
+      const base = [
+        { label: "All", value: "" },
+        ...allTags.map(t => ({ label: t, value: t }))
+      ];
+      els.chips.innerHTML = base.map(c => {
+        const active = (state.tag === c.value) ? "true" : "false";
+        return `<span class="chip" data-tag="${escapeHtml(c.value)}" data-active="${active}">${escapeHtml(c.label)}</span>`;
+      }).join("");
+      els.chips.querySelectorAll(".chip").forEach(ch => {
+        ch.addEventListener("click", () => {
+          const t = ch.getAttribute("data-tag") || "";
+          state.tag = (state.tag === t) ? "" : t;
+          renderChips();
+          render();
+        });
+      });
+    }
+
+    function render(){
+      const filtered = sheets.filter(matches);
+      els.countShown.textContent = String(filtered.length);
+      els.countTotal.textContent = String(sheets.length);
+
+      els.grid.innerHTML = filtered.map(s => {
+        const tags = s.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
+        const filePretty = decodeURIComponent(s.file);
+        return `
+          <article class="card" data-n="${s.n}">
+            <div class="row">
+              <div class="left">
+                <div class="kicker">
+                  <div class="num">${s.n}</div>
+                  <div class="name" title="${escapeHtml(filePretty)}">${escapeHtml(s.title)}</div>
+                </div>
+                <div class="desc">${escapeHtml(s.desc || "")}</div>
+                <div class="tags">${tags}</div>
+              </div>
+              <div class="actions">
+                <a class="link" href="${s.file}" target="_blank" rel="noopener">
+                  Open
+                </a>
+                <a class="link" href="${s.file}" download>
+                  Download
+                </a>
+              </div>
+            </div>
+            <div class="small" style="margin-top:10px;">
+              File: <code>${escapeHtml(filePretty)}</code>
+            </div>
+          </article>
+        `;
+      }).join("");
+
+      if (filtered.length === 0){
+        els.grid.innerHTML = `
+          <div class="card full-width" style="grid-column: span 12;">
+            <div class="desc">No results found. Try clearing filters or changing search terms.</div>
+          </div>
+        `;
+      }
+    }
+
+    // Events
+    els.q.addEventListener("input", (e) => {
+      state.q = e.target.value || "";
+      render();
+    });
+
+    els.clear.addEventListener("click", () => {
+      state.q = "";
+      state.tag = "";
+      els.q.value = "";
+      renderChips();
+      render();
+      els.q.focus();
+    });
+
+    els.openAll.addEventListener("click", () => {
+      const filtered = sheets.filter(matches);
+      if (!filtered.length) return;
+
+      // NOTE: Browsers may block popups when opening many tabs.
+      filtered.forEach((s, idx) => {
+        setTimeout(() => window.open(s.file, "_blank", "noopener"), idx * 60);
+      });
+    });
+
+    // Init
+    renderChips();
+    render();
+  </script>
+</body>
+</html>

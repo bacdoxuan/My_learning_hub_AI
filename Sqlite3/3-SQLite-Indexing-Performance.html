@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #3 - Indexing & Performance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #9b59b6; border-radius: 8px; padding: 25px; margin: 20px 0; transition: all 0.3s ease; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(155, 89, 182, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #9b59b6; margin-bottom: 12px; }
+        .concept-description { color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.9em; line-height: 1.5; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-comment { color: #636e72; }
+        .code-number { color: #ffeaa7; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #9b59b6; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); border-radius: 8px; overflow: hidden; }
+        th { background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(142, 68, 173, 0.2)); color: #9b59b6; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #9b59b6; }
+        td { padding: 12px 15px; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        tr:hover { background: rgba(155, 89, 182, 0.1); }
+        .highlight-box { background: rgba(155, 89, 182, 0.1); border-left: 4px solid #9b59b6; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .info-box { background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; color: #85c1e9; }
+        .warning-box { background: rgba(230, 126, 34, 0.1); border-left: 4px solid #e67e22; padding: 20px; border-radius: 8px; margin: 20px 0; color: #fdb462; }
+        .success-box { background: rgba(46, 204, 113, 0.1); border-left: 4px solid #2ecc71; padding: 20px; border-radius: 8px; margin: 20px 0; color: #7dcea0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 10px 0; padding-left: 30px; position: relative; color: #cbd5e1; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #9b59b6; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(155, 89, 182, 0.3); }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .hero h1 { font-size: 1.8em; } }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>⚡ SQLite3 Indexing & Performance</h1>
+        <p>Master Index Types, Query Optimization, and Performance Tuning</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers indexing strategies and performance optimization in SQLite3. You'll learn about 
+            different index types, how to analyze query execution plans with EXPLAIN, optimization techniques, 
+            database maintenance with VACUUM and ANALYZE, and configuration options for maximum performance.
+        </p>
+        
+        <h2>📚 Understanding Indexes</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">What is an Index?</div>
+            <div class="concept-description">
+                An index is a data structure that improves the speed of data retrieval operations on a database table. 
+                Think of it like a book's index - instead of scanning every page, you can quickly jump to the 
+                relevant section. SQLite uses <strong style="color: #9b59b6;">B-tree indexes</strong> for efficient lookups.
+            </div>
+        </div>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">✅ When to Use Indexes</div>
+                <div class="concept-description">
+                    • Columns frequently used in WHERE clauses<br>
+                    • Foreign key columns used in JOINs<br>
+                    • Columns used in ORDER BY or GROUP BY<br>
+                    • Columns with high cardinality (many unique values)<br>
+                    • Large tables with frequent SELECT operations
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">❌ When NOT to Use Indexes</div>
+                <div class="concept-description">
+                    • Small tables (< 1000 rows)<br>
+                    • Columns with low cardinality (few unique values)<br>
+                    • Tables with frequent INSERT/UPDATE/DELETE<br>
+                    • Columns rarely used in queries<br>
+                    • When index size > table size
+                </div>
+            </div>
+        </div>
+        
+        <h2>🔧 Index Types in SQLite</h2>
+        
+        <h3>1. Single-Column Index</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create single-column index</span>
+<span class="code-keyword">CREATE INDEX</span> idx_customers_email 
+<span class="code-keyword">ON</span> customers(email);
+
+<span class="code-comment">-- Create unique index</span>
+<span class="code-keyword">CREATE UNIQUE INDEX</span> idx_customers_username 
+<span class="code-keyword">ON</span> customers(username);
+
+<span class="code-comment">-- Index on expression</span>
+<span class="code-keyword">CREATE INDEX</span> idx_customers_email_lower 
+<span class="code-keyword">ON</span> customers(<span class="code-function">LOWER</span>(email));
+
+<span class="code-comment">-- Partial index (SQLite 3.8.0+)</span>
+<span class="code-keyword">CREATE INDEX</span> idx_orders_high_value 
+<span class="code-keyword">ON</span> orders(customer_id) 
+<span class="code-keyword">WHERE</span> amount > <span class="code-number">1000</span>;</code>
+        </div>
+        
+        <h3>2. Composite (Multi-Column) Index</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Composite index (order matters!)</span>
+<span class="code-keyword">CREATE INDEX</span> idx_orders_customer_date 
+<span class="code-keyword">ON</span> orders(customer_id, order_date);
+
+<span class="code-comment">-- This index helps these queries:</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>;  <span class="code-comment">-- ✓ Uses index</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span> <span class="code-keyword">AND</span> order_date > <span class="code-string">'2024-01-01'</span>;  <span class="code-comment">-- ✓ Uses index</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> order_date > <span class="code-string">'2024-01-01'</span>;  <span class="code-comment">-- ✗ Cannot use index</span>
+
+<span class="code-comment">-- Better composite index for range queries</span>
+<span class="code-keyword">CREATE INDEX</span> idx_orders_date_customer 
+<span class="code-keyword">ON</span> orders(order_date, customer_id);</code>
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ Column Order in Composite Indexes:</strong><br>
+            The order of columns matters! Put the most selective column first (the one that filters out 
+            the most rows). A composite index on (A, B, C) can be used for queries filtering on:<br>
+            • A only ✓<br>
+            • A and B ✓<br>
+            • A, B, and C ✓<br>
+            • B only ✗<br>
+            • C only ✗
+        </div>
+        
+        <h3>3. Covering Index</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Covering index includes all columns needed by query</span>
+<span class="code-keyword">CREATE INDEX</span> idx_orders_covering 
+<span class="code-keyword">ON</span> orders(customer_id, order_date, amount, product);
+
+<span class="code-comment">-- This query can be satisfied entirely from the index (no table lookup)</span>
+<span class="code-keyword">SELECT</span> order_date, amount, product
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>;
+
+<span class="code-comment">-- Check if index is covering</span>
+<span class="code-keyword">EXPLAIN QUERY PLAN</span>
+<span class="code-keyword">SELECT</span> order_date, amount, product
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>;
+<span class="code-comment">-- Look for "USING COVERING INDEX" in output</span></code>
+        </div>
+        
+        <h3>4. Partial Index</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Index only specific rows (saves space)</span>
+<span class="code-keyword">CREATE INDEX</span> idx_orders_pending 
+<span class="code-keyword">ON</span> orders(customer_id, order_date) 
+<span class="code-keyword">WHERE</span> status = <span class="code-string">'pending'</span>;
+
+<span class="code-comment">-- Index for active users only</span>
+<span class="code-keyword">CREATE INDEX</span> idx_users_active_email 
+<span class="code-keyword">ON</span> users(email) 
+<span class="code-keyword">WHERE</span> is_active = <span class="code-number">1</span>;
+
+<span class="code-comment">-- Index for non-null values</span>
+<span class="code-keyword">CREATE INDEX</span> idx_orders_shipped_date 
+<span class="code-keyword">ON</span> orders(shipped_date) 
+<span class="code-keyword">WHERE</span> shipped_date <span class="code-keyword">IS NOT NULL</span>;</code>
+        </div>
+        
+        <h3>Index Management</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- List all indexes</span>
+<span class="code-keyword">SELECT</span> name, tbl_name, sql 
+<span class="code-keyword">FROM</span> sqlite_master 
+<span class="code-keyword">WHERE</span> type = <span class="code-string">'index'</span>;
+
+<span class="code-comment">-- View indexes for specific table</span>
+<span class="code-keyword">PRAGMA</span> index_list(orders);
+
+<span class="code-comment">-- View index details</span>
+<span class="code-keyword">PRAGMA</span> index_info(idx_orders_customer_date);
+
+<span class="code-comment">-- Drop index</span>
+<span class="code-keyword">DROP INDEX</span> idx_orders_customer_date;
+
+<span class="code-comment">-- Drop if exists (safe)</span>
+<span class="code-keyword">DROP INDEX IF EXISTS</span> idx_orders_customer_date;</code>
+        </div>
+        
+        <h2>🔍 EXPLAIN & Query Analysis</h2>
+        
+        <h3>EXPLAIN QUERY PLAN</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Analyze query execution plan</span>
+<span class="code-keyword">EXPLAIN QUERY PLAN</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders 
+<span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span> 
+<span class="code-keyword">AND</span> order_date > <span class="code-string">'2024-01-01'</span>;
+
+<span class="code-comment">-- Output interpretation:
+-- SCAN TABLE orders: Full table scan (slow)
+-- SEARCH TABLE orders USING INDEX idx_name: Uses index (fast)
+-- USING COVERING INDEX: All data from index, no table lookup (fastest)</span>
+
+<span class="code-comment">-- Example with JOIN</span>
+<span class="code-keyword">EXPLAIN QUERY PLAN</span>
+<span class="code-keyword">SELECT</span> c.name, o.product
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">INNER JOIN</span> orders o <span class="code-keyword">ON</span> c.id = o.customer_id
+<span class="code-keyword">WHERE</span> c.city = <span class="code-string">'New York'</span>;</code>
+        </div>
+        
+        <h3>Understanding EXPLAIN Output</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Operation</th>
+                    <th>Description</th>
+                    <th>Performance</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>SCAN TABLE</code></td>
+                    <td>Full table scan, reads every row</td>
+                    <td>🔴 Slow (O(n))</td>
+                </tr>
+                <tr>
+                    <td><code>SEARCH TABLE USING INDEX</code></td>
+                    <td>Uses index for lookup</td>
+                    <td>🟢 Fast (O(log n))</td>
+                </tr>
+                <tr>
+                    <td><code>USING COVERING INDEX</code></td>
+                    <td>All data from index, no table access</td>
+                    <td>🟢 Fastest</td>
+                </tr>
+                <tr>
+                    <td><code>USING INTEGER PRIMARY KEY</code></td>
+                    <td>Direct rowid lookup</td>
+                    <td>🟢 Very fast</td>
+                </tr>
+                <tr>
+                    <td><code>USE TEMP B-TREE</code></td>
+                    <td>Temporary index for sorting</td>
+                    <td>🟡 Medium</td>
+                </tr>
+                <tr>
+                    <td><code>EXECUTE CORRELATED SCALAR SUBQUERY</code></td>
+                    <td>Subquery executed per row</td>
+                    <td>🔴 Can be slow</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Full EXPLAIN (Bytecode)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- View SQLite bytecode (advanced)</span>
+<span class="code-keyword">EXPLAIN</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>;
+
+<span class="code-comment">-- Output shows VDBE (Virtual Database Engine) opcodes
+-- Useful for deep performance analysis</span></code>
+        </div>
+        
+        <h2>🚀 Query Optimization Strategies</h2>
+        
+        <h3>1. Use Appropriate Indexes</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- ❌ Bad: No index on customer_id</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>;  <span class="code-comment">-- SCAN TABLE</span>
+
+<span class="code-comment">-- ✅ Good: Create index</span>
+<span class="code-keyword">CREATE INDEX</span> idx_orders_customer <span class="code-keyword">ON</span> orders(customer_id);
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>;  <span class="code-comment">-- SEARCH USING INDEX</span></code>
+        </div>
+        
+        <h3>2. Avoid SELECT *</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- ❌ Bad: Fetches all columns</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>;
+
+<span class="code-comment">-- ✅ Good: Only fetch needed columns (can use covering index)</span>
+<span class="code-keyword">SELECT</span> order_date, amount <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>;</code>
+        </div>
+        
+        <h3>3. Use LIMIT for Large Result Sets</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- ❌ Bad: Fetches all rows</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">ORDER BY</span> order_date <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- ✅ Good: Limit results</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> orders <span class="code-keyword">ORDER BY</span> order_date <span class="code-keyword">DESC</span> <span class="code-keyword">LIMIT</span> <span class="code-number">100</span>;</code>
+        </div>
+        
+        <h3>4. Optimize JOINs</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- ❌ Bad: No indexes on join columns</span>
+<span class="code-keyword">SELECT</span> c.name, o.product
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">INNER JOIN</span> orders o <span class="code-keyword">ON</span> c.id = o.customer_id;
+
+<span class="code-comment">-- ✅ Good: Index foreign keys</span>
+<span class="code-keyword">CREATE INDEX</span> idx_orders_customer_id <span class="code-keyword">ON</span> orders(customer_id);
+<span class="code-keyword">SELECT</span> c.name, o.product
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">INNER JOIN</span> orders o <span class="code-keyword">ON</span> c.id = o.customer_id;</code>
+        </div>
+        
+        <h3>5. Use EXISTS Instead of IN for Subqueries</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- ❌ Slower: IN with subquery</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> customers
+<span class="code-keyword">WHERE</span> id <span class="code-keyword">IN</span> (<span class="code-keyword">SELECT</span> customer_id <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> amount > <span class="code-number">100</span>);
+
+<span class="code-comment">-- ✅ Faster: EXISTS (stops at first match)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">WHERE EXISTS</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-number">1</span> <span class="code-keyword">FROM</span> orders o 
+    <span class="code-keyword">WHERE</span> o.customer_id = c.id <span class="code-keyword">AND</span> o.amount > <span class="code-number">100</span>
+);</code>
+        </div>
+        
+        <h3>6. Avoid Functions on Indexed Columns</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- ❌ Bad: Function prevents index usage</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> customers <span class="code-keyword">WHERE</span> <span class="code-function">LOWER</span>(email) = <span class="code-string">'user@example.com'</span>;
+
+<span class="code-comment">-- ✅ Good: Create expression index</span>
+<span class="code-keyword">CREATE INDEX</span> idx_customers_email_lower <span class="code-keyword">ON</span> customers(<span class="code-function">LOWER</span>(email));
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> customers <span class="code-keyword">WHERE</span> <span class="code-function">LOWER</span>(email) = <span class="code-string">'user@example.com'</span>;
+
+<span class="code-comment">-- ✅ Better: Store normalized data</span>
+<span class="code-keyword">ALTER TABLE</span> customers <span class="code-keyword">ADD COLUMN</span> email_lower <span class="code-function">TEXT</span>;
+<span class="code-keyword">UPDATE</span> customers <span class="code-keyword">SET</span> email_lower = <span class="code-function">LOWER</span>(email);
+<span class="code-keyword">CREATE INDEX</span> idx_customers_email_lower <span class="code-keyword">ON</span> customers(email_lower);</code>
+        </div>
+        
+        <h3>7. Batch Operations</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- ❌ Bad: Individual inserts (slow)</span>
+<span class="code-keyword">INSERT INTO</span> orders <span class="code-keyword">VALUES</span> (<span class="code-number">1</span>, <span class="code-number">1</span>, <span class="code-string">'Product A'</span>, <span class="code-number">100</span>);
+<span class="code-keyword">INSERT INTO</span> orders <span class="code-keyword">VALUES</span> (<span class="code-number">2</span>, <span class="code-number">2</span>, <span class="code-string">'Product B'</span>, <span class="code-number">200</span>);
+<span class="code-keyword">INSERT INTO</span> orders <span class="code-keyword">VALUES</span> (<span class="code-number">3</span>, <span class="code-number">3</span>, <span class="code-string">'Product C'</span>, <span class="code-number">300</span>);
+
+<span class="code-comment">-- ✅ Good: Batch insert in transaction</span>
+<span class="code-keyword">BEGIN TRANSACTION</span>;
+<span class="code-keyword">INSERT INTO</span> orders <span class="code-keyword">VALUES</span> 
+    (<span class="code-number">1</span>, <span class="code-number">1</span>, <span class="code-string">'Product A'</span>, <span class="code-number">100</span>),
+    (<span class="code-number">2</span>, <span class="code-number">2</span>, <span class="code-string">'Product B'</span>, <span class="code-number">200</span>),
+    (<span class="code-number">3</span>, <span class="code-number">3</span>, <span class="code-string">'Product C'</span>, <span class="code-number">300</span>);
+<span class="code-keyword">COMMIT</span>;</code>
+        </div>
+        
+        <h2>🧹 VACUUM & ANALYZE</h2>
+        
+        <h3>VACUUM - Database Defragmentation</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Rebuild database file (reclaim space, defragment)</span>
+<span class="code-keyword">VACUUM</span>;
+
+<span class="code-comment">-- Vacuum into new file</span>
+<span class="code-keyword">VACUUM INTO</span> <span class="code-string">'backup.db'</span>;
+
+<span class="code-comment">-- Enable auto-vacuum (set before creating tables)</span>
+<span class="code-keyword">PRAGMA</span> auto_vacuum = <span class="code-function">FULL</span>;  <span class="code-comment">-- or INCREMENTAL</span>
+
+<span class="code-comment">-- Check auto-vacuum status</span>
+<span class="code-keyword">PRAGMA</span> auto_vacuum;</code>
+        </div>
+        
+        <div class="concept-box">
+            <div class="concept-title">When to VACUUM?</div>
+            <div class="concept-description">
+                <strong style="color: #9b59b6;">Run VACUUM when:</strong><br>
+                • After deleting large amounts of data<br>
+                • Database file size is much larger than actual data<br>
+                • Performance degrades over time<br>
+                • Before making backups<br><br>
+                <strong style="color: #e67e22;">Warning:</strong> VACUUM requires temporary disk space equal to database size 
+                and locks the entire database during operation.
+            </div>
+        </div>
+        
+        <h3>ANALYZE - Update Statistics</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Analyze entire database</span>
+<span class="code-keyword">ANALYZE</span>;
+
+<span class="code-comment">-- Analyze specific table</span>
+<span class="code-keyword">ANALYZE</span> orders;
+
+<span class="code-comment">-- Analyze specific index</span>
+<span class="code-keyword">ANALYZE</span> idx_orders_customer_date;
+
+<span class="code-comment">-- View statistics</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> sqlite_stat1;
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> sqlite_stat4;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 ANALYZE Best Practices:</strong><br>
+            • Run ANALYZE after creating indexes<br>
+            • Run after significant data changes (>10% of table)<br>
+            • Run periodically on production databases<br>
+            • Helps query planner choose optimal execution plans<br>
+            • Lightweight operation, safe to run frequently
+        </div>
+        
+        <h2>📝 WAL Mode vs Rollback Journal</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Rollback Journal (Default)</div>
+                <div class="concept-description">
+                    <strong>How it works:</strong> Writes original data to journal file before modifying database<br><br>
+                    <strong>Pros:</strong><br>
+                    • Simple and reliable<br>
+                    • Works on all filesystems<br><br>
+                    <strong>Cons:</strong><br>
+                    • Locks entire database during writes<br>
+                    • Slower for concurrent access
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">WAL Mode (Write-Ahead Logging)</div>
+                <div class="concept-description">
+                    <strong>How it works:</strong> Writes changes to separate WAL file, periodically checkpoints to main DB<br><br>
+                    <strong>Pros:</strong><br>
+                    • Readers don't block writers<br>
+                    • Faster writes (no sync per transaction)<br>
+                    • Better concurrency<br><br>
+                    <strong>Cons:</strong><br>
+                    • Requires shared memory<br>
+                    • Not compatible with network filesystems
+                </div>
+            </div>
+        </div>
+        
+        <h3>Enable WAL Mode</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Enable WAL mode</span>
+<span class="code-keyword">PRAGMA</span> journal_mode = <span class="code-function">WAL</span>;
+
+<span class="code-comment">-- Check current mode</span>
+<span class="code-keyword">PRAGMA</span> journal_mode;
+
+<span class="code-comment">-- Checkpoint WAL file (merge into main database)</span>
+<span class="code-keyword">PRAGMA</span> wal_checkpoint(<span class="code-function">FULL</span>);
+
+<span class="code-comment">-- Auto-checkpoint threshold (default: 1000 pages)</span>
+<span class="code-keyword">PRAGMA</span> wal_autocheckpoint = <span class="code-number">1000</span>;
+
+<span class="code-comment">-- Disable WAL mode (back to rollback journal)</span>
+<span class="code-keyword">PRAGMA</span> journal_mode = <span class="code-function">DELETE</span>;</code>
+        </div>
+        
+        <div class="success-box">
+            <strong>✅ WAL Mode Recommendation:</strong><br>
+            Use WAL mode for applications with:<br>
+            • High read concurrency<br>
+            • Frequent small writes<br>
+            • Need for better performance<br><br>
+            Stick with rollback journal for:<br>
+            • Network filesystems (NFS, SMB)<br>
+            • Systems without shared memory<br>
+            • Simple single-writer applications
+        </div>
+        
+        <h2>⚙️ Memory & Cache Configuration</h2>
+        
+        <h3>Page Size</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Set page size (must be done before creating tables)</span>
+<span class="code-keyword">PRAGMA</span> page_size = <span class="code-number">4096</span>;  <span class="code-comment">-- Default: 4096 bytes (1024, 2048, 4096, 8192, 16384, 32768, 65536)</span>
+
+<span class="code-comment">-- Check page size</span>
+<span class="code-keyword">PRAGMA</span> page_size;
+
+<span class="code-comment">-- Check page count</span>
+<span class="code-keyword">PRAGMA</span> page_count;</code>
+        </div>
+        
+        <h3>Cache Size</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Set cache size (negative = KB, positive = pages)</span>
+<span class="code-keyword">PRAGMA</span> cache_size = -<span class="code-number">64000</span>;  <span class="code-comment">-- 64 MB cache</span>
+
+<span class="code-comment">-- Or in pages</span>
+<span class="code-keyword">PRAGMA</span> cache_size = <span class="code-number">10000</span>;  <span class="code-comment">-- 10000 pages (40 MB with 4KB pages)</span>
+
+<span class="code-comment">-- Check cache size</span>
+<span class="code-keyword">PRAGMA</span> cache_size;</code>
+        </div>
+        
+        <h3>Memory-Mapped I/O</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Enable memory-mapped I/O (faster reads)</span>
+<span class="code-keyword">PRAGMA</span> mmap_size = <span class="code-number">268435456</span>;  <span class="code-comment">-- 256 MB</span>
+
+<span class="code-comment">-- Check mmap size</span>
+<span class="code-keyword">PRAGMA</span> mmap_size;</code>
+        </div>
+        
+        <h3>Temp Store</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Store temp tables in memory (faster)</span>
+<span class="code-keyword">PRAGMA</span> temp_store = <span class="code-function">MEMORY</span>;  <span class="code-comment">-- or FILE, DEFAULT</span>
+
+<span class="code-comment">-- Check temp store</span>
+<span class="code-keyword">PRAGMA</span> temp_store;</code>
+        </div>
+        
+        <h3>Synchronous Mode</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Synchronous modes (trade-off: safety vs speed)</span>
+<span class="code-keyword">PRAGMA</span> synchronous = <span class="code-function">FULL</span>;    <span class="code-comment">-- Safest, slowest (default)</span>
+<span class="code-keyword">PRAGMA</span> synchronous = <span class="code-function">NORMAL</span>;  <span class="code-comment">-- Good balance (recommended with WAL)</span>
+<span class="code-keyword">PRAGMA</span> synchronous = <span class="code-function">OFF</span>;     <span class="code-comment">-- Fastest, risk of corruption on crash</span>
+
+<span class="code-comment">-- Check synchronous mode</span>
+<span class="code-keyword">PRAGMA</span> synchronous;</code>
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ Synchronous Mode Warning:</strong><br>
+            • <code>FULL</code>: Maximum safety, data survives OS crash<br>
+            • <code>NORMAL</code>: Good for WAL mode, survives app crash<br>
+            • <code>OFF</code>: Fastest but risk of corruption on power loss<br><br>
+            Only use <code>OFF</code> for temporary/cache databases where data loss is acceptable.
+        </div>
+        
+        <h2>🎯 Performance Tuning Checklist</h2>
+        
+        <div class="highlight-box">
+            <strong>Optimal Configuration for Most Applications:</strong>
+            <div class="code-block">
+<code><span class="code-comment">-- Enable WAL mode</span>
+<span class="code-keyword">PRAGMA</span> journal_mode = <span class="code-function">WAL</span>;
+
+<span class="code-comment">-- Set synchronous to NORMAL (safe with WAL)</span>
+<span class="code-keyword">PRAGMA</span> synchronous = <span class="code-function">NORMAL</span>;
+
+<span class="code-comment">-- Increase cache size</span>
+<span class="code-keyword">PRAGMA</span> cache_size = -<span class="code-number">64000</span>;  <span class="code-comment">-- 64 MB</span>
+
+<span class="code-comment">-- Enable memory-mapped I/O</span>
+<span class="code-keyword">PRAGMA</span> mmap_size = <span class="code-number">268435456</span>;  <span class="code-comment">-- 256 MB</span>
+
+<span class="code-comment">-- Use memory for temp tables</span>
+<span class="code-keyword">PRAGMA</span> temp_store = <span class="code-function">MEMORY</span>;
+
+<span class="code-comment">-- Enable foreign keys</span>
+<span class="code-keyword">PRAGMA</span> foreign_keys = <span class="code-function">ON</span>;</code>
+            </div>
+        </div>
+        
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Understand when to use indexes and when to avoid them</li>
+            <li>Create single-column, composite, covering, and partial indexes</li>
+            <li>Use EXPLAIN QUERY PLAN to analyze query performance</li>
+            <li>Optimize queries with appropriate indexing strategies</li>
+            <li>Avoid common performance pitfalls (SELECT *, functions on indexed columns)</li>
+            <li>Use VACUUM to reclaim space and defragment database</li>
+            <li>Run ANALYZE to update query planner statistics</li>
+            <li>Enable WAL mode for better concurrency</li>
+            <li>Configure cache size and memory settings appropriately</li>
+            <li>Understand trade-offs between safety and performance</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> You've mastered indexing and performance optimization! 
+            Move on to <strong>Module 4: Advanced Features</strong> to explore JSON functions, 
+            Full-Text Search (FTS5), R-Tree spatial indexes, virtual tables, and user-defined functions.
+        </div>
+        
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

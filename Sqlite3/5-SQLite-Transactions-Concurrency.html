@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #5 - Transactions & Concurrency</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #16a085 0%, #138d75 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #16a085; border-radius: 8px; padding: 25px; margin: 20px 0; transition: all 0.3s ease; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(22, 160, 133, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #16a085; margin-bottom: 12px; }
+        .concept-description { color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.9em; line-height: 1.5; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-comment { color: #636e72; }
+        .code-number { color: #ffeaa7; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #16a085; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); border-radius: 8px; overflow: hidden; }
+        th { background: linear-gradient(135deg, rgba(22, 160, 133, 0.2), rgba(19, 141, 117, 0.2)); color: #16a085; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #16a085; }
+        td { padding: 12px 15px; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        tr:hover { background: rgba(22, 160, 133, 0.1); }
+        .highlight-box { background: rgba(22, 160, 133, 0.1); border-left: 4px solid #16a085; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .info-box { background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; color: #85c1e9; }
+        .warning-box { background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 20px; border-radius: 8px; margin: 20px 0; color: #f1948a; }
+        .success-box { background: rgba(46, 204, 113, 0.1); border-left: 4px solid #2ecc71; padding: 20px; border-radius: 8px; margin: 20px 0; color: #7dcea0; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
+        .lock-diagram { background: rgba(22, 160, 133, 0.05); border: 2px solid #16a085; border-radius: 8px; padding: 20px; margin: 20px 0; font-family: monospace; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 10px 0; padding-left: 30px; position: relative; color: #cbd5e1; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #16a085; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #16a085, #138d75); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(22, 160, 133, 0.3); }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .hero h1 { font-size: 1.8em; } }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔒 SQLite3 Transactions & Concurrency</h1>
+        <p>Master Transaction Modes, Locking, Isolation & Concurrent Access</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers transaction management and concurrency control in SQLite3. You'll learn about 
+            different transaction modes, locking mechanisms, isolation levels, savepoints, handling concurrent 
+            access, and best practices for multi-threaded applications.
+        </p>
+        
+        <h2>💡 Understanding Transactions</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">What is a Transaction?</div>
+            <div class="concept-description">
+                A transaction is a sequence of database operations that are treated as a single unit of work. 
+                Transactions ensure ACID properties: <strong style="color: #16a085;">Atomicity</strong> (all or nothing), 
+                <strong style="color: #16a085;">Consistency</strong> (valid state), 
+                <strong style="color: #16a085;">Isolation</strong> (concurrent transactions don't interfere), 
+                and <strong style="color: #16a085;">Durability</strong> (committed changes persist).
+            </div>
+        </div>
+        
+        <h3>Basic Transaction Syntax</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Start transaction</span>
+<span class="code-keyword">BEGIN TRANSACTION</span>;  <span class="code-comment">-- or just BEGIN</span>
+
+<span class="code-comment">-- Perform operations</span>
+<span class="code-keyword">INSERT INTO</span> accounts (name, balance) <span class="code-keyword">VALUES</span> (<span class="code-string">'Alice'</span>, <span class="code-number">1000</span>);
+<span class="code-keyword">UPDATE</span> accounts <span class="code-keyword">SET</span> balance = balance - <span class="code-number">100</span> <span class="code-keyword">WHERE</span> name = <span class="code-string">'Alice'</span>;
+<span class="code-keyword">UPDATE</span> accounts <span class="code-keyword">SET</span> balance = balance + <span class="code-number">100</span> <span class="code-keyword">WHERE</span> name = <span class="code-string">'Bob'</span>;
+
+<span class="code-comment">-- Commit changes (make permanent)</span>
+<span class="code-keyword">COMMIT</span>;
+
+<span class="code-comment">-- Or rollback (undo all changes)</span>
+<span class="code-keyword">ROLLBACK</span>;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Auto-commit Mode:</strong><br>
+            By default, SQLite operates in auto-commit mode. Each SQL statement is automatically 
+            wrapped in a transaction. Explicit transactions begin with <code>BEGIN</code> and end with 
+            <code>COMMIT</code> or <code>ROLLBACK</code>.
+        </div>
+        
+        <h2>🎯 Transaction Modes</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">DEFERRED (Default)</div>
+                <div class="concept-description">
+                    <strong>Behavior:</strong> No locks acquired until first read/write<br>
+                    <strong>Read:</strong> Acquires SHARED lock<br>
+                    <strong>Write:</strong> Acquires RESERVED lock<br>
+                    <strong>Use case:</strong> Most common, good for read-heavy workloads
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">IMMEDIATE</div>
+                <div class="concept-description">
+                    <strong>Behavior:</strong> Acquires RESERVED lock immediately<br>
+                    <strong>Prevents:</strong> Other writers from starting<br>
+                    <strong>Allows:</strong> Concurrent readers<br>
+                    <strong>Use case:</strong> When you know you'll write
+                </div>
+            </div>
+        </div>
+        
+        <div class="concept-box">
+            <div class="concept-title">EXCLUSIVE</div>
+            <div class="concept-description">
+                <strong>Behavior:</strong> Acquires EXCLUSIVE lock immediately<br>
+                <strong>Prevents:</strong> All other connections (readers and writers)<br>
+                <strong>Use case:</strong> Bulk operations, database maintenance<br>
+                <strong>Warning:</strong> Blocks all concurrent access
+            </div>
+        </div>
+        
+        <h3>Transaction Mode Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- DEFERRED transaction (default)</span>
+<span class="code-keyword">BEGIN</span>;  <span class="code-comment">-- Same as BEGIN DEFERRED</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> accounts;  <span class="code-comment">-- Acquires SHARED lock</span>
+<span class="code-keyword">UPDATE</span> accounts <span class="code-keyword">SET</span> balance = <span class="code-number">100</span>;  <span class="code-comment">-- Upgrades to RESERVED lock</span>
+<span class="code-keyword">COMMIT</span>;
+
+<span class="code-comment">-- IMMEDIATE transaction</span>
+<span class="code-keyword">BEGIN IMMEDIATE</span>;  <span class="code-comment">-- Acquires RESERVED lock now</span>
+<span class="code-keyword">UPDATE</span> accounts <span class="code-keyword">SET</span> balance = balance + <span class="code-number">50</span>;
+<span class="code-keyword">COMMIT</span>;
+
+<span class="code-comment">-- EXCLUSIVE transaction</span>
+<span class="code-keyword">BEGIN EXCLUSIVE</span>;  <span class="code-comment">-- Acquires EXCLUSIVE lock now</span>
+<span class="code-keyword">DELETE FROM</span> logs <span class="code-keyword">WHERE</span> created_at < <span class="code-string">'2024-01-01'</span>;
+<span class="code-keyword">VACUUM</span>;
+<span class="code-keyword">COMMIT</span>;</code>
+        </div>
+        
+        <h2>🔐 Locking Mechanisms</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">SQLite Lock States</div>
+            <div class="concept-description">
+                SQLite uses a hierarchical locking system with 5 lock states. Each connection progresses 
+                through these states as needed during transactions.
+            </div>
+        </div>
+        
+        <h3>Lock State Hierarchy</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Lock State</th>
+                    <th>Description</th>
+                    <th>Allows</th>
+                    <th>Blocks</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>UNLOCKED</strong></td>
+                    <td>No locks held</td>
+                    <td>Everything</td>
+                    <td>Nothing</td>
+                </tr>
+                <tr>
+                    <td><strong>SHARED</strong></td>
+                    <td>Reading data</td>
+                    <td>Other readers</td>
+                    <td>Writers (RESERVED+)</td>
+                </tr>
+                <tr>
+                    <td><strong>RESERVED</strong></td>
+                    <td>Intends to write</td>
+                    <td>Readers</td>
+                    <td>Other writers</td>
+                </tr>
+                <tr>
+                    <td><strong>PENDING</strong></td>
+                    <td>Waiting to write</td>
+                    <td>Existing readers</td>
+                    <td>New readers & writers</td>
+                </tr>
+                <tr>
+                    <td><strong>EXCLUSIVE</strong></td>
+                    <td>Writing to database</td>
+                    <td>Nothing</td>
+                    <td>Everything</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Lock Progression</h3>
+        <div class="lock-diagram">
+UNLOCKED
+    ↓ (BEGIN / SELECT)
+SHARED (reading)
+    ↓ (INSERT/UPDATE/DELETE)
+RESERVED (preparing to write)
+    ↓ (COMMIT starts)
+PENDING (waiting for readers)
+    ↓ (all readers finish)
+EXCLUSIVE (writing to disk)
+    ↓ (COMMIT completes)
+UNLOCKED
+        </div>
+        
+        <h3>Checking Lock Status</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Check database lock status</span>
+<span class="code-keyword">PRAGMA</span> locking_mode;
+
+<span class="code-comment">-- Set locking mode</span>
+<span class="code-keyword">PRAGMA</span> locking_mode = <span class="code-function">NORMAL</span>;    <span class="code-comment">-- Default: release locks after transaction</span>
+<span class="code-keyword">PRAGMA</span> locking_mode = <span class="code-function">EXCLUSIVE</span>; <span class="code-comment">-- Keep EXCLUSIVE lock (faster, no concurrency)</span>
+
+<span class="code-comment">-- Check if database is locked</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> sqlite_master;  <span class="code-comment">-- Will fail if EXCLUSIVE lock held by another</span></code>
+        </div>
+        
+        <h2>⚡ Isolation Levels</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">SQLite Isolation</div>
+            <div class="concept-description">
+                SQLite provides <strong style="color: #16a085;">SERIALIZABLE</strong> isolation - the highest 
+                isolation level. All transactions appear to execute sequentially, preventing phenomena like 
+                dirty reads, non-repeatable reads, and phantom reads.
+            </div>
+        </div>
+        
+        <h3>Isolation Guarantees</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Phenomenon</th>
+                    <th>Description</th>
+                    <th>SQLite Prevents?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Dirty Read</strong></td>
+                    <td>Reading uncommitted changes</td>
+                    <td>✅ Yes</td>
+                </tr>
+                <tr>
+                    <td><strong>Non-repeatable Read</strong></td>
+                    <td>Different results on re-read</td>
+                    <td>✅ Yes</td>
+                </tr>
+                <tr>
+                    <td><strong>Phantom Read</strong></td>
+                    <td>New rows appear in range query</td>
+                    <td>✅ Yes</td>
+                </tr>
+                <tr>
+                    <td><strong>Write Skew</strong></td>
+                    <td>Concurrent writes violate constraint</td>
+                    <td>✅ Yes</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="info-box">
+            <strong>💡 Read Uncommitted Mode:</strong><br>
+            SQLite supports a special <code>read_uncommitted</code> mode that allows reading 
+            uncommitted changes from other connections. Only use this if you understand the implications!
+            <div class="code-block">
+<code><span class="code-keyword">PRAGMA</span> read_uncommitted = <span class="code-number">1</span>;  <span class="code-comment">-- Enable (use with caution!)</span>
+<span class="code-keyword">PRAGMA</span> read_uncommitted = <span class="code-number">0</span>;  <span class="code-comment">-- Disable (default)</span></code>
+            </div>
+        </div>
+        
+        <h2>📍 Savepoints & Nested Transactions</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">What are Savepoints?</div>
+            <div class="concept-description">
+                Savepoints allow creating checkpoints within a transaction. You can rollback to a savepoint 
+                without aborting the entire transaction. This enables nested transaction-like behavior.
+            </div>
+        </div>
+        
+        <h3>Using Savepoints</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Start transaction</span>
+<span class="code-keyword">BEGIN TRANSACTION</span>;
+
+<span class="code-keyword">INSERT INTO</span> accounts (name, balance) <span class="code-keyword">VALUES</span> (<span class="code-string">'Alice'</span>, <span class="code-number">1000</span>);
+
+<span class="code-comment">-- Create savepoint</span>
+<span class="code-keyword">SAVEPOINT</span> sp1;
+
+<span class="code-keyword">UPDATE</span> accounts <span class="code-keyword">SET</span> balance = balance - <span class="code-number">100</span> <span class="code-keyword">WHERE</span> name = <span class="code-string">'Alice'</span>;
+<span class="code-keyword">UPDATE</span> accounts <span class="code-keyword">SET</span> balance = balance + <span class="code-number">100</span> <span class="code-keyword">WHERE</span> name = <span class="code-string">'Bob'</span>;
+
+<span class="code-comment">-- Another savepoint</span>
+<span class="code-keyword">SAVEPOINT</span> sp2;
+
+<span class="code-keyword">DELETE FROM</span> logs <span class="code-keyword">WHERE</span> created_at < <span class="code-string">'2024-01-01'</span>;
+
+<span class="code-comment">-- Rollback to sp2 (undoes DELETE, keeps UPDATEs)</span>
+<span class="code-keyword">ROLLBACK TO</span> sp2;
+
+<span class="code-comment">-- Release savepoint (commit changes up to this point)</span>
+<span class="code-keyword">RELEASE</span> sp1;
+
+<span class="code-comment">-- Commit entire transaction</span>
+<span class="code-keyword">COMMIT</span>;</code>
+        </div>
+        
+        <h3>Nested Savepoints Example</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Complex transaction with error handling</span>
+<span class="code-keyword">BEGIN TRANSACTION</span>;
+
+<span class="code-keyword">INSERT INTO</span> orders (customer_id, total) <span class="code-keyword">VALUES</span> (<span class="code-number">1</span>, <span class="code-number">500</span>);
+
+<span class="code-keyword">SAVEPOINT</span> before_items;
+
+<span class="code-comment">-- Try to insert order items</span>
+<span class="code-keyword">INSERT INTO</span> order_items (order_id, product_id, quantity) <span class="code-keyword">VALUES</span> (<span class="code-number">1</span>, <span class="code-number">101</span>, <span class="code-number">2</span>);
+<span class="code-keyword">INSERT INTO</span> order_items (order_id, product_id, quantity) <span class="code-keyword">VALUES</span> (<span class="code-number">1</span>, <span class="code-number">102</span>, <span class="code-number">1</span>);
+
+<span class="code-comment">-- If error occurs, rollback items but keep order</span>
+<span class="code-comment">-- ROLLBACK TO before_items;</span>
+
+<span class="code-keyword">RELEASE</span> before_items;
+
+<span class="code-keyword">UPDATE</span> customers <span class="code-keyword">SET</span> total_spent = total_spent + <span class="code-number">500</span> <span class="code-keyword">WHERE</span> id = <span class="code-number">1</span>;
+
+<span class="code-keyword">COMMIT</span>;</code>
+        </div>
+        
+        <div class="highlight-box">
+            <strong>Savepoint Best Practices:</strong><br>
+            • Use savepoints for complex multi-step operations<br>
+            • Name savepoints descriptively (e.g., <code>before_payment</code>)<br>
+            • Always <code>RELEASE</code> savepoints you don't need anymore<br>
+            • Savepoints are cheaper than full transactions<br>
+            • Maximum nesting level: unlimited (but keep it reasonable)
+        </div>
+        
+        <h2>⚠️ Handling SQLITE_BUSY</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">Understanding SQLITE_BUSY</div>
+            <div class="concept-description">
+                <code>SQLITE_BUSY</code> error occurs when a connection cannot acquire the required lock 
+                because another connection holds a conflicting lock. This is the most common concurrency 
+                issue in SQLite applications.
+            </div>
+        </div>
+        
+        <h3>Causes of SQLITE_BUSY</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Scenario</th>
+                    <th>Lock Conflict</th>
+                    <th>Solution</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Writer waits for readers</td>
+                    <td>RESERVED → PENDING (waiting for SHARED locks)</td>
+                    <td>Retry with timeout</td>
+                </tr>
+                <tr>
+                    <td>Writer waits for writer</td>
+                    <td>Cannot acquire RESERVED (already held)</td>
+                    <td>Use IMMEDIATE mode, retry</td>
+                </tr>
+                <tr>
+                    <td>Reader waits for writer</td>
+                    <td>Cannot acquire SHARED (PENDING/EXCLUSIVE held)</td>
+                    <td>Retry with timeout</td>
+                </tr>
+                <tr>
+                    <td>Long-running transaction</td>
+                    <td>Locks held too long</td>
+                    <td>Shorten transactions, use WAL mode</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Configuring Busy Timeout</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Set busy timeout (milliseconds)</span>
+<span class="code-keyword">PRAGMA</span> busy_timeout = <span class="code-number">5000</span>;  <span class="code-comment">-- Wait up to 5 seconds</span>
+
+<span class="code-comment">-- Check current timeout</span>
+<span class="code-keyword">PRAGMA</span> busy_timeout;</code>
+        </div>
+        
+        <h3>Retry Logic (Python Example)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">import</span> sqlite3
+<span class="code-keyword">import</span> time
+
+<span class="code-keyword">def</span> <span class="code-function">execute_with_retry</span>(conn, sql, params=(), max_retries=<span class="code-number">5</span>):
+    <span class="code-string">"""Execute SQL with automatic retry on SQLITE_BUSY"""</span>
+    <span class="code-keyword">for</span> attempt <span class="code-keyword">in</span> range(max_retries):
+        <span class="code-keyword">try</span>:
+            cursor = conn.execute(sql, params)
+            conn.commit()
+            <span class="code-keyword">return</span> cursor
+        <span class="code-keyword">except</span> sqlite3.OperationalError <span class="code-keyword">as</span> e:
+            <span class="code-keyword">if</span> <span class="code-string">'database is locked'</span> <span class="code-keyword">in</span> str(e):
+                <span class="code-keyword">if</span> attempt < max_retries - <span class="code-number">1</span>:
+                    time.sleep(<span class="code-number">0.1</span> * (<span class="code-number">2</span> ** attempt))  <span class="code-comment"># Exponential backoff</span>
+                    <span class="code-keyword">continue</span>
+            <span class="code-keyword">raise</span>
+
+<span class="code-comment"># Usage</span>
+conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>, timeout=<span class="code-number">5.0</span>)
+execute_with_retry(conn, <span class="code-string">"INSERT INTO users VALUES (?, ?)"</span>, (<span class="code-number">1</span>, <span class="code-string">'Alice'</span>))</code>
+        </div>
+        
+        <h3>Retry Logic (Node.js Example)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
+
+<span class="code-keyword">function</span> <span class="code-function">executeWithRetry</span>(db, sql, params = [], maxRetries = <span class="code-number">5</span>) {
+    <span class="code-keyword">for</span> (<span class="code-keyword">let</span> attempt = <span class="code-number">0</span>; attempt < maxRetries; attempt++) {
+        <span class="code-keyword">try</span> {
+            <span class="code-keyword">return</span> db.prepare(sql).run(params);
+        } <span class="code-keyword">catch</span> (err) {
+            <span class="code-keyword">if</span> (err.code === <span class="code-string">'SQLITE_BUSY'</span> && attempt < maxRetries - <span class="code-number">1</span>) {
+                <span class="code-keyword">const</span> delay = <span class="code-number">100</span> * Math.pow(<span class="code-number">2</span>, attempt);
+                <span class="code-keyword">await new</span> Promise(resolve => setTimeout(resolve, delay));
+                <span class="code-keyword">continue</span>;
+            }
+            <span class="code-keyword">throw</span> err;
+        }
+    }
+}
+
+<span class="code-comment">// Usage</span>
+<span class="code-keyword">const</span> db = <span class="code-keyword">new</span> Database(<span class="code-string">'mydb.db'</span>, { timeout: <span class="code-number">5000</span> });
+executeWithRetry(db, <span class="code-string">'INSERT INTO users VALUES (?, ?)'</span>, [<span class="code-number">1</span>, <span class="code-string">'Alice'</span>]);</code>
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ Preventing SQLITE_BUSY:</strong><br>
+            • Use <code>BEGIN IMMEDIATE</code> for write transactions<br>
+            • Enable WAL mode for better concurrency<br>
+            • Keep transactions short<br>
+            • Set appropriate busy timeout<br>
+            • Implement retry logic with exponential backoff<br>
+            • Avoid long-running read transactions
+        </div>
+        
+        <h2>🔄 Multi-threaded Access</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">Threading Modes</div>
+            <div class="concept-description">
+                SQLite supports three threading modes that determine how it can be used in multi-threaded 
+                applications. The mode is set at compile time but can be checked at runtime.
+            </div>
+        </div>
+        
+        <h3>Threading Modes</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Mode</th>
+                    <th>Description</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Single-thread</strong></td>
+                    <td>No mutex, not thread-safe</td>
+                    <td>Single-threaded apps only</td>
+                </tr>
+                <tr>
+                    <td><strong>Multi-thread</strong></td>
+                    <td>Connections cannot be shared between threads</td>
+                    <td>Default, safest option</td>
+                </tr>
+                <tr>
+                    <td><strong>Serialized</strong></td>
+                    <td>Connections can be shared (with internal locking)</td>
+                    <td>Connection pooling</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Check Threading Mode</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Check if thread-safe</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">sqlite_compileoption_used</span>(<span class="code-string">'THREADSAFE=1'</span>);  <span class="code-comment">-- Returns 1 if yes</span>
+
+<span class="code-comment">-- Check threading mode</span>
+<span class="code-keyword">PRAGMA</span> compile_options;</code>
+        </div>
+        
+        <h3>Multi-threaded Best Practices</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Python: One connection per thread</span>
+<span class="code-keyword">import</span> sqlite3
+<span class="code-keyword">import</span> threading
+
+<span class="code-comment"># Thread-local storage for connections</span>
+thread_local = threading.local()
+
+<span class="code-keyword">def</span> <span class="code-function">get_connection</span>():
+    <span class="code-keyword">if not</span> hasattr(thread_local, <span class="code-string">'conn'</span>):
+        thread_local.conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
+        thread_local.conn.execute(<span class="code-string">'PRAGMA busy_timeout = 5000'</span>)
+    <span class="code-keyword">return</span> thread_local.conn
+
+<span class="code-keyword">def</span> <span class="code-function">worker</span>():
+    conn = get_connection()
+    <span class="code-comment"># Use connection...</span>
+    conn.execute(<span class="code-string">"INSERT INTO logs VALUES (?)"</span>, (threading.current_thread().name,))
+    conn.commit()
+
+<span class="code-comment"># Create threads</span>
+threads = [threading.Thread(target=worker) <span class="code-keyword">for</span> _ <span class="code-keyword">in</span> range(<span class="code-number">10</span>)]
+<span class="code-keyword">for</span> t <span class="code-keyword">in</span> threads:
+    t.start()
+<span class="code-keyword">for</span> t <span class="code-keyword">in</span> threads:
+    t.join()</code>
+        </div>
+        
+        <h3>Connection Pooling (Node.js)</h3>
+        <div class="code-block">
+<code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
+
+<span class="code-keyword">class</span> <span class="code-function">ConnectionPool</span> {
+    constructor(dbPath, poolSize = <span class="code-number">5</span>) {
+        this.pool = [];
+        <span class="code-keyword">for</span> (<span class="code-keyword">let</span> i = <span class="code-number">0</span>; i < poolSize; i++) {
+            this.pool.push(<span class="code-keyword">new</span> Database(dbPath));
+        }
+        this.index = <span class="code-number">0</span>;
+    }
+    
+    getConnection() {
+        <span class="code-keyword">const</span> conn = this.pool[this.index];
+        this.index = (this.index + <span class="code-number">1</span>) % this.pool.length;
+        <span class="code-keyword">return</span> conn;
+    }
+    
+    close() {
+        this.pool.forEach(conn => conn.close());
+    }
+}
+
+<span class="code-comment">// Usage</span>
+<span class="code-keyword">const</span> pool = <span class="code-keyword">new</span> ConnectionPool(<span class="code-string">'mydb.db'</span>, <span class="code-number">5</span>);
+<span class="code-keyword">const</span> conn = pool.getConnection();
+conn.prepare(<span class="code-string">'INSERT INTO logs VALUES (?)'</span>).run(<span class="code-string">'message'</span>);</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Multi-threading Guidelines:</strong><br>
+            • <strong>Recommended:</strong> One connection per thread<br>
+            • Never share connections between threads without proper locking<br>
+            • Use connection pooling for web applications<br>
+            • Enable WAL mode for better concurrent read performance<br>
+            • Close connections when threads terminate<br>
+            • Set busy timeout on each connection
+        </div>
+        
+        <h2>⚡ WAL Mode Concurrency Benefits</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Rollback Journal Mode</div>
+                <div class="concept-description">
+                    <strong>Concurrency:</strong> 🔴 Poor<br>
+                    <strong>Writers:</strong> Block all readers<br>
+                    <strong>Readers:</strong> Block writers<br>
+                    <strong>Best for:</strong> Single-threaded, simple apps
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">WAL Mode</div>
+                <div class="concept-description">
+                    <strong>Concurrency:</strong> 🟢 Excellent<br>
+                    <strong>Writers:</strong> Don't block readers<br>
+                    <strong>Readers:</strong> Don't block writers<br>
+                    <strong>Best for:</strong> Multi-threaded, concurrent apps
+                </div>
+            </div>
+        </div>
+        
+        <h3>Enable WAL Mode</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Enable WAL mode (persistent setting)</span>
+<span class="code-keyword">PRAGMA</span> journal_mode = <span class="code-function">WAL</span>;
+
+<span class="code-comment">-- Recommended settings with WAL</span>
+<span class="code-keyword">PRAGMA</span> synchronous = <span class="code-function">NORMAL</span>;  <span class="code-comment">-- Safe with WAL, faster than FULL</span>
+<span class="code-keyword">PRAGMA</span> wal_autocheckpoint = <span class="code-number">1000</span>;  <span class="code-comment">-- Checkpoint every 1000 pages</span>
+
+<span class="code-comment">-- Manual checkpoint</span>
+<span class="code-keyword">PRAGMA</span> wal_checkpoint(<span class="code-function">TRUNCATE</span>);  <span class="code-comment">-- Checkpoint and truncate WAL</span></code>
+        </div>
+        
+        <div class="success-box">
+            <strong>✅ WAL Mode Benefits:</strong><br>
+            • Multiple readers can read while writer writes<br>
+            • Faster writes (no sync per transaction)<br>
+            • Better concurrency for read-heavy workloads<br>
+            • Reduced SQLITE_BUSY errors<br>
+            • Atomic commits even on system crash
+        </div>
+        
+        <h2>🎯 Concurrency Patterns</h2>
+        
+        <h3>Pattern 1: Read-Heavy Workload</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Configuration</span>
+<span class="code-keyword">PRAGMA</span> journal_mode = <span class="code-function">WAL</span>;
+<span class="code-keyword">PRAGMA</span> synchronous = <span class="code-function">NORMAL</span>;
+<span class="code-keyword">PRAGMA</span> cache_size = -<span class="code-number">64000</span>;  <span class="code-comment">-- 64 MB cache</span>
+<span class="code-keyword">PRAGMA</span> temp_store = <span class="code-function">MEMORY</span>;
+
+<span class="code-comment">-- Multiple readers, occasional writer</span>
+<span class="code-comment">-- Readers: Use regular SELECT queries</span>
+<span class="code-comment">-- Writers: Use BEGIN IMMEDIATE for writes</span></code>
+        </div>
+        
+        <h3>Pattern 2: Write-Heavy Workload</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Batch writes in transactions</span>
+<span class="code-keyword">BEGIN IMMEDIATE</span>;
+
+<span class="code-comment">-- Prepare statement once, execute many times</span>
+<span class="code-keyword">INSERT INTO</span> logs (message, timestamp) <span class="code-keyword">VALUES</span> (?, ?);
+<span class="code-comment">-- ... repeat 1000 times ...</span>
+
+<span class="code-keyword">COMMIT</span>;
+
+<span class="code-comment">-- Result: 1000x faster than individual transactions</span></code>
+        </div>
+        
+        <h3>Pattern 3: Queue Processing</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Producer: Add items to queue</span>
+<span class="code-keyword">BEGIN IMMEDIATE</span>;
+<span class="code-keyword">INSERT INTO</span> queue (task, status) <span class="code-keyword">VALUES</span> (<span class="code-string">'process_data'</span>, <span class="code-string">'pending'</span>);
+<span class="code-keyword">COMMIT</span>;
+
+<span class="code-comment">-- Consumer: Process items (with row-level locking simulation)</span>
+<span class="code-keyword">BEGIN IMMEDIATE</span>;
+
+<span class="code-keyword">SELECT</span> id, task 
+<span class="code-keyword">FROM</span> queue 
+<span class="code-keyword">WHERE</span> status = <span class="code-string">'pending'</span> 
+<span class="code-keyword">LIMIT</span> <span class="code-number">1</span>;
+
+<span class="code-keyword">UPDATE</span> queue 
+<span class="code-keyword">SET</span> status = <span class="code-string">'processing'</span>, 
+    worker_id = <span class="code-string">'worker-1'</span>,
+    started_at = <span class="code-function">CURRENT_TIMESTAMP</span>
+<span class="code-keyword">WHERE</span> id = ?;
+
+<span class="code-keyword">COMMIT</span>;
+
+<span class="code-comment">-- Process task...</span>
+
+<span class="code-comment">-- Mark complete</span>
+<span class="code-keyword">BEGIN IMMEDIATE</span>;
+<span class="code-keyword">UPDATE</span> queue <span class="code-keyword">SET</span> status = <span class="code-string">'completed'</span> <span class="code-keyword">WHERE</span> id = ?;
+<span class="code-keyword">COMMIT</span>;</code>
+        </div>
+        
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Understand ACID properties and transaction basics</li>
+            <li>Use appropriate transaction modes (DEFERRED, IMMEDIATE, EXCLUSIVE)</li>
+            <li>Know the 5 lock states and their progression</li>
+            <li>Understand SQLite's SERIALIZABLE isolation level</li>
+            <li>Use savepoints for nested transaction-like behavior</li>
+            <li>Handle SQLITE_BUSY errors with retry logic</li>
+            <li>Configure busy timeout appropriately</li>
+            <li>Use one connection per thread in multi-threaded apps</li>
+            <li>Enable WAL mode for better concurrency</li>
+            <li>Implement proper concurrency patterns for your workload</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> You've mastered transactions and concurrency! 
+            Move on to <strong>Module 6: Administration & Integration</strong> to learn about 
+            backup strategies, encryption, Python/Node.js integration, security best practices, 
+            and data migration techniques.
+        </div>
+        
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

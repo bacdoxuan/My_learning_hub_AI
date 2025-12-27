@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MySQL Cheat Sheet #2 - Database Design</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #fff;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(118,75,162,0.3);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #764ba2;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #a78bfa;
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #764ba2;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-prop {
+      color: #7ee787;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #a78bfa;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(118,75,162,0.2);
+      color: #a78bfa;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-blue {
+      background: rgba(52,152,219,0.2);
+      color: #3498db;
+    }
+    .tag-orange {
+      background: rgba(243,156,18,0.2);
+      color: #f39c12;
+    }
+    .tag-red {
+      background: rgba(231,76,60,0.2);
+      color: #e74c3c;
+    }
+    .tag-green {
+      background: rgba(46,204,113,0.2);
+      color: #2ecc71;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(52,152,219,0.1);
+      border-left: 3px solid #3498db;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(231,76,60,0.1);
+      border-left: 3px solid #e74c3c;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(46,204,113,0.1);
+      border-left: 3px solid #2ecc71;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .section-title {
+      color: #a78bfa;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(167,139,250,0.3);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .comparison-table th {
+      background: rgba(118,75,162,0.2);
+      color: #a78bfa;
+    }
+    .comparison-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    .three-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 15px;
+    }
+    @media (max-width: 768px) {
+      .two-col, .three-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🏗️ MySQL Cheat Sheet #2</h1>
+      <div class="subtitle">Database Design — Normalization & ER Modeling</div>
+      <div class="badge">📐 1NF • 2NF • 3NF • Relationships</div>
+    </div>
+
+    <!-- Normalization Overview -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">Database Normalization Overview</span>
+        </div>
+        
+        <div class="highlight">
+          <strong>Normalization</strong> is the process of organizing data to reduce redundancy and improve data integrity by decomposing tables into smaller, related tables.
+        </div>
+
+        <table class="comparison-table">
+          <tr>
+            <th>Normal Form</th>
+            <th>Rule</th>
+            <th>Problem Solved</th>
+          </tr>
+          <tr>
+            <td><strong>1NF</strong></td>
+            <td>Atomic values, no repeating groups</td>
+            <td>Multi-valued attributes</td>
+          </tr>
+          <tr>
+            <td><strong>2NF</strong></td>
+            <td>1NF + full dependency on PK</td>
+            <td>Partial dependencies</td>
+          </tr>
+          <tr>
+            <td><strong>3NF</strong></td>
+            <td>2NF + no transitive dependencies</td>
+            <td>Non-key dependencies</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- First Normal Form -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">1️⃣</span>
+          <span class="card-title">First Normal Form (1NF)</span>
+        </div>
+        
+        <div class="highlight">
+          A table is in 1NF when all values are atomic, each row is unique, and there are no repeating groups.
+        </div>
+
+        <div class="section-title">❌ Violates 1NF - Bad Design</div>
+        <div class="code-block">
+          <span class="code-comment">-- Problem: Phone numbers stored as comma-separated values</span>
+          <span class="code-keyword">CREATE TABLE</span> customers_bad (
+            customer_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            customer_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            phone_numbers <span class="code-keyword">VARCHAR</span>(<span class="code-number">255</span>)  <span class="code-comment">-- Contains '555-1234, 555-5678'</span>
+          );
+        </div>
+
+        <div class="section-title">✅ 1NF Compliant - Good Design</div>
+        <div class="code-block">
+          <span class="code-comment">-- Solution: Separate table for phone numbers</span>
+          <span class="code-keyword">CREATE TABLE</span> customers (
+            customer_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            customer_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">NOT NULL</span>
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> customer_phones (
+            phone_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            customer_id <span class="code-keyword">INT</span>,
+            phone_number <span class="code-keyword">VARCHAR</span>(<span class="code-number">20</span>) <span class="code-keyword">NOT NULL</span>,
+            phone_type <span class="code-keyword">VARCHAR</span>(<span class="code-number">20</span>), <span class="code-comment">-- 'mobile', 'home', 'work'</span>
+            <span class="code-keyword">FOREIGN KEY</span> (customer_id) <span class="code-keyword">REFERENCES</span> customers(customer_id)
+          );
+        </div>
+
+        <div class="tip-box">
+          ✅ Benefits: Each phone number is atomic, can be queried individually, and can have metadata (type)
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">2️⃣</span>
+          <span class="card-title">Second Normal Form (2NF)</span>
+        </div>
+        
+        <div class="highlight">
+          A table is in 2NF when it's in 1NF AND all non-key attributes are fully dependent on the entire primary key (no partial dependencies).
+        </div>
+
+        <div class="section-title">❌ Violates 2NF - Bad Design</div>
+        <div class="code-block">
+          <span class="code-comment">-- Problem: Supplier info depends on product, not order</span>
+          <span class="code-keyword">CREATE TABLE</span> order_items_bad (
+            order_id <span class="code-keyword">INT</span>,
+            product_id <span class="code-keyword">INT</span>,
+            supplier_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            supplier_address <span class="code-keyword">VARCHAR</span>(<span class="code-number">255</span>),
+            quantity <span class="code-keyword">INT</span>,
+            <span class="code-keyword">PRIMARY KEY</span> (order_id, product_id)
+          );
+          <span class="code-comment">-- Issue: supplier_name and supplier_address depend only on product_id</span>
+        </div>
+
+        <div class="section-title">✅ 2NF Compliant - Good Design</div>
+        <div class="code-block">
+          <span class="code-keyword">CREATE TABLE</span> orders (
+            order_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            customer_id <span class="code-keyword">INT</span>,
+            order_date <span class="code-keyword">DATE</span>,
+            <span class="code-keyword">FOREIGN KEY</span> (customer_id) <span class="code-keyword">REFERENCES</span> customers(customer_id)
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> order_items (
+            order_item_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            order_id <span class="code-keyword">INT</span>,
+            product_id <span class="code-keyword">INT</span>,
+            quantity <span class="code-keyword">INT</span>,
+            unit_price <span class="code-keyword">DECIMAL</span>(<span class="code-number">10</span>, <span class="code-number">2</span>),
+            <span class="code-keyword">FOREIGN KEY</span> (order_id) <span class="code-keyword">REFERENCES</span> orders(order_id),
+            <span class="code-keyword">FOREIGN KEY</span> (product_id) <span class="code-keyword">REFERENCES</span> products(product_id)
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> products (
+            product_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            product_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            supplier_id <span class="code-keyword">INT</span>,
+            <span class="code-keyword">FOREIGN KEY</span> (supplier_id) <span class="code-keyword">REFERENCES</span> suppliers(supplier_id)
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> suppliers (
+            supplier_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            supplier_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            supplier_address <span class="code-keyword">VARCHAR</span>(<span class="code-number">255</span>)
+          );
+        </div>
+      </div>
+    </div>
+
+    <!-- Third Normal Form -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">3️⃣</span>
+          <span class="card-title">Third Normal Form (3NF)</span>
+        </div>
+        
+        <div class="highlight">
+          A table is in 3NF when it's in 2NF AND there are no transitive dependencies (non-key attributes don't depend on other non-key attributes).
+        </div>
+
+        <div class="section-title">❌ Violates 3NF - Bad Design</div>
+        <div class="code-block">
+          <span class="code-comment">-- Problem: Course instructor depends on course, not student directly</span>
+          <span class="code-keyword">CREATE TABLE</span> enrollments_bad (
+            student_id <span class="code-keyword">INT</span>,
+            course_id <span class="code-keyword">INT</span>,
+            course_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            instructor_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            instructor_office <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>),
+            <span class="code-keyword">PRIMARY KEY</span> (student_id, course_id)
+          );
+          <span class="code-comment">-- Issue: instructor_name and instructor_office depend on course_id only</span>
+        </div>
+
+        <div class="section-title">✅ 3NF Compliant - Good Design</div>
+        <div class="code-block">
+          <span class="code-keyword">CREATE TABLE</span> students (
+            student_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            student_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            email <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>)
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> courses (
+            course_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            course_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            instructor_id <span class="code-keyword">INT</span>,
+            <span class="code-keyword">FOREIGN KEY</span> (instructor_id) <span class="code-keyword">REFERENCES</span> instructors(instructor_id)
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> instructors (
+            instructor_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            instructor_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            instructor_office <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>),
+            department_id <span class="code-keyword">INT</span>
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> enrollments (
+            enrollment_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            student_id <span class="code-keyword">INT</span>,
+            course_id <span class="code-keyword">INT</span>,
+            enrollment_date <span class="code-keyword">DATE</span>,
+            <span class="code-keyword">FOREIGN KEY</span> (student_id) <span class="code-keyword">REFERENCES</span> students(student_id),
+            <span class="code-keyword">FOREIGN KEY</span> (course_id) <span class="code-keyword">REFERENCES</span> courses(course_id)
+          );
+        </div>
+
+        <div class="info-box">
+          💡 <strong>Benefits of 3NF:</strong> Eliminates redundant instructor data, prevents update anomalies when instructor changes office
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔗</span>
+          <span class="card-title">Relationship Types</span>
+        </div>
+        
+        <table class="comparison-table">
+          <tr>
+            <th>Relationship</th>
+            <th>Description</th>
+            <th>Example</th>
+          </tr>
+          <tr>
+            <td><strong>One-to-One (1:1)</strong></td>
+            <td>Each record in A links to exactly one in B</td>
+            <td>Employee ↔ Office</td>
+          </tr>
+          <tr>
+            <td><strong>One-to-Many (1:N)</strong></td>
+            <td>One record in A links to many in B</td>
+            <td>Department ↔ Employees</td>
+          </tr>
+          <tr>
+            <td><strong>Many-to-Many (M:N)</strong></td>
+            <td>Many records in A link to many in B</td>
+            <td>Students ↔ Courses</td>
+          </tr>
+        </table>
+
+        <div class="section-title">1:1 Relationship Example</div>
+        <div class="code-block">
+          <span class="code-keyword">CREATE TABLE</span> employees (
+            employee_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            employee_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            office_id <span class="code-keyword">INT UNIQUE</span>  <span class="code-comment">-- Each employee has one office</span>
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> offices (
+            office_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            office_location <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>)
+          );
+          
+          <span class="code-keyword">ALTER TABLE</span> employees 
+            <span class="code-keyword">ADD FOREIGN KEY</span> (office_id) <span class="code-keyword">REFERENCES</span> offices(office_id);
+        </div>
+      </div>
+    </div>
+
+    <!-- 1:N and M:N Relationships -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">👥</span>
+          <span class="card-title">One-to-Many (1:N) Relationship</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-keyword">CREATE TABLE</span> departments (
+            department_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            department_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>)
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> employees (
+            employee_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            employee_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            department_id <span class="code-keyword">INT</span>,
+            <span class="code-keyword">FOREIGN KEY</span> (department_id) <span class="code-keyword">REFERENCES</span> departments(department_id)
+          );
+        </div>
+
+        <div class="tip-box">
+          ✅ One department can have many employees. Foreign key goes on the "many" side.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🎓</span>
+          <span class="card-title">Many-to-Many (M:N) Relationship</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-keyword">CREATE TABLE</span> students (
+            student_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            student_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>)
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> courses (
+            course_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            course_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>)
+          );
+          
+          <span class="code-comment">-- Junction table to resolve M:N relationship</span>
+          <span class="code-keyword">CREATE TABLE</span> student_courses (
+            student_course_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            student_id <span class="code-keyword">INT</span>,
+            course_id <span class="code-keyword">INT</span>,
+            enrollment_date <span class="code-keyword">DATE</span>,
+            grade <span class="code-keyword">VARCHAR</span>(<span class="code-number">2</span>),
+            <span class="code-keyword">UNIQUE</span>(student_id, course_id),
+            <span class="code-keyword">FOREIGN KEY</span> (student_id) <span class="code-keyword">REFERENCES</span> students(student_id),
+            <span class="code-keyword">FOREIGN KEY</span> (course_id) <span class="code-keyword">REFERENCES</span> courses(course_id)
+          );
+        </div>
+
+        <div class="info-box">
+          💡 Junction table (bridge table) contains foreign keys to both entities, resolving the many-to-many relationship into two one-to-many relationships.
+        </div>
+      </div>
+    </div>
+
+    <!-- Keys and Constraints -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔑</span>
+          <span class="card-title">Primary Keys</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Single column primary key</span>
+          <span class="code-keyword">CREATE TABLE</span> categories (
+            category_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            category_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">NOT NULL</span>
+          );
+          
+          <span class="code-comment">-- Composite primary key</span>
+          <span class="code-keyword">CREATE TABLE</span> inventory_locations (
+            warehouse_id <span class="code-keyword">INT NOT NULL</span>,
+            product_id <span class="code-keyword">INT NOT NULL</span>,
+            quantity <span class="code-keyword">INT DEFAULT 0</span>,
+            <span class="code-keyword">PRIMARY KEY</span> (warehouse_id, product_id)
+          );
+          
+          <span class="code-comment">-- Natural primary key (business logic)</span>
+          <span class="code-keyword">CREATE TABLE</span> user_accounts (
+            username <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>) <span class="code-keyword">PRIMARY KEY</span>,
+            email <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">NOT NULL</span>,
+            created_date <span class="code-keyword">DATE</span>
+          );
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔗</span>
+          <span class="card-title">Foreign Keys</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Basic foreign key</span>
+          <span class="code-keyword">CREATE TABLE</span> orders (
+            order_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            customer_id <span class="code-keyword">INT NOT NULL</span>,
+            order_date <span class="code-keyword">DATE</span>,
+            <span class="code-keyword">FOREIGN KEY</span> (customer_id) <span class="code-keyword">REFERENCES</span> customers(customer_id)
+          );
+          
+          <span class="code-comment">-- Foreign key with referential integrity actions</span>
+          <span class="code-keyword">CREATE TABLE</span> order_items (
+            order_item_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            order_id <span class="code-keyword">INT NOT NULL</span>,
+            product_id <span class="code-keyword">INT NOT NULL</span>,
+            quantity <span class="code-keyword">INT</span>,
+            <span class="code-keyword">FOREIGN KEY</span> (order_id) <span class="code-keyword">REFERENCES</span> orders(order_id) 
+              <span class="code-keyword">ON DELETE CASCADE</span>  <span class="code-comment">-- Delete items when order is deleted</span>
+              <span class="code-keyword">ON UPDATE CASCADE</span>,
+            <span class="code-keyword">FOREIGN KEY</span> (product_id) <span class="code-keyword">REFERENCES</span> products(product_id)
+              <span class="code-keyword">ON DELETE RESTRICT</span> <span class="code-comment">-- Prevent product deletion if items exist</span>
+          );
+        </div>
+
+        <div class="tip-box">
+          ✅ <strong>ON DELETE CASCADE:</strong> Automatically delete related records<br>
+          ✅ <strong>ON DELETE RESTRICT:</strong> Prevent deletion if related records exist<br>
+          ✅ <strong>ON DELETE SET NULL:</strong> Set foreign key to NULL
+        </div>
+      </div>
+    </div>
+
+    <!-- Other Constraints -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⛔</span>
+          <span class="card-title">Other Constraints</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-keyword">CREATE TABLE</span> products (
+            product_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            product_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">NOT NULL</span>,           <span class="code-comment">-- NOT NULL</span>
+            sku <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>) <span class="code-keyword">UNIQUE</span>,                       <span class="code-comment">-- UNIQUE</span>
+            category_id <span class="code-keyword">INT</span>,
+            price <span class="code-keyword">DECIMAL</span>(<span class="code-number">10</span>, <span class="code-number">2</span>) <span class="code-keyword">CHECK</span> (price > <span class="code-number">0</span>),      <span class="code-comment">-- CHECK</span>
+            quantity <span class="code-keyword">INT DEFAULT 0</span>,                       <span class="code-comment">-- DEFAULT</span>
+            created_date <span class="code-keyword">TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span>,
+            <span class="code-keyword">FOREIGN KEY</span> (category_id) <span class="code-keyword">REFERENCES</span> categories(category_id)
+          );
+        </div>
+
+        <table class="comparison-table">
+          <tr>
+            <th>Constraint</th>
+            <th>Purpose</th>
+          </tr>
+          <tr>
+            <td><code>NOT NULL</code></td>
+            <td>Column must have a value</td>
+          </tr>
+          <tr>
+            <td><code>UNIQUE</code></td>
+            <td>All values must be different</td>
+          </tr>
+          <tr>
+            <td><code>CHECK</code></td>
+            <td>Values must meet condition</td>
+          </tr>
+          <tr>
+            <td><code>DEFAULT</code></td>
+            <td>Default value if none provided</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🏪</span>
+          <span class="card-title">E-Commerce Example</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-keyword">CREATE TABLE</span> customers (
+            customer_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            email <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">UNIQUE NOT NULL</span>,
+            password_hash <span class="code-keyword">VARCHAR</span>(<span class="code-number">255</span>),
+            created_date <span class="code-keyword">TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span>
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> addresses (
+            address_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            customer_id <span class="code-keyword">INT NOT NULL</span>,
+            street <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            city <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>),
+            state <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>),
+            postal_code <span class="code-keyword">VARCHAR</span>(<span class="code-number">20</span>),
+            address_type <span class="code-keyword">ENUM</span>(<span class="code-string">'shipping'</span>, <span class="code-string">'billing'</span>),
+            <span class="code-keyword">FOREIGN KEY</span> (customer_id) <span class="code-keyword">REFERENCES</span> customers(customer_id) <span class="code-keyword">ON DELETE CASCADE</span>
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> categories (
+            category_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            category_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">UNIQUE NOT NULL</span>
+          );
+          
+          <span class="code-keyword">CREATE TABLE</span> products (
+            product_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            category_id <span class="code-keyword">INT NOT NULL</span>,
+            product_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">NOT NULL</span>,
+            description <span class="code-keyword">TEXT</span>,
+            price <span class="code-keyword">DECIMAL</span>(<span class="code-number">10</span>, <span class="code-number">2</span>) <span class="code-keyword">NOT NULL CHECK</span> (price > <span class="code-number">0</span>),
+            quantity_in_stock <span class="code-keyword">INT DEFAULT 0</span>,
+            created_date <span class="code-keyword">TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span>,
+            <span class="code-keyword">FOREIGN KEY</span> (category_id) <span class="code-keyword">REFERENCES</span> categories(category_id)
+          );
+        </div>
+      </div>
+    </div>
+
+    <!-- Learning Checklist -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">✅</span>
+          <span class="card-title">Learning Checklist</span>
+        </div>
+        
+        <div class="three-col">
+          <div>
+            <div class="list-item">Understand and apply 1NF, 2NF, 3NF normalization rules</div>
+            <div class="list-item">Identify and eliminate data anomalies</div>
+          </div>
+          <div>
+            <div class="list-item">Design proper primary and foreign key relationships</div>
+            <div class="list-item">Model one-to-many and many-to-many relationships</div>
+          </div>
+          <div>
+            <div class="list-item">Apply appropriate constraints (NOT NULL, UNIQUE, CHECK, DEFAULT)</div>
+            <div class="list-item">Create complete ER models for real-world scenarios</div>
+          </div>
+        </div>
+
+        <div class="tag">normalization</div>
+        <div class="tag">er-modeling</div>
+        <div class="tag">constraints</div>
+        <div class="tag">relationships</div>
+        <div class="tag">database-design</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>MySQL Cheat Sheet #2 - Database Design • Complete MySQL Knowledge Base</p>
+    </div>
+  </div>
+</body>
+</html>

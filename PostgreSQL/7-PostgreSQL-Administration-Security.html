@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Cheat Sheet #7 - Administration & Security</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #34495e; border-radius: 8px; padding: 25px; margin: 20px 0; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(52, 73, 94, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #95a5a6; margin-bottom: 12px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.85em; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.8em; line-height: 1.4; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-comment { color: #636e72; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #95a5a6; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); }
+        th { background: linear-gradient(135deg, rgba(52, 73, 94, 0.2), rgba(44, 62, 80, 0.2)); color: #95a5a6; padding: 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #95a5a6; }
+        td { padding: 10px 12px; border-bottom: 1px solid #334155; color: #cbd5e1; font-size: 0.95em; }
+        tr:hover { background: rgba(52, 73, 94, 0.1); }
+        .info-box { background: rgba(52, 73, 94, 0.1); border-left: 4px solid #95a5a6; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 8px 0; padding-left: 30px; position: relative; color: #cbd5e1; font-size: 0.95em; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #95a5a6; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #34495e, #2c3e50); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(52, 73, 94, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>⚫ PostgreSQL Administration & Security</h1>
+        <p>User Management, Replication, Backup, and High Availability</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8;">
+            Master PostgreSQL administration: manage user roles and privileges, implement row-level security, 
+            set up replication for high availability, configure backup and point-in-time recovery, monitor databases, and ensure security best practices.
+        </p>
+        
+        <h2>👥 User Roles & Privileges</h2>
+        
+        <h3>Creating Roles</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create a user role (login enabled)</span>
+<span class="code-keyword">CREATE ROLE</span> app_user <span class="code-keyword">WITH</span> <span class="code-keyword">LOGIN</span> <span class="code-keyword">PASSWORD</span> <span class="code-string">'secure_password'</span>;
+
+<span class="code-comment">-- Create a group role (no login)</span>
+<span class="code-keyword">CREATE ROLE</span> developers <span class="code-keyword">NOLOGIN</span>;
+
+<span class="code-comment">-- Grant role to user</span>
+<span class="code-keyword">GRANT</span> developers <span class="code-keyword">TO</span> app_user;
+
+<span class="code-comment">-- Create superuser (dangerous - use sparingly)</span>
+<span class="code-keyword">CREATE ROLE</span> admin <span class="code-keyword">WITH</span> <span class="code-keyword">SUPERUSER LOGIN</span>;
+
+<span class="code-comment">-- Set password and limits</span>
+<span class="code-keyword">ALTER ROLE</span> app_user <span class="code-keyword">SET</span> statement_timeout = <span class="code-number">30000</span>;
+<span class="code-keyword">ALTER ROLE</span> app_user <span class="code-keyword">CONNECTION LIMIT</span> <span class="code-number">10</span>;</code>
+        </div>
+        
+        <h3>Granting Privileges</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Grant schema usage</span>
+<span class="code-keyword">GRANT USAGE ON SCHEMA</span> public <span class="code-keyword">TO</span> app_user;
+
+<span class="code-comment">-- Grant table permissions</span>
+<span class="code-keyword">GRANT SELECT, INSERT, UPDATE ON TABLE</span> users <span class="code-keyword">TO</span> app_user;
+
+<span class="code-comment">-- Grant specific columns (column-level)</span>
+<span class="code-keyword">GRANT SELECT</span> (id, email) <span class="code-keyword">ON TABLE</span> users <span class="code-keyword">TO</span> app_user;
+
+<span class="code-comment">-- Grant all on tables in schema</span>
+<span class="code-keyword">GRANT ALL ON ALL TABLES IN SCHEMA</span> public <span class="code-keyword">TO</span> app_user;
+
+<span class="code-comment">-- Grant sequence usage (for auto-increment)</span>
+<span class="code-keyword">GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA</span> public <span class="code-keyword">TO</span> app_user;
+
+<span class="code-comment">-- Revoke privileges</span>
+<span class="code-keyword">REVOKE INSERT, UPDATE ON TABLE</span> users <span class="code-keyword">FROM</span> app_user;</code>
+        </div>
+        
+        <h2>🔒 Row-Level Security (RLS)</h2>
+        <div class="code-block">
+<code><span class="code-comment">-- Enable RLS on table</span>
+<span class="code-keyword">ALTER TABLE</span> posts <span class="code-keyword">ENABLE ROW LEVEL SECURITY</span>;
+
+<span class="code-comment">-- Create policy (user sees only own posts)</span>
+<span class="code-keyword">CREATE POLICY</span> user_posts <span class="code-keyword">ON</span> posts
+    <span class="code-keyword">FOR SELECT</span>
+    <span class="code-keyword">USING</span> (author_id = current_user_id());
+
+<span class="code-comment">-- Policy for INSERT (prevent users modifying others)</span>
+<span class="code-keyword">CREATE POLICY</span> user_insert_posts <span class="code-keyword">ON</span> posts
+    <span class="code-keyword">FOR INSERT</span>
+    <span class="code-keyword">WITH CHECK</span> (author_id = current_user_id());
+
+<span class="code-comment">-- Policy for UPDATE/DELETE</span>
+<span class="code-keyword">CREATE POLICY</span> user_update_posts <span class="code-keyword">ON</span> posts
+    <span class="code-keyword">FOR UPDATE</span>
+    <span class="code-keyword">USING</span> (author_id = current_user_id())
+    <span class="code-keyword">WITH CHECK</span> (author_id = current_user_id());
+
+<span class="code-comment">-- Multi-tenant example</span>
+<span class="code-keyword">CREATE POLICY</span> tenant_isolation <span class="code-keyword">ON</span> accounts
+    <span class="code-keyword">FOR ALL</span>
+    <span class="code-keyword">USING</span> (tenant_id = <span class="code-function">current_setting</span>(<span class="code-string">'app.tenant_id'</span>::text)::int);</code>
+        </div>
+        
+        <h2>📊 Replication</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">Replication Types</div>
+            <div style="color: #cbd5e1; margin-top: 15px;">
+                <strong style="color: #95a5a6;">Streaming Replication:</strong> Real-time synchronous/asynchronous replication to standby servers<br>
+                <strong style="color: #95a5a6;">Logical Replication:</strong> Row-level logical changes, selective table replication<br>
+                <strong style="color: #95a5a6;">Foreign Data Wrapper:</strong> Query remote databases as if they're local tables
+            </div>
+        </div>
+        
+        <h3>Streaming Replication (Primary-Standby)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- On PRIMARY server: postgresql.conf</span>
+wal_level = replica
+max_wal_senders = <span class="code-number">3</span>
+max_replication_slots = <span class="code-number">2</span>
+hot_standby = on
+
+<span class="code-comment">-- Create replication slot</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">pg_create_physical_replication_slot</span>(<span class="code-string">'standby1'</span>);
+
+<span class="code-comment">-- Monitor replication lag</span>
+<span class="code-keyword">SELECT</span> slot_name, active, restart_lsn
+<span class="code-keyword">FROM</span> pg_replication_slots;
+
+<span class="code-comment">-- On STANDBY: Recovery with pg_basebackup</span>
+pg_basebackup -h primary.example.com -D /var/lib/postgresql/data
+    -U postgres -v -P -W</code>
+        </div>
+        
+        <h2>💾 Backup & Recovery</h2>
+        
+        <h3>Physical Backup (pg_basebackup)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Full backup with progress</span>
+pg_basebackup -h localhost -D ./backup -U postgres -v -P -Ft -z
+
+<span class="code-comment">-- Backup with label</span>
+pg_basebackup -D /backup/$(date +%Y%m%d_%H%M%S) -U postgres -v -P
+
+<span class="code-comment">-- Restore backup</span>
+pg_ctl -D /var/lib/postgresql/data stop
+rm -rf /var/lib/postgresql/data/*
+pg_basebackup -h backup-server -D /var/lib/postgresql/data -U postgres -W
+pg_ctl -D /var/lib/postgresql/data start</code>
+        </div>
+        
+        <h3>Logical Backup (pg_dump)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Dump single database</span>
+pg_dump -h localhost -U postgres -d mydb > backup.sql
+
+<span class="code-comment">-- Dump with compression</span>
+pg_dump -h localhost -U postgres -d mydb -F c -f backup.dump
+
+<span class="code-comment">-- Dump only schema (no data)</span>
+pg_dump -h localhost -U postgres -d mydb --schema-only > schema.sql
+
+<span class="code-comment">-- Dump specific tables</span>
+pg_dump -h localhost -U postgres -d mydb -t users -t orders > tables.sql
+
+<span class="code-comment">-- Restore from SQL dump</span>
+psql -U postgres -d newdb < backup.sql
+
+<span class="code-comment">-- Restore from compressed dump</span>
+pg_restore -d newdb backup.dump</code>
+        </div>
+        
+        <h3>Point-in-Time Recovery (PITR)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Enable WAL archiving in postgresql.conf</span>
+wal_level = replica
+archive_mode = on
+archive_command = <span class="code-string">'cp %p /archive/%f'</span>
+archive_timeout = <span class="code-number">300</span>
+
+<span class="code-comment">-- Recover to specific timestamp</span>
+recovery_target_time = <span class="code-string">'2024-12-25 14:30:00'</span>
+
+<span class="code-comment">-- Monitor archived WAL files</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> <span class="code-function">pg_ls_archive_statusdir</span>();</code>
+        </div>
+        
+        <h2>📈 Monitoring & Logging</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Query</th>
+                    <th>What It Shows</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Active Connections</td>
+                    <td>SELECT COUNT(*) FROM pg_stat_activity;</td>
+                    <td>Current active sessions</td>
+                </tr>
+                <tr>
+                    <td>Long-Running Queries</td>
+                    <td>SELECT query, now()-query_start as duration FROM pg_stat_activity WHERE state='active';</td>
+                    <td>Queries taking too long</td>
+                </tr>
+                <tr>
+                    <td>Table Bloat</td>
+                    <td>SELECT schemaname, tablename, round(100.0 * (CASE WHEN otta>0 THEN sml.relpages::float/otta ELSE 0.0 END)) AS table_bloat_ratio FROM pg_class;</td>
+                    <td>Dead tuples %</td>
+                </tr>
+                <tr>
+                    <td>Cache Hit Ratio</td>
+                    <td>SELECT sum(heap_blks_read) / (sum(heap_blks_read) + sum(heap_blks_hit)) as cache_miss_ratio FROM pg_statio_user_tables;</td>
+                    <td>Cache effectiveness</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Configure Logging</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- postgresql.conf logging settings</span>
+log_destination = <span class="code-string">'stderr'</span>
+logging_collector = on
+log_directory = <span class="code-string">'/var/log/postgresql'</span>
+log_filename = <span class="code-string">'postgresql-%Y-%m-%d_%H%M%S.log'</span>
+log_rotation_age = <span class="code-number">1d</span>
+log_rotation_size = <span class="code-number">100MB</span>
+
+<span class="code-comment">-- Log slow queries (&gt;1s)</span>
+log_min_duration_statement = <span class="code-number">1000</span>
+
+<span class="code-comment">-- Log statement types</span>
+log_statement = <span class="code-string">'all'</span> <span class="code-comment">-- or 'ddl', 'mod', 'none'</span>
+
+<span class="code-comment">-- Connection logging</span>
+log_connections = on
+log_disconnections = on</code>
+        </div>
+        
+        <h2>⚡ Connection Pooling (PgBouncer)</h2>
+        <div class="code-block">
+<code><span class="code-comment">-- pgbouncer.ini configuration</span>
+[databases]
+mydb = host=localhost port=5432 dbname=mydb user=postgres
+
+[pgbouncer]
+pool_mode = transaction  <span class="code-comment">-- or session, statement</span>
+max_client_conn = <span class="code-number">1000</span>
+default_pool_size = <span class="code-number">20</span>
+min_pool_size = <span class="code-number">5</span>
+reserve_pool_size = <span class="code-number">5</span>
+reserve_pool_timeout = <span class="code-number">3</span>
+max_db_connections = <span class="code-number">100</span>
+max_user_connections = <span class="code-number">50</span>
+idle_in_transaction_session_timeout = <span class="code-number">60000</span></code>
+        </div>
+        
+        <h2>✅ Learning Checklist</h2>
+        <ul class="checklist">
+            <li>Create minimal privilege roles (avoid superuser for apps)</li>
+            <li>Implement row-level security for multi-tenant systems</li>
+            <li>Set up streaming replication for HA</li>
+            <li>Enable WAL archiving for PITR capability</li>
+            <li>Schedule regular pg_basebackup backups</li>
+            <li>Test backup restoration procedures regularly</li>
+            <li>Monitor cache hit ratio and query performance</li>
+            <li>Configure appropriate logging levels</li>
+            <li>Set up connection pooling (PgBouncer) for high concurrency</li>
+            <li>Monitor replication lag on standby servers</li>
+            <li>Implement monitoring with pg_stat_activity</li>
+            <li>Use EXPLAIN ANALYZE for query optimization</li>
+        </ul>
+        
+        <div class="info-box">
+            <strong>💡 Security Best Practice:</strong> Never use superuser for application connections. Create limited roles with specific 
+            GRANT privileges. Use row-level security to enforce data isolation at the database level. Enable replication and backup for disaster recovery.
+        </div>
+        
+        <a href="index-postgresql.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

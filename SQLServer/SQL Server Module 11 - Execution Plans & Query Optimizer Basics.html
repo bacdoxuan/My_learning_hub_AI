@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #11 - Execution Plans & Query Optimizer Basics</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #dc2626;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #f87171;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #f87171;
+            border-bottom: 2px solid #dc2626;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #fca5a5;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #f87171;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #f87171;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #f87171;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #f87171;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #f87171;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #f87171;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #dc2626;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #b91c1c;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔴 SQL Server Execution Plans & Query Optimizer</h1>
+        <p>Understanding Logical/Physical Operators, Join Algorithms & Parameter Sniffing</p>
+        <div class="badge">Performance Core</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module dives into execution plans and the query optimizer: understanding logical vs physical operators, 
+            join algorithms (nested loops, merge, hash), and parameter sniffing issues with detection and resolution strategies. 
+            Mastering execution plans is essential for performance tuning.
+        </p>
+        
+        <h2>🔄 Logical vs Physical Operators</h2>
+        
+        <h3>Understanding Execution Plan Components</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Logical Operators</div>
+                <div class="concept-description">
+                    <strong style="color: #f87171;">What to do:</strong> Describe the operation conceptually (JOIN, SELECT, WHERE)<br>
+                    <strong style="color: #f87171;">Algebraic representation:</strong> Mathematical description of query logic<br>
+                    <strong style="color: #f87171;">Query structure:</strong> How the query is parsed and represented<br>
+                    <strong style="color: #f87171;">Optimization input:</strong> Used by optimizer to find efficient physical plans<br>
+                    <strong style="color: #f87171;">Independent of implementation:</strong> Same logical operators across database systems
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Physical Operators</div>
+                <div class="concept-description">
+                    <strong style="color: #f87171;">How to do it:</strong> Specific algorithms and data access methods<br>
+                    <strong style="color: #f87171;">Implementation details:</strong> Index seeks, scans, sorts, joins<br>
+                    <strong style="color: #f87171;">Cost-based:</strong> Each operator has I/O and CPU cost estimates<br>
+                    <strong style="color: #f87171;">Execution path:</strong> Actual steps SQL Server takes to execute query<br>
+                    <strong style="color: #f87171;">Performance metrics:</strong> Actual vs estimated rows, execution time
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- View execution plan (Ctrl+M in SSMS)</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, o.OrderDate, o.TotalAmount
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">INNER JOIN</span> Orders o <span class="code-keyword">ON</span> c.CustomerID = o.CustomerID
+<span class="code-keyword">WHERE</span> o.OrderDate >= '2023-01-01'
+<span class="code-keyword">ORDER BY</span> o.TotalAmount <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- Common physical operators you'll see:</span>
+<span class="code-comment">-- Index Seek: Efficient index lookup</span>
+<span class="code-comment">-- Index Scan: Full index traversal</span>
+<span class="code-comment">-- Table Scan: Full table read</span>
+<span class="code-comment">-- Nested Loops: Row-by-row join</span>
+<span class="code-comment">-- Merge Join: Sorted input join</span>
+<span class="code-comment">-- Hash Match: Hash-based join</span>
+<span class="code-comment">-- Sort: In-memory or tempdb sorting</span>
+<span class="code-comment">-- Stream Aggregate: Grouped aggregation</span></code>
+        </div>
+        
+        <h2>🔗 Join Algorithms</h2>
+        
+        <h3>Nested Loops, Merge Join, Hash Match</h3>
+        <table>
+            <thead>
+                <tr>
+                <th>Algorithm</th>
+                <th>Best For</th>
+                <th>When Used</th>
+                <th>Memory Usage</th>
+                <th>Performance Characteristics</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Nested Loops</strong></td>
+                <td>Small outer input, indexed inner</td>
+                <td>One table much smaller, good index on join key</td>
+                <td>Low</td>
+                <td>Fast startup, scales poorly with large datasets</td>
+                </tr>
+                <tr>
+                    <td><strong>Merge Join</strong></td>
+                <td>Sorted inputs, large datasets</td>
+                <td>Both inputs sorted on join key, equality joins</td>
+                <td>Low</td>
+                <td>Predictable performance, requires sorted data</td>
+                </tr>
+                <tr>
+                    <td><strong>Hash Match</strong></td>
+                <td>Unsorted large datasets</td>
+                <td>No useful indexes, complex joins, large result sets</td>
+                <td>High</td>
+                <td>Good for large unsorted data, memory intensive</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Nested Loops example (small outer, indexed inner)</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, o.OrderID
+<span class="code-keyword">FROM</span> ( <span class="code-keyword">SELECT</span> <span class="code-keyword">TOP</span> 10 CustomerID <span class="code-keyword">FROM</span> Customers <span class="code-keyword">ORDER BY</span> CustomerName ) c
+<span class="code-keyword">INNER JOIN</span> Orders o <span class="code-keyword">ON</span> c.CustomerID = o.CustomerID;
+
+<span class="code-comment">-- Merge Join example (sorted inputs)</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, o.OrderDate
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">INNER JOIN</span> Orders o <span class="code-keyword">ON</span> c.CustomerID = o.CustomerID
+<span class="code-keyword">ORDER BY</span> c.CustomerID;  <span class="code-comment">-- Both tables sorted by CustomerID</span>
+
+<span class="code-comment">-- Hash Match example (large unsorted datasets)</span>
+<span class="code-keyword">SELECT</span> p.ProductName, s.QuantitySold
+<span class="code-keyword">FROM</span> Products p
+<span class="code-keyword">INNER JOIN</span> Sales s <span class="code-keyword">ON</span> p.ProductID = s.ProductID
+<span class="code-keyword">WHERE</span> s.SaleDate >= '2023-01-01';
+
+<span class="code-comment">-- Force specific join hint (use sparingly)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Table1 t1
+<span class="code-keyword">INNER HASH JOIN</span> Table2 t2 <span class="code-keyword">ON</span> t1.ID = t2.ID;</code>
+        </div>
+        
+        <h2>👃 Parameter Sniffing</h2>
+        
+        <h3>Detection and Handling Strategies</h3>
+        <div class="concept-box">
+            <div class="concept-title">Parameter Sniffing Explained</div>
+            <div class="concept-description">
+                <strong style="color: #f87171;">What it is:</strong> Optimizer uses parameter values from first execution to create plan<br>
+                <strong style="color: #f87171;">Problem:</strong> Cached plan may be suboptimal for different parameter values<br>
+                <strong style="color: #f87171;">Detection:</strong> Look for plans with high variance in actual vs estimated rows<br>
+                <strong style="color: #f87171;">Impact:</strong> Queries run fast for some parameters, slow for others<br>
+                <strong style="color: #f87171;">Common in:</strong> Stored procedures, prepared statements, forced parameterization
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Example stored procedure with parameter sniffing issue</span>
+<span class="code-keyword">CREATE PROCEDURE</span> GetOrdersByCustomer
+    @CustomerID <span class="code-keyword">INT</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">WHERE</span> CustomerID = @CustomerID
+    <span class="code-keyword">ORDER BY</span> OrderDate <span class="code-keyword">DESC</span>;
+<span class="code-keyword">END</span>
+
+<span class="code-comment">-- First execution with small customer (creates nested loops plan)</span>
+<span class="code-keyword">EXEC</span> GetOrdersByCustomer @CustomerID = 1;  <span class="code-comment">-- Small customer, fast</span>
+
+<span class="code-comment">-- Second execution with large customer (reuses nested loops, slow)</span>
+<span class="code-keyword">EXEC</span> GetOrdersByCustomer @CustomerID = 999;  <span class="code-comment">-- Large customer, slow</span>
+
+<span class="code-comment">-- Solutions:</span>
+
+<span class="code-comment">-- 1. RECOMPILE hint (recompiles each time)</span>
+<span class="code-keyword">CREATE PROCEDURE</span> GetOrdersByCustomer
+    @CustomerID <span class="code-keyword">INT</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">WHERE</span> CustomerID = @CustomerID
+    <span class="code-keyword">ORDER BY</span> OrderDate <span class="code-keyword">DESC</span>
+    <span class="code-keyword">OPTION (RECOMPILE)</span>;
+<span class="code-keyword">END</span>
+
+<span class="code-comment">-- 2. OPTIMIZE FOR hint (optimize for specific value)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Orders
+<span class="code-keyword">WHERE</span> CustomerID = @CustomerID
+<span class="code-keyword">ORDER BY</span> OrderDate <span class="code-keyword">DESC</span>
+<span class="code-keyword">OPTION (OPTIMIZE FOR (@CustomerID = 500))</span>;  <span class="code-comment">-- Average case</span>
+
+<span class="code-comment">-- 3. Local variables (prevents sniffing)</span>
+<span class="code-keyword">CREATE PROCEDURE</span> GetOrdersByCustomer
+    @CustomerID <span class="code-keyword">INT</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">DECLARE</span> @CustID <span class="code-keyword">INT</span> = @CustomerID;
+    <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">WHERE</span> CustomerID = @CustID
+    <span class="code-keyword">ORDER BY</span> OrderDate <span class="code-keyword">DESC</span>;
+<span class="code-keyword">END</span></code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Execution Plan Reading Tips:</strong> Always check actual vs estimated row counts. Look for warnings (spills, missing indexes). 
+            Understand operator cost percentages. Use actual execution plans for accurate analysis.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Common Issues:</strong> Parameter sniffing causes inconsistent performance. Hash joins can cause tempdb spills with insufficient memory. 
+            Nested loops perform poorly on large datasets without proper indexing.
+        </div>
+        
+        <h2>📊 Plan Analysis Checklist</h2>
+        <div class="checklist">
+            <h3>✅ Execution Plan Analysis</h3>
+            <ul>
+                <li>Check for actual execution plan (not estimated)</li>
+                <li>Compare actual vs estimated row counts</li>
+                <li>Look for expensive operators (high cost %)</li>
+                <li>Identify scans vs seeks (table/index scans)</li>
+                <li>Check for join algorithm appropriateness</li>
+                <li>Look for sort/hash warnings (memory spills)</li>
+                <li>Verify index usage and missing index suggestions</li>
+                <li>Check for parameter sniffing indicators</li>
+                <li>Monitor execution time and resource usage</li>
+                <li>Understand logical to physical operator mapping</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Plan Analysis:</strong> Execute queries and analyze their execution plans. Identify the physical operators used and explain why each algorithm was chosen.</li>
+                <li><strong>Join Algorithms:</strong> Write queries that force different join algorithms using hints. Compare performance and resource usage for each approach.</li>
+                <li><strong>Parameter Sniffing:</strong> Create a stored procedure that exhibits parameter sniffing. Implement different solutions (RECOMPILE, OPTIMIZE FOR, local variables) and measure performance.</li>
+                <li><strong>Optimization:</strong> Identify poorly performing queries in your environment. Analyze their execution plans and implement appropriate fixes.</li>
+                <li><strong>Advanced Analysis:</strong> Use DMVs like sys.dm_exec_query_stats and sys.dm_exec_cached_plans to analyze plan cache and identify optimization opportunities.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/10-advanced-indexing.html" class="nav-btn">← Previous: Advanced Indexing</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/12-statistics-cardinality.html" class="nav-btn">Next: Statistics & Cardinality Estimation →</a>
+        </div>
+    </div>
+</body>
+</html>

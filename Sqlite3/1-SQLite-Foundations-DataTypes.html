@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #1 - Foundations & Data Types</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: #1a1a2e;
+        }
+        
+        .hero h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .hero p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .concept-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid #00d9ff;
+            border-radius: 8px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .concept-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 217, 255, 0.2);
+        }
+        
+        .concept-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #00d9ff;
+            margin-bottom: 12px;
+        }
+        
+        .concept-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a8d5ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-block code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+            display: block;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-number { color: #ffeaa7; }
+        .code-comment { color: #636e72; }
+        
+        h2 {
+            font-size: 2em;
+            color: #f1f5f9;
+            margin: 40px 0 20px 0;
+            border-bottom: 2px solid #00d9ff;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            font-size: 1.3em;
+            color: #cbd5e1;
+            margin: 25px 0 15px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(0, 153, 204, 0.2));
+            color: #00d9ff;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #00d9ff;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+        
+        tr:hover {
+            background: rgba(0, 217, 255, 0.1);
+        }
+        
+        .highlight-box {
+            background: rgba(0, 217, 255, 0.1);
+            border-left: 4px solid #00d9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .highlight-box strong {
+            color: #00d9ff;
+        }
+        
+        .warning-box {
+            background: rgba(230, 126, 34, 0.1);
+            border-left: 4px solid #e67e22;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #fdb462;
+        }
+        
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #85c1e9;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+        
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+        }
+        
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00d9ff;
+            font-weight: bold;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #00d9ff, #0099cc);
+            color: #1a1a2e;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 217, 255, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>💎 SQLite3 Foundations & Data Types</h1>
+        <p>Master Serverless Architecture, Dynamic Typing, and Core Operations</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers the fundamental concepts of SQLite3 - a serverless, zero-configuration database engine. 
+            You'll learn about its unique architecture, dynamic typing system, ACID properties, DDL operations, 
+            basic CRUD operations, and essential CLI commands.
+        </p>
+        
+        <h2>🏗️ SQLite Architecture</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">What is SQLite?</div>
+                <div class="concept-description">
+                    SQLite is a <strong style="color: #00d9ff;">serverless</strong>, self-contained SQL database engine. 
+                    Unlike PostgreSQL/MySQL, it doesn't require a separate server process. The entire database 
+                    is stored in a single file on disk, making it perfect for embedded applications, mobile apps, 
+                    and desktop software.
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Serverless Architecture</div>
+                <div class="concept-description">
+                    <strong style="color: #00d9ff;">No Server Process:</strong> Reads/writes directly to disk<br>
+                    <strong style="color: #00d9ff;">Zero Configuration:</strong> No setup or administration<br>
+                    <strong style="color: #00d9ff;">Single File:</strong> Entire DB in one .db/.sqlite file<br>
+                    <strong style="color: #00d9ff;">Cross-platform:</strong> Works on all major OS
+                </div>
+            </div>
+        </div>
+        
+        <h3>SQLite vs PostgreSQL/MySQL</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>SQLite</th>
+                    <th>PostgreSQL/MySQL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Architecture</strong></td>
+                    <td>Serverless, embedded</td>
+                    <td>Client-server model</td>
+                </tr>
+                <tr>
+                    <td><strong>Configuration</strong></td>
+                    <td>Zero-config</td>
+                    <td>Requires setup & tuning</td>
+                </tr>
+                <tr>
+                    <td><strong>Concurrency</strong></td>
+                    <td>Limited (file-level locking)</td>
+                    <td>High (row-level locking)</td>
+                </tr>
+                <tr>
+                    <td><strong>Data Types</strong></td>
+                    <td>Dynamic typing (5 storage classes)</td>
+                    <td>Static typing (strict types)</td>
+                </tr>
+                <tr>
+                    <td><strong>Size Limit</strong></td>
+                    <td>281 TB (practical: ~1 TB)</td>
+                    <td>Virtually unlimited</td>
+                </tr>
+                <tr>
+                    <td><strong>Best For</strong></td>
+                    <td>Embedded, mobile, desktop apps</td>
+                    <td>Web apps, enterprise systems</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="info-box">
+            <strong>💡 Key Point:</strong> SQLite is not a replacement for client-server databases. 
+            It's designed for different use cases: local storage, embedded systems, and applications 
+            that need a lightweight, self-contained database.
+        </div>
+        
+        <h2>🔒 ACID Properties in SQLite</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">Property</th>
+                    <th>Description</th>
+                    <th>SQLite Implementation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Atomicity</strong></td>
+                    <td>All or nothing transactions</td>
+                    <td>Rollback journal or WAL mode ensures atomic commits</td>
+                </tr>
+                <tr>
+                    <td><strong>Consistency</strong></td>
+                    <td>Database remains valid after transactions</td>
+                    <td>Constraints (NOT NULL, UNIQUE, CHECK, FK) enforced</td>
+                </tr>
+                <tr>
+                    <td><strong>Isolation</strong></td>
+                    <td>Concurrent transactions don't interfere</td>
+                    <td>Serializable isolation (file-level locking)</td>
+                </tr>
+                <tr>
+                    <td><strong>Durability</strong></td>
+                    <td>Committed data persists after crashes</td>
+                    <td>fsync() calls ensure data written to disk</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="highlight-box">
+            <strong>Transaction Modes in SQLite:</strong><br>
+            • <code>BEGIN DEFERRED</code> - Default, locks acquired on first read/write<br>
+            • <code>BEGIN IMMEDIATE</code> - Acquires RESERVED lock immediately<br>
+            • <code>BEGIN EXCLUSIVE</code> - Acquires EXCLUSIVE lock immediately
+        </div>
+        
+        <h2>🎯 Data Types & Type Affinity</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">Dynamic Typing System</div>
+            <div class="concept-description">
+                Unlike PostgreSQL/MySQL, SQLite uses <strong style="color: #00d9ff;">dynamic typing</strong>. 
+                Values are stored in one of 5 storage classes, and columns have "type affinity" 
+                (preferred type) rather than strict types.
+            </div>
+        </div>
+        
+        <h3>5 Storage Classes</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Storage Class</th>
+                    <th>Description</th>
+                    <th>Examples</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>NULL</strong></td>
+                    <td>Null value</td>
+                    <td>NULL</td>
+                </tr>
+                <tr>
+                    <td><strong>INTEGER</strong></td>
+                    <td>Signed integer (1, 2, 3, 4, 6, or 8 bytes)</td>
+                    <td>-9223372036854775808 to 9223372036854775807</td>
+                </tr>
+                <tr>
+                    <td><strong>REAL</strong></td>
+                    <td>Floating point (8-byte IEEE)</td>
+                    <td>3.14159, -273.15</td>
+                </tr>
+                <tr>
+                    <td><strong>TEXT</strong></td>
+                    <td>Text string (UTF-8, UTF-16BE, UTF-16LE)</td>
+                    <td>'Hello', "SQLite"</td>
+                </tr>
+                <tr>
+                    <td><strong>BLOB</strong></td>
+                    <td>Binary Large Object</td>
+                    <td>Images, files, binary data</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Type Affinity Rules</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- INTEGER affinity</span>
+<span class="code-keyword">CREATE TABLE</span> example1 (
+    id <span class="code-function">INTEGER</span>,
+    count <span class="code-function">INT</span>,
+    num <span class="code-function">BIGINT</span>
+);
+
+<span class="code-comment">-- TEXT affinity</span>
+<span class="code-keyword">CREATE TABLE</span> example2 (
+    name <span class="code-function">TEXT</span>,
+    description <span class="code-function">VARCHAR</span>(<span class="code-number">255</span>),
+    notes <span class="code-function">CHAR</span>(<span class="code-number">100</span>)
+);
+
+<span class="code-comment">-- REAL affinity</span>
+<span class="code-keyword">CREATE TABLE</span> example3 (
+    price <span class="code-function">REAL</span>,
+    rating <span class="code-function">DOUBLE</span>,
+    score <span class="code-function">FLOAT</span>
+);
+
+<span class="code-comment">-- BLOB affinity</span>
+<span class="code-keyword">CREATE TABLE</span> example4 (
+    data <span class="code-function">BLOB</span>
+);
+
+<span class="code-comment">-- NUMERIC affinity (INTEGER if possible, else REAL)</span>
+<span class="code-keyword">CREATE TABLE</span> example5 (
+    value <span class="code-function">NUMERIC</span>,
+    amount <span class="code-function">DECIMAL</span>(<span class="code-number">10</span>,<span class="code-number">2</span>)
+);</code>
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ Important:</strong> SQLite ignores length specifications like VARCHAR(255). 
+            All TEXT values can be any length. The type name only affects affinity, not storage.
+        </div>
+        
+        <h2>🛠️ DDL Operations</h2>
+        
+        <h3>CREATE TABLE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Basic table creation</span>
+<span class="code-keyword">CREATE TABLE</span> users (
+    id <span class="code-function">INTEGER PRIMARY KEY AUTOINCREMENT</span>,
+    username <span class="code-function">TEXT NOT NULL UNIQUE</span>,
+    email <span class="code-function">TEXT NOT NULL</span>,
+    age <span class="code-function">INTEGER</span>,
+    created_at <span class="code-function">TEXT DEFAULT CURRENT_TIMESTAMP</span>
+);
+
+<span class="code-comment">-- Table with constraints</span>
+<span class="code-keyword">CREATE TABLE</span> products (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    name <span class="code-function">TEXT NOT NULL</span>,
+    price <span class="code-function">REAL</span> <span class="code-keyword">CHECK</span>(price > <span class="code-number">0</span>),
+    category <span class="code-function">TEXT</span> <span class="code-keyword">DEFAULT</span> <span class="code-string">'general'</span>,
+    stock <span class="code-function">INTEGER</span> <span class="code-keyword">DEFAULT</span> <span class="code-number">0</span>
+);
+
+<span class="code-comment">-- Table with foreign key</span>
+<span class="code-keyword">CREATE TABLE</span> orders (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    user_id <span class="code-function">INTEGER</span>,
+    product_id <span class="code-function">INTEGER</span>,
+    quantity <span class="code-function">INTEGER</span>,
+    <span class="code-keyword">FOREIGN KEY</span> (user_id) <span class="code-keyword">REFERENCES</span> users(id),
+    <span class="code-keyword">FOREIGN KEY</span> (product_id) <span class="code-keyword">REFERENCES</span> products(id)
+);</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 AUTOINCREMENT vs PRIMARY KEY:</strong><br>
+            • <code>INTEGER PRIMARY KEY</code> - Reuses deleted IDs, faster<br>
+            • <code>INTEGER PRIMARY KEY AUTOINCREMENT</code> - Never reuses IDs, slightly slower
+        </div>
+        
+        <h3>ALTER TABLE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Add column (SQLite 3.2.0+)</span>
+<span class="code-keyword">ALTER TABLE</span> users <span class="code-keyword">ADD COLUMN</span> phone <span class="code-function">TEXT</span>;
+
+<span class="code-comment">-- Rename table</span>
+<span class="code-keyword">ALTER TABLE</span> users <span class="code-keyword">RENAME TO</span> customers;
+
+<span class="code-comment">-- Rename column (SQLite 3.25.0+)</span>
+<span class="code-keyword">ALTER TABLE</span> customers <span class="code-keyword">RENAME COLUMN</span> username <span class="code-keyword">TO</span> user_name;
+
+<span class="code-comment">-- Drop column (SQLite 3.35.0+)</span>
+<span class="code-keyword">ALTER TABLE</span> customers <span class="code-keyword">DROP COLUMN</span> phone;</code>
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ Limitation:</strong> SQLite has limited ALTER TABLE support compared to PostgreSQL. 
+            You cannot modify column types or add constraints to existing columns directly. 
+            Use the "recreate table" pattern for complex changes.
+        </div>
+        
+        <h3>DROP TABLE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Drop table</span>
+<span class="code-keyword">DROP TABLE</span> orders;
+
+<span class="code-comment">-- Drop if exists (safe)</span>
+<span class="code-keyword">DROP TABLE IF EXISTS</span> orders;</code>
+        </div>
+        
+        <h2>📝 CRUD Operations</h2>
+        
+        <h3>INSERT</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Single row insert</span>
+<span class="code-keyword">INSERT INTO</span> users (username, email, age)
+<span class="code-keyword">VALUES</span> (<span class="code-string">'john_doe'</span>, <span class="code-string">'john@example.com'</span>, <span class="code-number">25</span>);
+
+<span class="code-comment">-- Multiple rows insert</span>
+<span class="code-keyword">INSERT INTO</span> users (username, email, age)
+<span class="code-keyword">VALUES</span> 
+    (<span class="code-string">'alice'</span>, <span class="code-string">'alice@example.com'</span>, <span class="code-number">30</span>),
+    (<span class="code-string">'bob'</span>, <span class="code-string">'bob@example.com'</span>, <span class="code-number">28</span>),
+    (<span class="code-string">'charlie'</span>, <span class="code-string">'charlie@example.com'</span>, <span class="code-number">35</span>);
+
+<span class="code-comment">-- Insert or ignore (skip if duplicate)</span>
+<span class="code-keyword">INSERT OR IGNORE INTO</span> users (username, email)
+<span class="code-keyword">VALUES</span> (<span class="code-string">'john_doe'</span>, <span class="code-string">'john@example.com'</span>);
+
+<span class="code-comment">-- Insert or replace (upsert)</span>
+<span class="code-keyword">INSERT OR REPLACE INTO</span> users (id, username, email)
+<span class="code-keyword">VALUES</span> (<span class="code-number">1</span>, <span class="code-string">'john_updated'</span>, <span class="code-string">'john@example.com'</span>);</code>
+        </div>
+        
+        <h3>SELECT</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Basic select</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> users;
+
+<span class="code-comment">-- Select specific columns</span>
+<span class="code-keyword">SELECT</span> username, email <span class="code-keyword">FROM</span> users;
+
+<span class="code-comment">-- With WHERE clause</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> age > <span class="code-number">25</span>;
+
+<span class="code-comment">-- With ORDER BY</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> users <span class="code-keyword">ORDER BY</span> age <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- With LIMIT</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> users <span class="code-keyword">LIMIT</span> <span class="code-number">10</span> <span class="code-keyword">OFFSET</span> <span class="code-number">5</span>;</code>
+        </div>
+        
+        <h3>UPDATE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Update single column</span>
+<span class="code-keyword">UPDATE</span> users 
+<span class="code-keyword">SET</span> age = <span class="code-number">26</span> 
+<span class="code-keyword">WHERE</span> username = <span class="code-string">'john_doe'</span>;
+
+<span class="code-comment">-- Update multiple columns</span>
+<span class="code-keyword">UPDATE</span> users 
+<span class="code-keyword">SET</span> email = <span class="code-string">'newemail@example.com'</span>, age = <span class="code-number">27</span>
+<span class="code-keyword">WHERE</span> id = <span class="code-number">1</span>;
+
+<span class="code-comment">-- Update all rows (be careful!)</span>
+<span class="code-keyword">UPDATE</span> users <span class="code-keyword">SET</span> age = age + <span class="code-number">1</span>;</code>
+        </div>
+        
+        <h3>DELETE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Delete specific rows</span>
+<span class="code-keyword">DELETE FROM</span> users <span class="code-keyword">WHERE</span> age < <span class="code-number">18</span>;
+
+<span class="code-comment">-- Delete all rows (be careful!)</span>
+<span class="code-keyword">DELETE FROM</span> users;
+
+<span class="code-comment">-- Delete with subquery</span>
+<span class="code-keyword">DELETE FROM</span> orders 
+<span class="code-keyword">WHERE</span> user_id <span class="code-keyword">IN</span> (<span class="code-keyword">SELECT</span> id <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> age < <span class="code-number">18</span>);</code>
+        </div>
+        
+        <h2>💻 SQLite CLI Commands</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Command</th>
+                    <th>Description</th>
+                    <th>Example</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>.help</code></td>
+                    <td>Show all available commands</td>
+                    <td><code>.help</code></td>
+                </tr>
+                <tr>
+                    <td><code>.open</code></td>
+                    <td>Open database file</td>
+                    <td><code>.open mydb.db</code></td>
+                </tr>
+                <tr>
+                    <td><code>.tables</code></td>
+                    <td>List all tables</td>
+                    <td><code>.tables</code></td>
+                </tr>
+                <tr>
+                    <td><code>.schema</code></td>
+                    <td>Show table schema</td>
+                    <td><code>.schema users</code></td>
+                </tr>
+                <tr>
+                    <td><code>.mode</code></td>
+                    <td>Set output mode</td>
+                    <td><code>.mode column</code></td>
+                </tr>
+                <tr>
+                    <td><code>.headers</code></td>
+                    <td>Turn headers on/off</td>
+                    <td><code>.headers on</code></td>
+                </tr>
+                <tr>
+                    <td><code>.import</code></td>
+                    <td>Import CSV file</td>
+                    <td><code>.import data.csv users</code></td>
+                </tr>
+                <tr>
+                    <td><code>.output</code></td>
+                    <td>Redirect output to file</td>
+                    <td><code>.output result.txt</code></td>
+                </tr>
+                <tr>
+                    <td><code>.dump</code></td>
+                    <td>Export database as SQL</td>
+                    <td><code>.dump > backup.sql</code></td>
+                </tr>
+                <tr>
+                    <td><code>.backup</code></td>
+                    <td>Backup database</td>
+                    <td><code>.backup backup.db</code></td>
+                </tr>
+                <tr>
+                    <td><code>.quit</code></td>
+                    <td>Exit SQLite CLI</td>
+                    <td><code>.quit</code></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>CLI Usage Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Open SQLite CLI and create database</span>
+$ sqlite3 myapp.db
+
+<span class="code-comment">-- Set output formatting</span>
+sqlite> .mode column
+sqlite> .headers on
+
+<span class="code-comment">-- View all tables</span>
+sqlite> .tables
+
+<span class="code-comment">-- View schema of specific table</span>
+sqlite> .schema users
+
+<span class="code-comment">-- Import CSV data</span>
+sqlite> .mode csv
+sqlite> .import users.csv users
+
+<span class="code-comment">-- Export query results</span>
+sqlite> .output results.csv
+sqlite> .mode csv
+sqlite> SELECT * FROM users WHERE age > 25;
+sqlite> .output stdout
+
+<span class="code-comment">-- Backup database</span>
+sqlite> .backup backup.db
+
+<span class="code-comment">-- Execute SQL file</span>
+sqlite> .read script.sql</code>
+        </div>
+        
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Understand SQLite's serverless architecture and when to use it</li>
+            <li>Know the differences between SQLite and client-server databases</li>
+            <li>Master ACID properties and transaction modes</li>
+            <li>Understand dynamic typing and 5 storage classes</li>
+            <li>Know type affinity rules and how they work</li>
+            <li>Create tables with proper constraints and foreign keys</li>
+            <li>Perform basic DDL operations (CREATE, ALTER, DROP)</li>
+            <li>Execute CRUD operations efficiently</li>
+            <li>Use CLI commands for database management</li>
+            <li>Import/export data using CLI tools</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> Now that you understand SQLite fundamentals, move on to 
+            <strong>Module 2: Advanced Querying</strong> to learn JOINs, CTEs, window functions, 
+            and complex query patterns.
+        </div>
+        
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

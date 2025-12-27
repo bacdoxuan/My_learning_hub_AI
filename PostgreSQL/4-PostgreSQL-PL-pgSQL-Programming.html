@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Cheat Sheet #4 - PL/pgSQL Programming</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #e67e22; border-radius: 8px; padding: 25px; margin: 20px 0; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(230, 126, 34, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #e67e22; margin-bottom: 12px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.9em; line-height: 1.5; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-comment { color: #636e72; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #e67e22; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); }
+        th { background: linear-gradient(135deg, rgba(230, 126, 34, 0.2), rgba(211, 84, 0, 0.2)); color: #e67e22; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #e67e22; }
+        td { padding: 12px 15px; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        tr:hover { background: rgba(230, 126, 34, 0.1); }
+        .info-box { background: rgba(230, 126, 34, 0.1); border-left: 4px solid #e67e22; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 10px 0; padding-left: 30px; position: relative; color: #cbd5e1; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #e67e22; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #e67e22, #d35400); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(230, 126, 34, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟠 PostgreSQL PL/pgSQL Programming</h1>
+        <p>Master Stored Procedures, Functions, and Triggers</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8;">
+            PL/pgSQL is PostgreSQL's procedural language for writing complex logic inside the database. 
+            Learn to create stored procedures and functions with control structures, error handling, cursors, and triggers.
+        </p>
+        
+        <h2>🔧 Stored Procedures vs Functions</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Function</th>
+                    <th>Procedure (PostgreSQL 11+)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Must return value</td>
+                    <td>✓ Required</td>
+                    <td>✗ Optional</td>
+                </tr>
+                <tr>
+                    <td>Transaction control</td>
+                    <td>✗ Limited</td>
+                    <td>✓ Full (COMMIT/ROLLBACK)</td>
+                </tr>
+                <tr>
+                    <td>Can be called in SELECT</td>
+                    <td>✓ Yes</td>
+                    <td>✗ No (use CALL)</td>
+                </tr>
+                <tr>
+                    <td>Example use</td>
+                    <td>Calculations, transformations</td>
+                    <td>Business logic, multi-statement</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Creating Functions</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Simple function</span>
+<span class="code-keyword">CREATE OR REPLACE FUNCTION</span> add_numbers(a INT, b INT)
+<span class="code-keyword">RETURNS INT AS</span> $$
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">RETURN</span> a + b;
+<span class="code-keyword">END</span>;
+$$ <span class="code-keyword">LANGUAGE</span> plpgsql;
+
+<span class="code-comment">-- Function returning TABLE</span>
+<span class="code-keyword">CREATE OR REPLACE FUNCTION</span> get_active_users()
+<span class="code-keyword">RETURNS TABLE</span> (id INT, email VARCHAR) <span class="code-keyword">AS</span> $$
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">RETURN QUERY</span>
+    <span class="code-keyword">SELECT</span> u.id, u.email <span class="code-keyword">FROM</span> users u 
+    <span class="code-keyword">WHERE</span> u.is_active = true;
+<span class="code-keyword">END</span>;
+$$ <span class="code-keyword">LANGUAGE</span> plpgsql;
+
+<span class="code-comment">-- Function with OUT parameters</span>
+<span class="code-keyword">CREATE OR REPLACE FUNCTION</span> calculate_stats(data INT[])
+<span class="code-keyword">OUT</span> average DECIMAL,
+<span class="code-keyword">OUT</span> total INT
+<span class="code-keyword">AS</span> $$
+<span class="code-keyword">BEGIN</span>
+    average := <span class="code-function">AVG</span>(d)::DECIMAL <span class="code-keyword">FROM</span> <span class="code-function">UNNEST</span>(data) d;
+    total := <span class="code-function">ARRAY_LENGTH</span>(data, <span class="code-number">1</span>);
+<span class="code-keyword">END</span>;
+$$ <span class="code-keyword">LANGUAGE</span> plpgsql;</code>
+        </div>
+        
+        <h3>Creating Procedures</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Procedure with transaction control</span>
+<span class="code-keyword">CREATE OR REPLACE PROCEDURE</span> process_order(order_id INT)
+<span class="code-keyword">LANGUAGE</span> plpgsql
+<span class="code-keyword">AS</span> $$
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">UPDATE</span> orders <span class="code-keyword">SET</span> status = <span class="code-string">'processing'</span> 
+    <span class="code-keyword">WHERE</span> id = order_id;
+    
+    <span class="code-keyword">IF NOT FOUND THEN</span>
+        <span class="code-keyword">RAISE EXCEPTION</span> <span class="code-string">'Order not found'</span>;
+    <span class="code-keyword">END IF</span>;
+    
+    <span class="code-keyword">COMMIT</span>;
+    <span class="code-keyword">RAISE NOTICE</span> <span class="code-string">'Order % processed'</span>, order_id;
+<span class="code-keyword">END</span>;
+$$;
+
+<span class="code-comment">-- Call procedure</span>
+<span class="code-keyword">CALL</span> process_order(<span class="code-number">123</span>);</code>
+        </div>
+        
+        <h2>🎛️ Control Structures</h2>
+        
+        <h3>IF/ELSE</h3>
+        <div class="code-block">
+<code><span class="code-keyword">IF</span> age >= <span class="code-number">18</span> <span class="code-keyword">THEN</span>
+    status := <span class="code-string">'adult'</span>;
+<span class="code-keyword">ELSIF</span> age >= <span class="code-number">13</span> <span class="code-keyword">THEN</span>
+    status := <span class="code-string">'teenager'</span>;
+<span class="code-keyword">ELSE</span>
+    status := <span class="code-string">'child'</span>;
+<span class="code-keyword">END IF</span>;</code>
+        </div>
+        
+        <h3>Loops</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- FOR loop</span>
+<span class="code-keyword">FOR</span> i <span class="code-keyword">IN</span> <span class="code-number">1</span>..<span class="code-number">10</span> <span class="code-keyword">LOOP</span>
+    <span class="code-keyword">INSERT INTO</span> results <span class="code-keyword">VALUES</span> (i, i * <span class="code-number">2</span>);
+<span class="code-keyword">END LOOP</span>;
+
+<span class="code-comment">-- WHILE loop</span>
+<span class="code-keyword">WHILE</span> counter <= <span class="code-number">100</span> <span class="code-keyword">LOOP</span>
+    counter := counter + <span class="code-number">1</span>;
+<span class="code-keyword">END LOOP</span>;
+
+<span class="code-comment">-- FOREACH for arrays</span>
+<span class="code-keyword">FOREACH</span> item <span class="code-keyword">IN ARRAY</span> my_array <span class="code-keyword">LOOP</span>
+    <span class="code-keyword">RAISE NOTICE</span> <span class="code-string">'Item: %'</span>, item;
+<span class="code-keyword">END LOOP</span>;</code>
+        </div>
+        
+        <h2>⚠️ Error Handling</h2>
+        <div class="code-block">
+<code><span class="code-keyword">CREATE OR REPLACE FUNCTION</span> safe_divide(a NUMERIC, b NUMERIC)
+<span class="code-keyword">RETURNS NUMERIC AS</span> $$
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">IF</span> b = <span class="code-number">0</span> <span class="code-keyword">THEN</span>
+        <span class="code-keyword">RAISE EXCEPTION</span> <span class="code-string">'Division by zero!'</span>;
+    <span class="code-keyword">END IF</span>;
+    
+    <span class="code-keyword">RETURN</span> a / b;
+<span class="code-keyword">EXCEPTION WHEN</span> division_by_zero <span class="code-keyword">THEN</span>
+    <span class="code-keyword">RAISE WARNING</span> <span class="code-string">'Caught division error'</span>;
+    <span class="code-keyword">RETURN</span> <span class="code-keyword">NULL</span>;
+<span class="code-keyword">EXCEPTION WHEN OTHERS THEN</span>
+    <span class="code-keyword">RAISE NOTICE</span> <span class="code-string">'Error: %'</span>, <span class="code-keyword">SQLERRM</span>;
+    <span class="code-keyword">RETURN</span> <span class="code-keyword">NULL</span>;
+<span class="code-keyword">END</span>;
+$$ <span class="code-keyword">LANGUAGE</span> plpgsql;</code>
+        </div>
+        
+        <h2>🔄 Cursors</h2>
+        <div class="code-block">
+<code><span class="code-keyword">CREATE OR REPLACE FUNCTION</span> process_users()
+<span class="code-keyword">RETURNS VOID AS</span> $$
+<span class="code-keyword">DECLARE</span>
+    user_rec users%ROWTYPE;
+    user_cursor <span class="code-keyword">CURSOR FOR</span> 
+        <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> is_active = true;
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">OPEN</span> user_cursor;
+    <span class="code-keyword">FETCH NEXT FROM</span> user_cursor <span class="code-keyword">INTO</span> user_rec;
+    
+    <span class="code-keyword">WHILE FOUND LOOP</span>
+        <span class="code-keyword">RAISE NOTICE</span> <span class="code-string">'Processing user: %'</span>, user_rec.email;
+        <span class="code-keyword">FETCH NEXT FROM</span> user_cursor <span class="code-keyword">INTO</span> user_rec;
+    <span class="code-keyword">END LOOP</span>;
+    
+    <span class="code-keyword">CLOSE</span> user_cursor;
+<span class="code-keyword">END</span>;
+$$ <span class="code-keyword">LANGUAGE</span> plpgsql;</code>
+        </div>
+        
+        <h2>🔔 Triggers</h2>
+        <div class="code-block">
+<code><span class="code-comment">-- Trigger function</span>
+<span class="code-keyword">CREATE OR REPLACE FUNCTION</span> audit_user_changes()
+<span class="code-keyword">RETURNS TRIGGER AS</span> $$
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">IF</span> <span class="code-keyword">TG_OP</span> = <span class="code-string">'INSERT'</span> <span class="code-keyword">THEN</span>
+        <span class="code-keyword">INSERT INTO</span> audit_log (user_id, operation, old_data, new_data, timestamp)
+        <span class="code-keyword">VALUES</span> (<span class="code-keyword">NEW</span>.id, <span class="code-string">'INSERT'</span>, <span class="code-keyword">NULL</span>, 
+                 <span class="code-function">row_to_json</span>(<span class="code-keyword">NEW</span>), NOW());
+        <span class="code-keyword">RETURN NEW</span>;
+    <span class="code-keyword">ELSIF</span> <span class="code-keyword">TG_OP</span> = <span class="code-string">'UPDATE'</span> <span class="code-keyword">THEN</span>
+        <span class="code-keyword">INSERT INTO</span> audit_log (user_id, operation, old_data, new_data, timestamp)
+        <span class="code-keyword">VALUES</span> (<span class="code-keyword">NEW</span>.id, <span class="code-string">'UPDATE'</span>, 
+                 <span class="code-function">row_to_json</span>(<span class="code-keyword">OLD</span>), <span class="code-function">row_to_json</span>(<span class="code-keyword">NEW</span>), NOW());
+        <span class="code-keyword">RETURN NEW</span>;
+    <span class="code-keyword">ELSIF</span> <span class="code-keyword">TG_OP</span> = <span class="code-string">'DELETE'</span> <span class="code-keyword">THEN</span>
+        <span class="code-keyword">INSERT INTO</span> audit_log (user_id, operation, old_data, new_data, timestamp)
+        <span class="code-keyword">VALUES</span> (<span class="code-keyword">OLD</span>.id, <span class="code-string">'DELETE'</span>, 
+                 <span class="code-function">row_to_json</span>(<span class="code-keyword">OLD</span>), <span class="code-keyword">NULL</span>, NOW());
+        <span class="code-keyword">RETURN OLD</span>;
+    <span class="code-keyword">END IF</span>;
+<span class="code-keyword">END</span>;
+$$ <span class="code-keyword">LANGUAGE</span> plpgsql;
+
+<span class="code-comment">-- Create trigger</span>
+<span class="code-keyword">CREATE TRIGGER</span> users_audit_trigger
+<span class="code-keyword">AFTER INSERT OR UPDATE OR DELETE ON</span> users
+<span class="code-keyword">FOR EACH ROW</span>
+<span class="code-keyword">EXECUTE FUNCTION</span> audit_user_changes();</code>
+        </div>
+        
+        <h3>Trigger Timing</h3>
+        <ul class="checklist">
+            <li><strong>BEFORE:</strong> Execute before operation (can modify data)</li>
+            <li><strong>AFTER:</strong> Execute after operation (read-only access)</li>
+            <li><strong>INSTEAD OF:</strong> Replace the operation (for views)</li>
+        </ul>
+        
+        <h2>✅ Learning Checklist</h2>
+        <ul class="checklist">
+            <li>Understand difference between functions and procedures</li>
+            <li>Write functions with input/output parameters</li>
+            <li>Master IF/ELSE and loop control structures</li>
+            <li>Implement error handling with EXCEPTION</li>
+            <li>Use cursors for row-by-row processing</li>
+            <li>Create AFTER/BEFORE triggers</li>
+            <li>Use trigger context variables (NEW, OLD, TG_OP)</li>
+            <li>Audit data changes with triggers</li>
+            <li>Test PL/pgSQL code thoroughly</li>
+        </ul>
+        
+        <div class="info-box">
+            <strong>💡 Pro Tip:</strong> Use functions for reusable logic and data transformations. 
+            Use procedures for complex business operations that need transaction control.
+        </div>
+        
+        <a href="index-postgresql.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #8 - APPLY, Derived Tables, Temp Tables & Table Variables</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #60a5fa;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #60a5fa;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #93c5fd;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #60a5fa;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #60a5fa;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #60a5fa;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #2563eb;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔵 SQL Server APPLY, Derived Tables & Temporary Objects</h1>
+        <p>Advanced Table Operations and ETL Staging Optimization</p>
+        <div class="badge">Advanced</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers advanced table operations: APPLY for correlated subqueries, derived tables for complex logic, 
+            and temporary storage options (#temp tables, @table variables, memory-optimized tables). Learn to optimize staging 
+            processes for ETL and reporting workloads.
+        </p>
+        
+        <h2>🔗 APPLY Operators</h2>
+        
+        <h3>CROSS APPLY vs OUTER APPLY</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">CROSS APPLY</div>
+                <div class="concept-description">
+                    <strong style="color: #60a5fa;">INNER JOIN equivalent:</strong> Only returns rows where subquery/table-valued function returns results<br>
+                    <strong style="color: #60a5fa;">Correlated execution:</strong> Right side executes once per left-side row<br>
+                    <strong style="color: #60a5fa;">Table-valued functions:</strong> Perfect for TVFs with parameters<br>
+                    <strong style="color: #60a5fa;">Top-N per group:</strong> Efficient for "top 3 products per category" patterns
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">OUTER APPLY</div>
+                <div class="concept-description">
+                    <strong style="color: #60a5fa;">LEFT JOIN equivalent:</strong> Returns all left-side rows, NULLs for missing right-side<br>
+                    <strong style="color: #60a5fa;">Sparse data handling:</strong> When subquery might return no results<br>
+                    <strong style="color: #60a5fa;">Optional relationships:</strong> Like optional child records<br>
+                    <strong style="color: #60a5fa;">Default values:</strong> Provide defaults when no match exists
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- CROSS APPLY: Top 2 products per category</span>
+<span class="code-keyword">SELECT</span> c.CategoryName, p.ProductName, p.SalesAmount
+<span class="code-keyword">FROM</span> Categories c
+<span class="code-keyword">CROSS APPLY</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-keyword">TOP</span> 2 ProductName, SalesAmount
+    <span class="code-keyword">FROM</span> Products
+    <span class="code-keyword">WHERE</span> CategoryID = c.CategoryID
+    <span class="code-keyword">ORDER BY</span> SalesAmount <span class="code-keyword">DESC</span>
+) p;
+
+<span class="code-comment">-- OUTER APPLY: Latest order per customer (may be NULL)</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, o.OrderDate, o.OrderAmount
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">OUTER APPLY</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-keyword">TOP</span> 1 OrderDate, OrderAmount
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">WHERE</span> CustomerID = c.CustomerID
+    <span class="code-keyword">ORDER BY</span> OrderDate <span class="code-keyword">DESC</span>
+) o;
+
+<span class="code-comment">-- APPLY with table-valued function</span>
+<span class="code-keyword">SELECT</span> e.EmployeeName, d.DepartmentName
+<span class="code-keyword">FROM</span> Employees e
+<span class="code-keyword">CROSS APPLY</span> dbo.GetEmployeeDepartments(e.EmployeeID) d;</code>
+        </div>
+        
+        <h2>📋 Derived Tables</h2>
+        
+        <h3>Subqueries in FROM Clause</h3>
+        <div class="concept-box">
+            <div class="concept-title">Derived Table Characteristics</div>
+            <div class="concept-description">
+                <strong style="color: #60a5fa;">Temporary result set:</strong> Subquery in FROM clause, must be aliased<br>
+                <strong style="color: #60a5fa;">Single-use:</strong> Exists only for the duration of the outer query<br>
+                <strong style="color: #60a5fa;">No indexing:</strong> Cannot create indexes on derived tables<br>
+                <strong style="color: #60a5fa;">Scope:</strong> Available only in the immediate outer query<br>
+                <strong style="color: #60a5fa;">Performance:</strong> Materialized in tempdb for complex expressions
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Derived table: Aggregate then filter</span>
+<span class="code-keyword">SELECT</span> CategoryName, AvgSales, TotalProducts
+<span class="code-keyword">FROM</span> (
+    <span class="code-keyword">SELECT</span> 
+        CategoryID,
+        <span class="code-function">AVG</span>(SalesAmount) AS AvgSales,
+        <span class="code-function">COUNT</span>(*) AS TotalProducts
+    <span class="code-keyword">FROM</span> Products
+    <span class="code-keyword">GROUP BY</span> CategoryID
+) dt
+<span class="code-keyword">JOIN</span> Categories c <span class="code-keyword">ON</span> dt.CategoryID = c.CategoryID
+<span class="code-keyword">WHERE</span> dt.AvgSales > 1000;
+
+<span class="code-comment">-- Multiple derived tables</span>
+<span class="code-keyword">SELECT</span> *
+<span class="code-keyword">FROM</span> (
+    <span class="code-keyword">SELECT</span> CustomerID, <span class="code-function">SUM</span>(OrderAmount) AS TotalSpent
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">GROUP BY</span> CustomerID
+) spending
+<span class="code-keyword">JOIN</span> (
+    <span class="code-keyword">SELECT</span> CustomerID, <span class="code-function">COUNT</span>(*) AS OrderCount
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">GROUP BY</span> CustomerID
+) frequency <span class="code-keyword">ON</span> spending.CustomerID = frequency.CustomerID;</code>
+        </div>
+        
+        <h2>🗂️ Temporary Storage Options</h2>
+        
+        <h3>#Temp Tables vs @Table Variables vs Memory-Optimized</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>Temp Table (#temp)</th>
+                    <th>Table Variable (@table)</th>
+                    <th>Memory-Optimized</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Scope</strong></td>
+                    <td>Global (##) or session</td>
+                    <td>Batch/procedure</td>
+                    <td>Database-wide</td>
+                </tr>
+                <tr>
+                    <td><strong>Indexing</strong></td>
+                <td>Yes, can create indexes</td>
+                <td>Limited (primary key only)</td>
+                <td>Hash and range indexes</td>
+                </tr>
+                <tr>
+                    <td><strong>Statistics</strong></td>
+                <td>Auto-generated</td>
+                <td>No statistics</td>
+                <td>Memory-optimized statistics</td>
+                </tr>
+                <tr>
+                    <td><strong>Transactions</strong></td>
+                <td>Full logging</td>
+                <td>Minimal logging</td>
+                <td>Optimistic concurrency</td>
+                </tr>
+                <tr>
+                    <td><strong>Performance</strong></td>
+                <td>Good for large datasets</td>
+                <td>Better for small datasets</td>
+                <td>Best for high-concurrency OLTP</td>
+                </tr>
+                <tr>
+                    <td><strong>Memory Usage</strong></td>
+                <td>Tempdb</td>
+                <td>Memory (limited)</td>
+                <td>Dedicated memory pool</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Temp table: Large dataset processing</span>
+<span class="code-keyword">CREATE TABLE</span> #TempSales (
+    SaleID <span class="code-keyword">INT</span> <span class="code-keyword">PRIMARY KEY</span>,
+    CustomerID <span class="code-keyword">INT</span>,
+    SaleAmount <span class="code-keyword">DECIMAL</span>(10,2),
+    SaleDate <span class="code-keyword">DATE</span>
+);
+
+<span class="code-keyword">CREATE INDEX</span> IX_Temp_Customer ON #TempSales (CustomerID);
+
+<span class="code-keyword">INSERT INTO</span> #TempSales
+<span class="code-keyword">SELECT</span> SaleID, CustomerID, SaleAmount, SaleDate
+<span class="code-keyword">FROM</span> SalesData
+<span class="code-keyword">WHERE</span> SaleDate >= '2023-01-01';
+
+<span class="code-keyword">SELECT</span> CustomerID, <span class="code-function">SUM</span>(SaleAmount) FROM #TempSales <span class="code-keyword">GROUP BY</span> CustomerID;
+
+<span class="code-keyword">DROP TABLE</span> #TempSales;
+
+<span class="code-comment">-- Table variable: Small result sets</span>
+<span class="code-keyword">DECLARE</span> @TopCustomers <span class="code-keyword">TABLE</span> (
+    CustomerID <span class="code-keyword">INT</span> <span class="code-keyword">PRIMARY KEY</span>,
+    TotalSales <span class="code-keyword">DECIMAL</span>(10,2)
+);
+
+<span class="code-keyword">INSERT INTO</span> @TopCustomers
+<span class="code-keyword">SELECT</span> <span class="code-keyword">TOP</span> 100 CustomerID, <span class="code-function">SUM</span>(SaleAmount)
+<span class="code-keyword">FROM</span> SalesData
+<span class="code-keyword">GROUP BY</span> CustomerID
+<span class="code-keyword">ORDER BY</span> <span class="code-function">SUM</span>(SaleAmount) <span class="code-keyword">DESC</span>;
+
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> @TopCustomers;
+
+<span class="code-comment">-- Memory-optimized table (basic introduction)</span>
+<span class="code-keyword">CREATE TABLE</span> dbo.MemorySales (
+    SaleID <span class="code-keyword">INT</span> <span class="code-keyword">NOT NULL</span> <span class="code-keyword">PRIMARY KEY</span> <span class="code-keyword">NONCLUSTERED</span> <span class="code-keyword">HASH</span> <span class="code-keyword">WITH</span> (BUCKET_COUNT = 100000),
+    CustomerID <span class="code-keyword">INT</span> <span class="code-keyword">NOT NULL</span>,
+    SaleAmount <span class="code-keyword">DECIMAL</span>(10,2) <span class="code-keyword">NOT NULL</span>,
+    SaleDate <span class="code-keyword">DATETIME2</span> <span class="code-keyword">NOT NULL</span>
+) <span class="code-keyword">WITH</span> (MEMORY_OPTIMIZED = ON, DURABILITY = SCHEMA_AND_DATA);</code>
+        </div>
+        
+        <h2>🏭 ETL Staging Optimization</h2>
+        
+        <h3>Optimizing Staging Processes</h3>
+        <div class="concept-box">
+            <div class="concept-title">Staging Best Practices</div>
+            <div class="concept-description">
+                <strong style="color: #60a5fa;">Minimal logging:</strong> Use BULK INSERT, SELECT INTO for staging tables<br>
+                <strong style="color: #60a5fa;">Tempdb optimization:</strong> Size tempdb appropriately, use multiple files<br>
+                <strong style="color: #60a5fa;">Batch processing:</strong> Process data in chunks to reduce log growth<br>
+                <strong style="color: #60a5fa;">Indexing strategy:</strong> Create indexes after loading, drop before loading<br>
+                <strong style="color: #60a5fa;">Memory-optimized staging:</strong> For high-throughput ETL processes<br>
+                <strong style="color: #60a5fa;">Parallel processing:</strong> Use multiple threads for large data loads
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Optimized staging pattern</span>
+<span class="code-keyword">CREATE TABLE</span> #StagingData (
+    ID <span class="code-keyword">INT</span> <span class="code-keyword">IDENTITY</span>(1,1),
+    RawData <span class="code-keyword">NVARCHAR</span>(MAX),
+    ProcessedFlag <span class="code-keyword">BIT</span> <span class="code-keyword">DEFAULT</span> 0
+);
+
+<span class="code-comment">-- Bulk load with minimal logging</span>
+<span class="code-keyword">BULK INSERT</span> #StagingData
+<span class="code-keyword">FROM</span> 'C:\Data\ImportFile.csv'
+<span class="code-keyword">WITH</span> (
+    FIELDTERMINATOR = ',',
+    ROWTERMINATOR = '\n',
+    TABLOCK
+);
+
+<span class="code-comment">-- Process in batches</span>
+<span class="code-keyword">DECLARE</span> @BatchSize <span class="code-keyword">INT</span> = 10000;
+<span class="code-keyword">DECLARE</span> @Processed <span class="code-keyword">INT</span> = 0;
+
+<span class="code-keyword">WHILE</span> @Processed < 1
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">UPDATE</span> <span class="code-keyword">TOP</span> (@BatchSize) #StagingData
+    <span class="code-keyword">SET</span> ProcessedFlag = 1
+    <span class="code-keyword">WHERE</span> ProcessedFlag = 0;
+    
+    <span class="code-keyword">INSERT INTO</span> ProductionTable
+    <span class="code-keyword">SELECT</span> <span class="code-comment">-- parsed data from RawData</span>
+    <span class="code-keyword">FROM</span> #StagingData
+    <span class="code-keyword">WHERE</span> ProcessedFlag = 1;
+    
+    <span class="code-keyword">SET</span> @Processed = @@ROWCOUNT;
+<span class="code-keyword">END</span>;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 When to Use Each:</strong> Use temp tables for large/complex operations needing indexes. Use table variables for small, simple result sets. 
+            Consider memory-optimized tables for high-concurrency staging scenarios.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Performance Gotchas:</strong> Table variables don't have statistics, leading to poor query plans on large data. 
+            Temp tables in loops can cause recompilation. Always test with realistic data volumes.
+        </div>
+        
+        <h2>📊 Comparison Summary</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Technique</th>
+                <th>Best For</th>
+                <th>Limitations</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>APPLY</strong></td>
+                <td>Correlated subqueries, TVF calls, top-N per group</td>
+                <td>Can be less efficient than JOINs for simple cases</td>
+                </tr>
+                <tr>
+                    <td><strong>Derived Tables</strong></td>
+                <td>Complex aggregations, one-time use</td>
+                <td>No indexing, single query scope</td>
+                </tr>
+                <tr>
+                    <td><strong>Temp Tables (#)</strong></td>
+                <td>Large datasets, multiple operations, indexing</td>
+                <td>Tempdb usage, session scope</td>
+                </tr>
+                <tr>
+                    <td><strong>Table Variables (@)</strong></td>
+                <td>Small datasets, stored procedures</td>
+                <td>No statistics, limited indexing</td>
+                </tr>
+                <tr>
+                    <td><strong>Memory-Optimized</strong></td>
+                <td>High-concurrency OLTP, fast lookups</td>
+                <td>Requires Enterprise edition, memory limits</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Use CROSS APPLY for correlated subqueries that must return results</li>
+                <li>Apply OUTER APPLY for optional correlated results</li>
+                <li>Implement top-N per group using APPLY operators</li>
+                <li>Create derived tables for complex query logic</li>
+                <li>Understand scope and limitations of derived tables</li>
+                <li>Use temp tables (#) for large dataset processing</li>
+                <li>Create indexes on temp tables for performance</li>
+                <li>Use table variables (@) for small, simple result sets</li>
+                <li>Recognize when table variables cause poor query plans</li>
+                <li>Introduction to memory-optimized tables for high performance</li>
+                <li>Implement minimal logging for staging tables</li>
+                <li>Use batch processing for large ETL operations</li>
+                <li>Optimize tempdb usage in staging processes</li>
+                <li>Choose appropriate temporary storage based on data size and usage</li>
+                <li>Handle transactions and error recovery in staging</li>
+                <li>Monitor performance of different temporary object types</li>
+                <li>Use APPLY with table-valued functions</li>
+                <li>Avoid common pitfalls with temporary objects</li>
+                <li>Design efficient ETL staging patterns</li>
+                <li>Test staging processes with production data volumes</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>APPLY Operations:</strong> Use CROSS APPLY to find the top 3 selling products per category. Use OUTER APPLY to show customer order history with NULLs for inactive customers.</li>
+                <li><strong>Derived Tables:</strong> Create a derived table to calculate customer lifetime value, then join it with customer demographics for segmentation analysis.</li>
+                <li><strong>Temporary Objects:</strong> Compare performance between temp tables and table variables for a dataset of 10,000 rows. Implement proper indexing on temp tables.</li>
+                <li><strong>ETL Staging:</strong> Design a staging process that loads CSV data into a temp table, validates it, and then inserts clean data into production tables using batch processing.</li>
+                <li><strong>Advanced Scenarios:</strong> Combine APPLY with derived tables to create complex analytical queries. Optimize a slow ETL process by switching from table variables to temp tables.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/07-grouping-advanced-rollup.html" class="nav-btn">← Previous: Advanced Grouping: ROLLUP/CUBE/GROUPING SETS</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/09-indexing-fundamentals.html" class="nav-btn">Next: Indexing Fundamentals →</a>
+        </div>
+    </div>
+</body>
+</html>

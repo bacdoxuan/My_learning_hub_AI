@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #21 - Always On & Monitoring</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #7c3aed;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #a78bfa;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #a78bfa;
+            border-bottom: 2px solid #7c3aed;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #c4b5fd;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #7c3aed;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #a78bfa;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #a78bfa;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #a78bfa;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #a78bfa;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #a78bfa;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #a78bfa;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #7c3aed;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #6d28d9;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟣 SQL Server Always On & Monitoring</h1>
+        <p>High Availability, Disaster Recovery & Proactive Administration</p>
+        <div class="badge">HA/DR & Operations</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This final module covers Always On Availability Groups for high availability and disaster recovery, 
+            including maintenance considerations. It also provides a monitoring "starter kit" using Dynamic 
+            Management Views (DMVs) and Extended Events for proactive SQL Server administration.
+        </p>
+        
+        <h2>🔄 Always On Availability Groups</h2>
+        
+        <h3>High Availability & Disaster Recovery</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Always On Overview</div>
+                <div class="concept-description">
+                    <strong style="color: #a78bfa;">Availability Groups:</strong> Collection of databases with automatic failover<br>
+                    <strong style="color: #a78bfa;">Replicas:</strong> Primary + up to 8 secondary replicas<br>
+                    <strong style="color: #a78bfa;">Synchronous commit:</strong> Data committed on primary and secondary<br>
+                    <strong style="color: #a78bfa;">Asynchronous commit:</strong> Primary commits immediately, secondary catches up<br>
+                    <strong style="color: #a78bfa;">Automatic failover:</strong> Detects failure and switches automatically<br>
+                    <strong style="color: #a78bfa;">Read-only replicas:</strong> Offload read workloads to secondaries
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Failover Types</div>
+                <div class="concept-description">
+                    <strong style="color: #a78bfa;">Automatic failover:</strong> Synchronous replicas, no data loss<br>
+                    <strong style="color: #a78bfa;">Manual failover:</strong> Planned switch with no data loss<br>
+                    <strong style="color: #a78bfa;">Forced failover:</strong> Emergency switch, potential data loss<br>
+                    <strong style="color: #a78bfa;">Read-only routing:</strong> Direct read queries to appropriate replicas<br>
+                    <strong style="color: #a78bfa;">Listener:</strong> Virtual network name for transparent connections<br>
+                    <strong style="color: #a78bfa;">Quorum:</strong> Voting mechanism to prevent split-brain scenarios
+                </div>
+            </div>
+        </div>
+        
+        <h3>Maintenance in Always On Environment</h3>
+        <div class="concept-box">
+            <div class="concept-title">Operational Considerations</div>
+            <div class="concept-description">
+                <strong style="color: #a78bfa;">Patching:</strong> Update secondaries first, then primary with failover<br>
+                <strong style="color: #a78bfa;">Backups:</strong> Can be taken from any readable secondary<br>
+                <strong style="color: #a78bfa;">Index maintenance:</strong> Perform on secondaries to reduce primary load<br>
+                <strong style="color: #a78bfa;">Monitoring:</strong> Track synchronization status and performance<br>
+                <strong style="color: #a78bfa;">Resource Governor:</strong> Control resource usage across replicas<br>
+                <strong style="color: #a78bfa;">Network considerations:</strong> Low-latency connections required
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Create availability group (simplified)</span>
+<span class="code-keyword">CREATE AVAILABILITY GROUP</span> MyAG
+<span class="code-keyword">WITH</span> (
+    AUTOMATED_BACKUP_PREFERENCE = SECONDARY,
+    FAILURE_CONDITION_LEVEL = 1,
+    HEALTH_CHECK_TIMEOUT = 30000
+)
+<span class="code-keyword">FOR DATABASE</span> MyDatabase
+<span class="code-keyword">REPLICA ON</span> 
+    'PrimaryServer' <span class="code-keyword">WITH</span> (
+        ENDPOINT_URL = 'TCP://PrimaryServer:5022',
+        AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
+        FAILOVER_MODE = AUTOMATIC,
+        SECONDARY_ROLE(ALLOW_CONNECTIONS = READ_ONLY)
+    ),
+    'SecondaryServer' <span class="code-keyword">WITH</span> (
+        ENDPOINT_URL = 'TCP://SecondaryServer:5022',
+        AVAILABILITY_MODE = SYNCHRONOUS_COMMIT,
+        FAILOVER_MODE = AUTOMATIC,
+        SECONDARY_ROLE(ALLOW_CONNECTIONS = READ_ONLY)
+    );
+
+<span class="code-comment">-- Join secondary to AG</span>
+<span class="code-keyword">ALTER AVAILABILITY GROUP</span> MyAG <span class="code-keyword">JOIN</span>;
+
+<span class="code-comment">-- Add database to AG on primary</span>
+<span class="code-keyword">ALTER AVAILABILITY GROUP</span> MyAG <span class="code-keyword">ADD DATABASE</span> MyDatabase;
+
+<span class="code-comment">-- Create listener</span>
+<span class="code-keyword">ALTER AVAILABILITY GROUP</span> MyAG
+<span class="code-keyword">ADD LISTENER</span> 'MyListener' (
+    <span class="code-keyword">WITH</span> IP(('192.168.1.100', '255.255.255.0')),
+    PORT(1433)
+);
+
+<span class="code-comment">-- Manual failover</span>
+<span class="code-keyword">ALTER AVAILABILITY GROUP</span> MyAG <span class="code-keyword">FAILOVER</span>;
+
+<span class="code-comment">-- Check synchronization status</span>
+<span class="code-keyword">SELECT</span> 
+    ag.name AS AGName,
+    ar.replica_server_name,
+    ars.role_desc,
+    ars.operational_state_desc,
+    ars.synchronization_health_desc
+<span class="code-keyword">FROM</span> sys.availability_groups ag
+<span class="code-keyword">JOIN</span> sys.availability_replicas ar <span class="code-keyword">ON</span> ag.group_id = ar.group_id
+<span class="code-keyword">JOIN</span> sys.dm_hadr_availability_replica_states ars <span class="code-keyword">ON</span> ar.replica_id = ars.replica_id;
+
+<span class="code-comment">-- Monitor data latency</span>
+<span class="code-keyword">SELECT</span> 
+    db_name(database_id) AS DatabaseName,
+    last_commit_time,
+    <span class="code-function">DATEDIFF</span>(ms, last_commit_time, GETDATE()) AS LatencyMS
+<span class="code-keyword">FROM</span> sys.dm_hadr_database_replica_states
+<span class="code-keyword">WHERE</span> is_primary_replica = 0;</code>
+        </div>
+        
+        <h2>📊 Monitoring: DMVs & Extended Events</h2>
+        
+        <h3>Dynamic Management Views (DMVs)</h3>
+        <div class="concept-box">
+            <div class="concept-title">Essential DMVs for Monitoring</div>
+            <div class="concept-description">
+                <strong style="color: #a78bfa;">Performance monitoring:</strong> sys.dm_exec_query_stats, sys.dm_os_performance_counters<br>
+                <strong style="color: #a78bfa;">Blocking analysis:</strong> sys.dm_exec_requests, sys.dm_os_waiting_tasks<br>
+                <strong style="color: #a78bfa;">Index usage:</strong> sys.dm_db_index_usage_stats, sys.dm_db_missing_index_details<br>
+                <strong style="color: #a78bfa;">Memory analysis:</strong> sys.dm_os_memory_clerks, sys.dm_os_ring_buffers<br>
+                <strong style="color: #a78bfa;">I/O monitoring:</strong> sys.dm_io_virtual_file_stats<br>
+                <strong style="color: #a78bfa;">Always On status:</strong> sys.dm_hadr_availability_replica_states
+            </div>
+        </div>
+        
+        <h3>Extended Events "Starter Kit"</h3>
+        <div class="concept-box">
+            <div class="concept-title">Event Monitoring</div>
+            <div class="concept-description">
+                <strong style="color: #a78bfa;">Lightweight tracing:</strong> Low overhead event collection<br>
+                <strong style="color: #a78bfa;">Customizable:</strong> Define events, filters, and actions<br>
+                <strong style="color: #a78bfa;">Real-time analysis:</strong> Watch events as they occur<br>
+                <strong style="color: #a78bfa;">Historical data:</strong> Store events in files or ring buffers<br>
+                <strong style="color: #a78bfa;">Integration:</strong> Works with SQL Server and Azure<br>
+                <strong style="color: #a78bfa;">Common events:</strong> sql_statement_completed, lock_acquired, deadlock_monitor
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- DMV: Top 10 most expensive queries</span>
+<span class="code-keyword">SELECT</span> <span class="code-keyword">TOP</span> 10
+    qs.execution_count,
+    qs.total_worker_time / qs.execution_count AS avg_cpu_time,
+    qs.total_elapsed_time / qs.execution_count AS avg_elapsed_time,
+    qs.total_logical_reads / qs.execution_count AS avg_logical_reads,
+    <span class="code-function">SUBSTRING</span>(st.text, (qs.statement_start_offset/2)+1, 
+        ((<span class="code-keyword">CASE</span> qs.statement_end_offset 
+            <span class="code-keyword">WHEN</span> -1 <span class="code-keyword">THEN</span> <span class="function">DATALENGTH</span>(st.text) 
+            <span class="code-keyword">ELSE</span> qs.statement_end_offset <span class="code-keyword">END</span> - qs.statement_start_offset)/2) + 1) AS statement_text
+<span class="code-keyword">FROM</span> sys.dm_exec_query_stats qs
+<span class="code-keyword">CROSS APPLY</span> sys.dm_exec_sql_text(qs.sql_handle) st
+<span class="code-keyword">ORDER BY</span> qs.total_worker_time <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- DMV: Current blocking</span>
+<span class="code-keyword">SELECT</span> 
+    r.session_id,
+    r.blocking_session_id,
+    r.wait_type,
+    r.wait_time,
+    r.cpu_time,
+    r.logical_reads,
+    <span class="code-function">SUBSTRING</span>(st.text, (r.statement_start_offset/2)+1,
+        ((<span class="code-keyword">CASE</span> r.statement_end_offset
+            <span class="code-keyword">WHEN</span> -1 <span class="code-keyword">THEN</span> <span class="function">DATALENGTH</span>(st.text)
+            <span class="code-keyword">ELSE</span> r.statement_end_offset <span class="code-keyword">END</span> - r.statement_start_offset)/2) + 1) AS sql_text
+<span class="code-keyword">FROM</span> sys.dm_exec_requests r
+<span class="code-keyword">CROSS APPLY</span> sys.dm_exec_sql_text(r.sql_handle) st
+<span class="code-keyword">WHERE</span> r.blocking_session_id <> 0;
+
+<span class="code-comment">-- DMV: Missing indexes</span>
+<span class="code-keyword">SELECT</span> 
+    db_name(database_id) AS DatabaseName,
+    equality_columns,
+    inequality_columns,
+    included_columns,
+    avg_fragmentation_in_percent,
+    avg_user_impact
+<span class="code-keyword">FROM</span> sys.dm_db_missing_index_details mid
+<span class="code-keyword">JOIN</span> sys.dm_db_missing_index_groups mig <span class="code-keyword">ON</span> mid.index_handle = mig.index_handle
+<span class="code-keyword">JOIN</span> sys.dm_db_missing_index_group_stats migs <span class="code-keyword">ON</span> mig.index_group_handle = migs.group_handle
+<span class="code-keyword">ORDER BY</span> avg_user_impact <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- Extended Events: Create session for deadlock monitoring</span>
+<span class="code-keyword">CREATE EVENT SESSION</span> DeadlockMonitor
+<span class="code-keyword">ON SERVER</span>
+<span class="code-keyword">ADD EVENT</span> sqlserver.xml_deadlock_report
+<span class="code-keyword">ADD TARGET</span> package0.event_file (
+    <span class="code-keyword">SET</span> filename = 'C:\XEvents\Deadlocks.xel'
+);
+
+<span class="code-keyword">ALTER EVENT SESSION</span> DeadlockMonitor <span class="code-keyword">ON SERVER STATE</span> = START;
+
+<span class="code-comment">-- Extended Events: Monitor long-running queries</span>
+<span class="code-keyword">CREATE EVENT SESSION</span> LongRunningQueries
+<span class="code-keyword">ON SERVER</span>
+<span class="code-keyword">ADD EVENT</span> sqlserver.sql_statement_completed (
+    <span class="code-keyword">WHERE</span> duration > 5000000  <span class="code-comment">-- 5 seconds in microseconds</span>
+)
+<span class="code-keyword">ADD TARGET</span> package0.ring_buffer;
+
+<span class="code-keyword">ALTER EVENT SESSION</span> LongRunningQueries <span class="code-keyword">ON SERVER STATE</span> = START;
+
+<span class="code-comment">-- Query Extended Events data</span>
+<span class="code-keyword">SELECT</span> 
+    object_name,
+    <span class="code-function">CAST</span>(event_data <span class="code-keyword">AS</span> <span class="code-keyword">XML</span>) AS EventXML
+<span class="code-keyword">FROM</span> sys.fn_xe_file_target_read_file('C:\XEvents\Deadlocks*.xel', NULL, NULL, NULL);
+
+<span class="code-comment">-- Ring buffer target query</span>
+<span class="code-keyword">SELECT</span> 
+    <span class="code-function">CAST</span>(target_data <span class="code-keyword">AS</span> <span class="code-keyword">XML</span>) AS TargetData
+<span class="code-keyword">FROM</span> sys.dm_xe_session_targets st
+<span class="code-keyword">JOIN</span> sys.dm_xe_sessions s <span class="code-keyword">ON</span> st.event_session_address = s.address
+<span class="code-keyword">WHERE</span> s.name = 'LongRunningQueries';</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Always On Best Practices:</strong> Use synchronous mode for critical databases. Test failover regularly. 
+            Monitor synchronization latency. Keep replicas in different data centers for DR.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Monitoring Considerations:</strong> DMVs provide point-in-time data. Extended Events have low overhead but require configuration. 
+            Combine with alerts and automated responses for proactive management.
+        </div>
+        
+        <h2>📊 Monitoring Metrics Overview</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Category</th>
+                <th>Key Metrics</th>
+                <th>Tools</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                <td><strong>Performance</strong></td>
+                <td>CPU usage, memory, I/O</td>
+                <td>DMVs, PerfMon</td>
+                </tr>
+                <tr>
+                <td><strong>Blocking</strong></td>
+                <td>Lock waits, deadlocks</td>
+                <td>DMVs, Extended Events</td>
+                </tr>
+                <tr>
+                <td><strong>Availability</strong></td>
+                <td>Replica sync status</td>
+                <td>DMVs, Always On Dashboard</td>
+                </tr>
+                <tr>
+                <td><strong>Storage</strong></td>
+                <td>Free space, growth rate</td>
+                <td>DMVs, File stats</td>
+                </tr>
+                <tr>
+                <td><strong>Security</strong></td>
+                <td>Failed logins, permission changes</td>
+                <td>Audit logs, DMVs</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Always On & Monitoring Checklist</h3>
+            <ul>
+                <li>Design availability groups with appropriate replica count</li>
+                <li>Choose synchronous vs asynchronous based on requirements</li>
+                <li>Configure automatic failover for critical databases</li>
+                <li>Set up read-only routing for load balancing</li>
+                <li>Test manual and automatic failover scenarios</li>
+                <li>Monitor synchronization health and latency</li>
+                <li>Plan maintenance windows for patching and updates</li>
+                <li>Configure backup preferences for AG environment</li>
+                <li>Use DMVs to monitor query performance</li>
+                <li>Set up Extended Events for deadlock monitoring</li>
+                <li>Monitor blocking and wait statistics</li>
+                <li>Track index usage and missing indexes</li>
+                <li>Monitor memory and I/O usage</li>
+                <li>Set up alerts for critical events</li>
+                <li>Implement automated monitoring scripts</li>
+                <li>Document monitoring thresholds and responses</li>
+                <li>Test disaster recovery procedures</li>
+                <li>Monitor network latency between replicas</li>
+                <li>Use Resource Governor for workload management</li>
+                <li>Implement comprehensive logging strategy</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Always On Setup:</strong> Configure a basic availability group with synchronous replication and test failover.</li>
+                <li><strong>DMV Monitoring:</strong> Use DMVs to identify top resource-consuming queries and blocking issues.</li>
+                <li><strong>Extended Events:</strong> Create and configure Extended Events sessions for monitoring specific events like deadlocks.</li>
+                <li><strong>Performance Analysis:</strong> Analyze wait statistics and I/O patterns using DMVs.</li>
+                <li><strong>Maintenance Planning:</strong> Develop a maintenance plan for an Always On environment including patching and backups.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/20-security-backup.html" class="nav-btn">← Previous: Security & Backup/Restore</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+        </div>
+    </div>
+</body>
+</html>

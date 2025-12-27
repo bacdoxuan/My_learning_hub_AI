@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Cheat Sheet #15 - Security</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #e67e22 0%, #d35400 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #fff;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(230,126,34,0.3);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e67e22;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #e67e22;
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #e67e22;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-bool {
+      color: #ff7b72;
+    }
+    .code-prop {
+      color: #7ee787;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(230,126,34,0.2), rgba(211,84,0,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #e67e22;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(230,126,34,0.2);
+      color: #e67e22;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-blue {
+      background: rgba(33,150,243,0.2);
+      color: #64b5f6;
+    }
+    .tag-green {
+      background: rgba(76,175,80,0.2);
+      color: #81c784;
+    }
+    .tag-orange {
+      background: rgba(255,152,0,0.2);
+      color: #ffb74d;
+    }
+    .tag-red {
+      background: rgba(244,67,54,0.2);
+      color: #e57373;
+    }
+    .tag-purple {
+      background: rgba(156,39,176,0.2);
+      color: #ce93d8;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(33,150,243,0.1);
+      border-left: 3px solid #2196f3;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(244,67,54,0.1);
+      border-left: 3px solid #f44336;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(76,175,80,0.1);
+      border-left: 3px solid #4caf50;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .critical-box {
+      background: rgba(231,76,60,0.2);
+      border: 2px solid #e74c3c;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-size: 0.95em;
+    }
+    .section-title {
+      color: #e67e22;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(230,126,34,0.3);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .comparison-table th {
+      background: rgba(230,126,34,0.2);
+      color: #e67e22;
+    }
+    .comparison-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .example-box {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .example-title {
+      color: #e67e22;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
+    .security-layer {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 15px 0;
+    }
+    .layer-card {
+      background: rgba(0,0,0,0.3);
+      border-radius: 10px;
+      padding: 15px;
+      text-align: center;
+      border-top: 3px solid;
+    }
+    .layer-card.network { border-color: #3498db; }
+    .layer-card.auth { border-color: #e67e22; }
+    .layer-card.authz { border-color: #e74c3c; }
+    .layer-card.encryption { border-color: #9b59b6; }
+    .layer-card.audit { border-color: #27ae60; }
+    .checklist {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+    .checklist-item {
+      padding: 8px 0;
+      padding-left: 30px;
+      position: relative;
+    }
+    .checklist-item::before {
+      content: "☐";
+      position: absolute;
+      left: 0;
+      color: #e67e22;
+      font-size: 1.2em;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+    @media (max-width: 768px) {
+      .security-layer {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🍃 MongoDB Cheat Sheet #15</h1>
+      <div class="subtitle">Security Best Practices</div>
+      <div class="badge">🔐 Authentication • Authorization • Encryption • Network Security</div>
+    </div>
+
+    <!-- Security Overview -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🛡️</span>
+          <span class="card-title">Security Layers</span>
+        </div>
+        <div class="highlight">
+          MongoDB security là <strong>defense in depth</strong> - nhiều lớp bảo vệ
+        </div>
+        
+        <div class="security-layer">
+          <div class="layer-card network">
+            <div style="font-size: 2em; margin-bottom: 10px;">🌐</div>
+            <strong style="color: #64b5f6;">Network Security</strong>
+            <div style="margin-top: 10px; font-size: 0.85em;">
+              • Firewall rules<br>
+              • IP whitelisting<br>
+              • VPN/Private network<br>
+              • bindIp configuration
+            </div>
+          </div>
+          
+          <div class="layer-card auth">
+            <div style="font-size: 2em; margin-bottom: 10px;">🔑</div>
+            <strong style="color: #ffb74d;">Authentication</strong>
+            <div style="margin-top: 10px; font-size: 0.85em;">
+              • Username/Password<br>
+              • x.509 certificates<br>
+              • LDAP/Kerberos<br>
+              • SCRAM-SHA-256
+            </div>
+          </div>
+          
+          <div class="layer-card authz">
+            <div style="font-size: 2em; margin-bottom: 10px;">👥</div>
+            <strong style="color: #e57373;">Authorization</strong>
+            <div style="margin-top: 10px; font-size: 0.85em;">
+              • Role-Based Access<br>
+              • Least Privilege<br>
+              • Custom roles<br>
+              • Field-level security
+            </div>
+          </div>
+          
+          <div class="layer-card encryption">
+            <div style="font-size: 2em; margin-bottom: 10px;">🔒</div>
+            <strong style="color: #ce93d8;">Encryption</strong>
+            <div style="margin-top: 10px; font-size: 0.85em;">
+              • TLS/SSL in transit<br>
+              • Encryption at rest<br>
+              • Client-side encryption<br>
+              • Key management
+            </div>
+          </div>
+          
+          <div class="layer-card audit">
+            <div style="font-size: 2em; margin-bottom: 10px;">📋</div>
+            <strong style="color: #81c784;">Auditing</strong>
+            <div style="margin-top: 10px; font-size: 0.85em;">
+              • Audit logs<br>
+              • Activity monitoring<br>
+              • Compliance tracking<br>
+              • Alert configuration
+            </div>
+          </div>
+        </div>
+
+        <div class="critical-box">
+          <strong style="font-size: 1.1em;">🚨 CRITICAL: Default MongoDB Installation</strong><br>
+          <div style="margin-top: 10px;">
+            • NO authentication enabled by default<br>
+            • Binds to all interfaces (0.0.0.0)<br>
+            • Anyone can connect and access data<br>
+            • <strong style="color: #e74c3c;">NEVER deploy to production without enabling security!</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Enable Authentication -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔐</span>
+          <span class="card-title">Enable Authentication</span>
+        </div>
+        
+        <div class="section-title">Step 1: Create Admin User</div>
+        <div class="code-block">
+          <span class="code-comment">// Connect to MongoDB (no auth yet)</span><br>
+          mongosh<br><br>
+          
+          <span class="code-comment">// Switch to admin database</span><br>
+          <span class="code-keyword">use</span> admin<br><br>
+          
+          <span class="code-comment">// Create admin user</span><br>
+          db.<span class="code-method">createUser</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">user</span>: <span class="code-string">"admin"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">pwd</span>: <span class="code-method">passwordPrompt</span>(),<br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"userAdminAnyDatabase"</span>, <span class="code-prop">db</span>: <span class="code-string">"admin"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"readWriteAnyDatabase"</span>, <span class="code-prop">db</span>: <span class="code-string">"admin"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"dbAdminAnyDatabase"</span>, <span class="code-prop">db</span>: <span class="code-string">"admin"</span> }<br>
+          &nbsp;&nbsp;]<br>
+          })
+        </div>
+
+        <div class="section-title">Step 2: Enable Auth in Config</div>
+        <div class="code-block">
+          <span class="code-comment"># /etc/mongod.conf</span><br><br>
+          
+          security:<br>
+          &nbsp;&nbsp;authorization: enabled
+        </div>
+
+        <div class="section-title">Step 3: Restart MongoDB</div>
+        <div class="code-block">
+          <span class="code-comment"># Linux</span><br>
+          sudo systemctl restart mongod<br><br>
+          
+          <span class="code-comment"># Windows</span><br>
+          net stop MongoDB<br>
+          net start MongoDB
+        </div>
+
+        <div class="section-title">Step 4: Connect with Auth</div>
+        <div class="code-block">
+          <span class="code-comment"># Connection string</span><br>
+          mongosh <span class="code-string">"mongodb://admin:password@localhost:27017/admin"</span><br><br>
+          
+          <span class="code-comment"># Or authenticate after connecting</span><br>
+          mongosh<br>
+          <span class="code-keyword">use</span> admin<br>
+          db.<span class="code-method">auth</span>(<span class="code-string">"admin"</span>, <span class="code-method">passwordPrompt</span>())
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔑</span>
+          <span class="card-title">Authentication Mechanisms</span>
+        </div>
+        
+        <div class="section-title">SCRAM (Default)</div>
+        <div class="code-block">
+          <span class="code-comment">// SCRAM-SHA-256 (default in MongoDB 4.0+)</span><br>
+          db.<span class="code-method">createUser</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">user</span>: <span class="code-string">"myuser"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">pwd</span>: <span class="code-string">"password"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: [{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"mydb"</span> }],<br>
+          &nbsp;&nbsp;<span class="code-prop">mechanisms</span>: [<span class="code-string">"SCRAM-SHA-256"</span>]<br>
+          })
+        </div>
+
+        <div class="section-title">x.509 Certificate</div>
+        <div class="code-block">
+          <span class="code-comment"># mongod.conf</span><br>
+          net:<br>
+          &nbsp;&nbsp;tls:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;mode: requireTLS<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;certificateKeyFile: /path/to/server.pem<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;CAFile: /path/to/ca.pem<br><br>
+          
+          security:<br>
+          &nbsp;&nbsp;authorization: enabled
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Create x.509 user</span><br>
+          db.<span class="code-method">getSiblingDB</span>(<span class="code-string">"$external"</span>).<span class="code-method">createUser</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">user</span>: <span class="code-string">"CN=myuser,OU=IT,O=MyCompany"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: [{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"mydb"</span> }]<br>
+          })
+        </div>
+
+        <div class="section-title">LDAP (Enterprise)</div>
+        <div class="code-block">
+          <span class="code-comment"># mongod.conf</span><br>
+          security:<br>
+          &nbsp;&nbsp;authorization: enabled<br>
+          &nbsp;&nbsp;ldap:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;servers: <span class="code-string">"ldap.example.com"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;bind:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;method: <span class="code-string">"simple"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;userToDNMapping: <span class="code-string">'[{match: "(.+)", ldapQuery: "..."}]'</span>
+        </div>
+
+        <div class="info-box">
+          💡 <strong>SCRAM-SHA-256</strong> is recommended for most use cases
+        </div>
+      </div>
+    </div>
+
+    <!-- Network Security -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🌐</span>
+          <span class="card-title">Network Security</span>
+        </div>
+        
+        <div class="section-title">Bind to Specific IP</div>
+        <div class="code-block">
+          <span class="code-comment"># mongod.conf</span><br>
+          net:<br>
+          &nbsp;&nbsp;port: <span class="code-number">27017</span><br>
+          &nbsp;&nbsp;bindIp: <span class="code-string">127.0.0.1</span>  <span class="code-comment"># Localhost only</span><br><br>
+          
+          <span class="code-comment"># Multiple IPs</span><br>
+          net:<br>
+          &nbsp;&nbsp;bindIp: <span class="code-string">127.0.0.1,192.168.1.100</span><br><br>
+          
+          <span class="code-comment"># Private network only</span><br>
+          net:<br>
+          &nbsp;&nbsp;bindIp: <span class="code-string">10.0.0.5</span>
+        </div>
+
+        <div class="warning-box">
+          ⚠️ <strong>NEVER</strong> use <code>bindIp: 0.0.0.0</code> in production without firewall!
+        </div>
+
+        <div class="section-title">Firewall Rules</div>
+        <div class="code-block">
+          <span class="code-comment"># Linux iptables - Allow only specific IP</span><br>
+          sudo iptables -A INPUT -p tcp -s 192.168.1.100 \<br>
+          &nbsp;&nbsp;--dport 27017 -j ACCEPT<br>
+          sudo iptables -A INPUT -p tcp --dport 27017 -j DROP<br><br>
+          
+          <span class="code-comment"># UFW (Ubuntu)</span><br>
+          sudo ufw allow from 192.168.1.100 to any port 27017<br>
+          sudo ufw deny 27017
+        </div>
+
+        <div class="section-title">AWS Security Group</div>
+        <div class="code-block">
+          <span class="code-comment"># Allow MongoDB port from specific IP</span><br>
+          Type: Custom TCP<br>
+          Port: 27017<br>
+          Source: 192.168.1.100/32<br><br>
+          
+          <span class="code-comment"># Or from security group</span><br>
+          Source: sg-xxxxxxxxx (app server SG)
+        </div>
+
+        <div class="section-title">Change Default Port</div>
+        <div class="code-block">
+          <span class="code-comment"># mongod.conf</span><br>
+          net:<br>
+          &nbsp;&nbsp;port: <span class="code-number">27018</span>  <span class="code-comment"># Non-standard port</span>
+        </div>
+
+        <div class="tip-box">
+          ✅ Use VPN or private network for production deployments
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔒</span>
+          <span class="card-title">TLS/SSL Encryption</span>
+        </div>
+        <div class="highlight">
+          Encrypt data in transit between client and server
+        </div>
+        
+        <div class="section-title">Generate SSL Certificate</div>
+        <div class="code-block">
+          <span class="code-comment"># Self-signed certificate (testing only)</span><br>
+          openssl req -newkey rsa:2048 -nodes -keyout mongodb.key \<br>
+          &nbsp;&nbsp;-x509 -days 365 -out mongodb.crt<br><br>
+          
+          <span class="code-comment"># Combine key and cert</span><br>
+          cat mongodb.key mongodb.crt > mongodb.pem
+        </div>
+
+        <div class="section-title">Enable TLS in Config</div>
+        <div class="code-block">
+          <span class="code-comment"># mongod.conf</span><br>
+          net:<br>
+          &nbsp;&nbsp;tls:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;mode: requireTLS<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;certificateKeyFile: /path/to/mongodb.pem<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;CAFile: /path/to/ca.pem  <span class="code-comment"># Optional</span>
+        </div>
+
+        <div class="section-title">Connect with TLS</div>
+        <div class="code-block">
+          <span class="code-comment"># mongosh</span><br>
+          mongosh --tls \<br>
+          &nbsp;&nbsp;--tlsCAFile /path/to/ca.pem \<br>
+          &nbsp;&nbsp;--tlsCertificateKeyFile /path/to/client.pem \<br>
+          &nbsp;&nbsp;mongodb://host:27017
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Connection string</span><br>
+          mongodb://host:27017/?tls=true&tlsCAFile=/path/to/ca.pem
+        </div>
+
+        <div class="section-title">TLS Modes</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Mode</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td><code>disabled</code></td>
+            <td>No TLS (default)</td>
+          </tr>
+          <tr>
+            <td><code>allowTLS</code></td>
+            <td>Accept both TLS and non-TLS</td>
+          </tr>
+          <tr>
+            <td><code>preferTLS</code></td>
+            <td>Use TLS if available</td>
+          </tr>
+          <tr>
+            <td><code>requireTLS</code></td>
+            <td>Only TLS connections (recommended)</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Encryption at Rest -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">💾</span>
+          <span class="card-title">Encryption at Rest</span>
+        </div>
+        <div class="highlight">
+          Encrypt data files on disk (Enterprise/Atlas feature)
+        </div>
+        
+        <div class="section-title">Enable Encryption (Enterprise)</div>
+        <div class="code-block">
+          <span class="code-comment"># mongod.conf</span><br>
+          security:<br>
+          &nbsp;&nbsp;enableEncryption: <span class="code-bool">true</span><br>
+          &nbsp;&nbsp;encryptionKeyFile: /path/to/keyfile
+        </div>
+
+        <div class="section-title">Generate Encryption Key</div>
+        <div class="code-block">
+          <span class="code-comment"># Generate 32-byte key</span><br>
+          openssl rand -base64 32 > /path/to/mongodb-keyfile<br>
+          chmod 600 /path/to/mongodb-keyfile<br>
+          chown mongodb:mongodb /path/to/mongodb-keyfile
+        </div>
+
+        <div class="section-title">Key Management Service (KMS)</div>
+        <div class="code-block">
+          <span class="code-comment"># AWS KMS</span><br>
+          security:<br>
+          &nbsp;&nbsp;enableEncryption: <span class="code-bool">true</span><br>
+          &nbsp;&nbsp;kmip:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;serverName: kms.amazonaws.com<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;port: <span class="code-number">5696</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;clientCertificateFile: /path/to/client.pem
+        </div>
+
+        <div class="info-box">
+          💡 MongoDB Atlas provides encryption at rest by default
+        </div>
+
+        <div class="section-title">Client-Side Field Level Encryption</div>
+        <div class="code-block">
+          <span class="code-comment">// Node.js example</span><br>
+          <span class="code-keyword">const</span> { ClientEncryption } = <span class="code-keyword">require</span>(<span class="code-string">'mongodb-client-encryption'</span>);<br><br>
+          
+          <span class="code-keyword">const</span> encryption = <span class="code-keyword">new</span> ClientEncryption(client, {<br>
+          &nbsp;&nbsp;<span class="code-prop">keyVaultNamespace</span>: <span class="code-string">'encryption.__keyVault'</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">kmsProviders</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">local</span>: { <span class="code-prop">key</span>: localMasterKey }<br>
+          &nbsp;&nbsp;}<br>
+          });<br><br>
+          
+          <span class="code-comment">// Encrypt field</span><br>
+          <span class="code-keyword">const</span> encryptedSSN = <span class="code-keyword">await</span> encryption.<span class="code-method">encrypt</span>(ssn, {<br>
+          &nbsp;&nbsp;<span class="code-prop">algorithm</span>: <span class="code-string">'AEAD_AES_256_CBC_HMAC_SHA_512-Deterministic'</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">keyId</span>: dataKeyId<br>
+          });
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔐</span>
+          <span class="card-title">Replica Set Security</span>
+        </div>
+        
+        <div class="section-title">Internal Authentication (Keyfile)</div>
+        <div class="code-block">
+          <span class="code-comment"># Generate keyfile</span><br>
+          openssl rand -base64 756 > /path/to/mongodb-keyfile<br>
+          chmod 400 /path/to/mongodb-keyfile<br>
+          chown mongodb:mongodb /path/to/mongodb-keyfile<br><br>
+          
+          <span class="code-comment"># Copy SAME keyfile to all replica set members</span>
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment"># mongod.conf (all members)</span><br>
+          security:<br>
+          &nbsp;&nbsp;authorization: enabled<br>
+          &nbsp;&nbsp;keyFile: /path/to/mongodb-keyfile<br><br>
+          
+          replication:<br>
+          &nbsp;&nbsp;replSetName: <span class="code-string">"rs0"</span>
+        </div>
+
+        <div class="section-title">x.509 for Internal Auth</div>
+        <div class="code-block">
+          <span class="code-comment"># mongod.conf</span><br>
+          net:<br>
+          &nbsp;&nbsp;tls:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;mode: requireTLS<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;certificateKeyFile: /path/to/member.pem<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;CAFile: /path/to/ca.pem<br><br>
+          
+          security:<br>
+          &nbsp;&nbsp;authorization: enabled<br>
+          &nbsp;&nbsp;clusterAuthMode: x509
+        </div>
+
+        <div class="warning-box">
+          ⚠️ All replica set members must have the SAME keyfile or valid x.509 certificates
+        </div>
+      </div>
+    </div>
+
+    <!-- Auditing -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📋</span>
+          <span class="card-title">Auditing (Enterprise)</span>
+        </div>
+        <div class="highlight">
+          Track database activities for compliance and security
+        </div>
+        
+        <div class="section-title">Enable Auditing</div>
+        <div class="code-block">
+          <span class="code-comment"># mongod.conf</span><br>
+          auditLog:<br>
+          &nbsp;&nbsp;destination: file<br>
+          &nbsp;&nbsp;format: JSON<br>
+          &nbsp;&nbsp;path: /var/log/mongodb/audit.json
+        </div>
+
+        <div class="section-title">Audit Filters</div>
+        <div class="code-block">
+          <span class="code-comment"># Audit authentication events only</span><br>
+          auditLog:<br>
+          &nbsp;&nbsp;destination: file<br>
+          &nbsp;&nbsp;format: JSON<br>
+          &nbsp;&nbsp;path: /var/log/mongodb/audit.json<br>
+          &nbsp;&nbsp;filter: '{ atype: "authenticate" }'
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment"># Audit specific database</span><br>
+          auditLog:<br>
+          &nbsp;&nbsp;filter: '{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;atype: "authCheck",<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;"param.ns": { $regex: "^mydb\\." }<br>
+          &nbsp;&nbsp;}'
+        </div>
+
+        <div class="section-title">Audit Events</div>
+        <div class="flex-row">
+          <span class="tag-blue tag">authenticate</span>
+          <span class="tag-green tag">createUser</span>
+          <span class="tag-orange tag">dropUser</span>
+          <span class="tag-red tag">createCollection</span>
+          <span class="tag-purple tag">dropCollection</span>
+          <span class="tag-blue tag">createIndex</span>
+          <span class="tag-green tag">dropIndex</span>
+          <span class="tag-orange tag">insert</span>
+          <span class="tag-red tag">update</span>
+          <span class="tag-purple tag">remove</span>
+        </div>
+
+        <div class="section-title">View Audit Log</div>
+        <div class="code-block">
+          <span class="code-comment"># Tail audit log</span><br>
+          tail -f /var/log/mongodb/audit.json | jq<br><br>
+          
+          <span class="code-comment"># Search for specific user</span><br>
+          grep <span class="code-string">"admin"</span> /var/log/mongodb/audit.json | jq
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">👁️</span>
+          <span class="card-title">Monitoring & Alerting</span>
+        </div>
+        
+        <div class="section-title">Failed Login Attempts</div>
+        <div class="code-block">
+          <span class="code-comment">// Query audit log for failed auth</span><br>
+          <span class="code-keyword">use</span> admin<br>
+          db.system.profile.<span class="code-method">find</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">op</span>: <span class="code-string">"command"</span>,<br>
+          &nbsp;&nbsp;<span class="code-string">"command.authenticate"</span>: { <span class="code-keyword">$exists</span>: <span class="code-bool">true</span> },<br>
+          &nbsp;&nbsp;<span class="code-prop">errCode</span>: { <span class="code-keyword">$exists</span>: <span class="code-bool">true</span> }<br>
+          })
+        </div>
+
+        <div class="section-title">Monitor Suspicious Activity</div>
+        <div class="list-item">Multiple failed login attempts</div>
+        <div class="list-item">Unusual query patterns</div>
+        <div class="list-item">Large data exports</div>
+        <div class="list-item">Schema changes</div>
+        <div class="list-item">User/role modifications</div>
+        <div class="list-item">Access from unknown IPs</div>
+
+        <div class="section-title">MongoDB Atlas Monitoring</div>
+        <div class="code-block">
+          <span class="code-comment">// Atlas provides built-in:</span><br>
+          • Real-time performance monitoring<br>
+          • Security alerts<br>
+          • Access logs<br>
+          • Compliance reports<br>
+          • Automated backups<br>
+          • IP whitelisting
+        </div>
+
+        <div class="tip-box">
+          ✅ Set up alerts for:<br>
+          • Failed authentication attempts<br>
+          • Unauthorized access attempts<br>
+          • Configuration changes<br>
+          • Unusual traffic patterns
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Checklist -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">✅</span>
+          <span class="card-title">Production Security Checklist</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+          <div class="checklist">
+            <strong style="color: #e67e22; font-size: 1.1em;">🔐 Authentication & Authorization</strong>
+            <div class="checklist-item">Enable authentication</div>
+            <div class="checklist-item">Use strong passwords (min 12 chars)</div>
+            <div class="checklist-item">Implement least privilege principle</div>
+            <div class="checklist-item">Create separate users for each application</div>
+            <div class="checklist-item">Disable default accounts</div>
+            <div class="checklist-item">Use passwordPrompt() instead of hardcoding</div>
+            <div class="checklist-item">Rotate passwords regularly</div>
+            <div class="checklist-item">Review user permissions quarterly</div>
+          </div>
+          
+          <div class="checklist">
+            <strong style="color: #e67e22; font-size: 1.1em;">🌐 Network Security</strong>
+            <div class="checklist-item">Bind to specific IP (not 0.0.0.0)</div>
+            <div class="checklist-item">Configure firewall rules</div>
+            <div class="checklist-item">Use VPN or private network</div>
+            <div class="checklist-item">Change default port (optional)</div>
+            <div class="checklist-item">Implement IP whitelisting</div>
+            <div class="checklist-item">Use load balancer with SSL termination</div>
+            <div class="checklist-item">Disable unnecessary network services</div>
+            <div class="checklist-item">Monitor network traffic</div>
+          </div>
+          
+          <div class="checklist">
+            <strong style="color: #e67e22; font-size: 1.1em;">🔒 Encryption</strong>
+            <div class="checklist-item">Enable TLS/SSL for connections</div>
+            <div class="checklist-item">Use valid SSL certificates (not self-signed)</div>
+            <div class="checklist-item">Enable encryption at rest (Enterprise/Atlas)</div>
+            <div class="checklist-item">Encrypt backups</div>
+            <div class="checklist-item">Use client-side field encryption for sensitive data</div>
+            <div class="checklist-item">Secure key management (KMS)</div>
+            <div class="checklist-item">Rotate encryption keys</div>
+            <div class="checklist-item">Encrypt logs containing sensitive data</div>
+          </div>
+          
+          <div class="checklist">
+            <strong style="color: #e67e22; font-size: 1.1em;">📋 Auditing & Monitoring</strong>
+            <div class="checklist-item">Enable audit logging (Enterprise)</div>
+            <div class="checklist-item">Monitor failed login attempts</div>
+            <div class="checklist-item">Set up security alerts</div>
+            <div class="checklist-item">Review audit logs regularly</div>
+            <div class="checklist-item">Track configuration changes</div>
+            <div class="checklist-item">Monitor unusual query patterns</div>
+            <div class="checklist-item">Implement log retention policy</div>
+            <div class="checklist-item">Integrate with SIEM tools</div>
+          </div>
+          
+          <div class="checklist">
+            <strong style="color: #e67e22; font-size: 1.1em;">🛡️ General Security</strong>
+            <div class="checklist-item">Keep MongoDB updated (security patches)</div>
+            <div class="checklist-item">Disable server-side JavaScript ($where)</div>
+            <div class="checklist-item">Validate and sanitize user input</div>
+            <div class="checklist-item">Implement rate limiting</div>
+            <div class="checklist-item">Use connection pooling properly</div>
+            <div class="checklist-item">Secure backup storage</div>
+            <div class="checklist-item">Document security procedures</div>
+            <div class="checklist-item">Conduct security audits regularly</div>
+          </div>
+          
+          <div class="checklist">
+            <strong style="color: #e67e22; font-size: 1.1em;">🔧 Configuration</strong>
+            <div class="checklist-item">Disable HTTP status interface</div>
+            <div class="checklist-item">Disable REST API (deprecated)</div>
+            <div class="checklist-item">Set appropriate file permissions</div>
+            <div class="checklist-item">Run MongoDB as non-root user</div>
+            <div class="checklist-item">Use SELinux/AppArmor (Linux)</div>
+            <div class="checklist-item">Configure resource limits</div>
+            <div class="checklist-item">Secure mongod.conf file (600 permissions)</div>
+            <div class="checklist-item">Remove unnecessary indexes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Common Vulnerabilities -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">⚠️</span>
+          <span class="card-title">Common Security Vulnerabilities</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px;">
+          <div class="example-box" style="border-left: 3px solid #e74c3c;">
+            <div class="example-title" style="color: #e57373;">🚨 NoSQL Injection</div>
+            <div class="code-block" style="margin: 10px 0;">
+              <span class="code-comment">// Vulnerable code</span><br>
+              <span class="code-keyword">const</span> username = req.body.username;<br>
+              db.users.<span class="code-method">findOne</span>({ <span class="code-prop">username</span>: username });<br><br>
+              
+              <span class="code-comment">// Attack: {username: {$ne: null}}</span><br>
+              <span class="code-comment">// Returns first user!</span>
+            </div>
+            <div class="code-block" style="margin: 10px 0;">
+              <span class="code-comment">// Secure code</span><br>
+              <span class="code-keyword">const</span> username = String(req.body.username);<br>
+              db.users.<span class="code-method">findOne</span>({ <span class="code-prop">username</span>: username });
+            </div>
+          </div>
+          
+          <div class="example-box" style="border-left: 3px solid #e74c3c;">
+            <div class="example-title" style="color: #e57373;">🚨 Exposed MongoDB Instance</div>
+            <div style="margin: 10px 0; font-size: 0.9em;">
+              <strong>Problem:</strong><br>
+              • No authentication enabled<br>
+              • Bound to 0.0.0.0<br>
+              • Exposed to internet<br><br>
+              
+              <strong>Solution:</strong><br>
+              • Enable authentication<br>
+              • Bind to specific IP<br>
+              • Use firewall rules<br>
+              • Never expose directly to internet
+            </div>
+          </div>
+          
+          <div class="example-box" style="border-left: 3px solid #e74c3c;">
+            <div class="example-title" style="color: #e57373;">🚨 Weak Passwords</div>
+            <div style="margin: 10px 0; font-size: 0.9em;">
+              <strong>Bad Passwords:</strong><br>
+              • admin/admin<br>
+              • password123<br>
+              • mongodb<br>
+              • Short passwords (&lt; 8 chars)<br><br>
+              
+              <strong>Good Passwords:</strong><br>
+              • Min 12 characters<br>
+              • Mix of upper/lower/numbers/symbols<br>
+              • Use password manager<br>
+              • Rotate regularly
+            </div>
+          </div>
+          
+          <div class="example-box" style="border-left: 3px solid #e74c3c;">
+            <div class="example-title" style="color: #e57373;">🚨 Hardcoded Credentials</div>
+            <div class="code-block" style="margin: 10px 0;">
+              <span class="code-comment">// BAD: Hardcoded in code</span><br>
+              <span class="code-keyword">const</span> uri = <span class="code-string">"mongodb://admin:password@..."</span>;<br><br>
+              
+              <span class="code-comment">// GOOD: Use environment variables</span><br>
+              <span class="code-keyword">const</span> uri = process.env.MONGODB_URI;
+            </div>
+          </div>
+          
+          <div class="example-box" style="border-left: 3px solid #e74c3c;">
+            <div class="example-title" style="color: #e57373;">🚨 Excessive Permissions</div>
+            <div style="margin: 10px 0; font-size: 0.9em;">
+              <strong>Problem:</strong><br>
+              Application user has root/admin privileges<br><br>
+              
+              <strong>Solution:</strong><br>
+              • Use least privilege principle<br>
+              • App user: readWrite on specific DB only<br>
+              • Admin user: separate, used only for admin tasks<br>
+              • No shared accounts
+            </div>
+          </div>
+          
+          <div class="example-box" style="border-left: 3px solid #e74c3c;">
+            <div class="example-title" style="color: #e57373;">🚨 Unencrypted Connections</div>
+            <div style="margin: 10px 0; font-size: 0.9em;">
+              <strong>Problem:</strong><br>
+              Data transmitted in plain text<br><br>
+              
+              <strong>Solution:</strong><br>
+              • Enable TLS/SSL<br>
+              • Use valid certificates<br>
+              • Enforce TLS-only connections<br>
+              • Monitor for non-TLS connections
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Best Practices Summary -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">⭐</span>
+          <span class="card-title">Security Best Practices Summary</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+          <div>
+            <div class="section-title">✅ DO's</div>
+            <div class="list-item">Enable authentication ALWAYS</div>
+            <div class="list-item">Use strong, unique passwords</div>
+            <div class="list-item">Implement least privilege access</div>
+            <div class="list-item">Enable TLS/SSL encryption</div>
+            <div class="list-item">Bind to specific IP addresses</div>
+            <div class="list-item">Use firewall rules</div>
+            <div class="list-item">Keep MongoDB updated</div>
+            <div class="list-item">Enable audit logging</div>
+            <div class="list-item">Monitor security events</div>
+            <div class="list-item">Encrypt sensitive data</div>
+            <div class="list-item">Use environment variables for credentials</div>
+            <div class="list-item">Regular security audits</div>
+          </div>
+          
+          <div>
+            <div class="section-title">❌ DON'Ts</div>
+            <div class="list-item">Never expose MongoDB to internet without security</div>
+            <div class="list-item">Never use default credentials</div>
+            <div class="list-item">Never hardcode passwords in code</div>
+            <div class="list-item">Never use bindIp: 0.0.0.0 in production</div>
+            <div class="list-item">Never disable authentication</div>
+            <div class="list-item">Never share user accounts</div>
+            <div class="list-item">Never grant excessive permissions</div>
+            <div class="list-item">Never ignore security updates</div>
+            <div class="list-item">Never store passwords in plain text</div>
+            <div class="list-item">Never use self-signed certs in production</div>
+          </div>
+        </div>
+
+        <div class="critical-box" style="margin-top: 20px;">
+          <strong style="font-size: 1.2em;">🔥 REMEMBER: Security is NOT optional!</strong><br>
+          <div style="margin-top: 10px; font-size: 0.95em;">
+            • Thousands of MongoDB instances have been compromised due to poor security<br>
+            • Default installations are NOT secure<br>
+            • Security must be configured BEFORE deployment<br>
+            • <strong>Test your security configuration before going to production!</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">📚</span>
+          <span class="card-title">Quick Reference - Security Commands</span>
+        </div>
+        <table class="comparison-table">
+          <tr>
+            <th>Task</th>
+            <th>Command</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td>Create User</td>
+            <td><code>db.createUser({user, pwd, roles})</code></td>
+            <td>Create new user</td>
+          </tr>
+          <tr>
+            <td>Change Password</td>
+            <td><code>db.changeUserPassword("user", pwd)</code></td>
+            <td>Update user password</td>
+          </tr>
+          <tr>
+            <td>Grant Role</td>
+            <td><code>db.grantRolesToUser("user", [roles])</code></td>
+            <td>Add roles to user</td>
+          </tr>
+          <tr>
+            <td>Revoke Role</td>
+            <td><code>db.revokeRolesFromUser("user", [roles])</code></td>
+            <td>Remove roles from user</td>
+          </tr>
+          <tr>
+            <td>View Users</td>
+            <td><code>db.getUsers()</code></td>
+            <td>List all users</td>
+          </tr>
+          <tr>
+            <td>Drop User</td>
+            <td><code>db.dropUser("username")</code></td>
+            <td>Delete user</td>
+          </tr>
+          <tr>
+            <td>Authenticate</td>
+            <td><code>db.auth("user", "password")</code></td>
+            <td>Login to database</td>
+          </tr>
+          <tr>
+            <td>Current User</td>
+            <td><code>db.runCommand({connectionStatus: 1})</code></td>
+            <td>Show current user info</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>📚 MongoDB Cheat Sheet Series | Part 15 of 16</p>
+      <p>Created with Monica AI | December 2024</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #15 - Stored Procedures: Design, Parameters, Security</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #8b5cf6;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #a78bfa;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #a78bfa;
+            border-bottom: 2px solid #8b5cf6;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #c4b5fd;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #8b5cf6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #a78bfa;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #a78bfa;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #a78bfa;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #a78bfa;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #a78bfa;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #a78bfa;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #8b5cf6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #7c3aed;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟣 SQL Server Stored Procedures</h1>
+        <p>Design Best Practices, Parameters, and Security Considerations</p>
+        <div class="badge">Programmability</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers stored procedure design principles, parameter handling (input, output, table-valued), 
+            and security best practices. Learn to write maintainable, secure, and performant stored procedures 
+            that follow SQL Server development standards.
+        </p>
+        
+        <h2>🏗️ Stored Procedure Design Best Practices</h2>
+        
+        <h3>Writing Maintainable & Performant Procedures</h3>
+        <div class="concept-box">
+            <div class="concept-title">Design Principles</div>
+            <div class="concept-description">
+                <strong style="color: #a78bfa;">Single responsibility:</strong> One procedure, one purpose<br>
+                <strong style="color: #a78bfa;">Consistent naming:</strong> usp_ prefix, PascalCase, descriptive names<br>
+                <strong style="color: #a78bfa;">Documentation:</strong> Header comments with purpose, parameters, examples<br>
+                <strong style="color: #a78bfa;">Error handling:</strong> TRY/CATCH with proper transaction management<br>
+                <strong style="color: #a78bfa;">Performance:</strong> Avoid cursors, use set-based operations<br>
+                <strong style="color: #a78bfa;">Security:</strong> Principle of least privilege, validate inputs<br>
+                <strong style="color: #a78bfa;">Testing:</strong> Unit tests, edge cases, performance validation
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Best practice stored procedure template</span>
+<span class="code-keyword">CREATE PROCEDURE</span> [dbo].[usp_ProcessOrder]
+    @OrderID <span class="code-keyword">INT</span>,
+    @ProcessedBy <span class="code-keyword">VARCHAR</span>(100),
+    @Success <span class="code-keyword">BIT</span> = 0 <span class="code-keyword">OUTPUT</span>,
+    @ErrorMessage <span class="code-keyword">VARCHAR</span>(500) = <span class="code-string">''</span> <span class="code-keyword">OUTPUT</span>
+<span class="code-comment">/*
+Purpose: Processes customer orders with validation and inventory checks
+Parameters:
+    @OrderID - The order identifier to process
+    @ProcessedBy - User processing the order
+    @Success - Output flag indicating success
+    @ErrorMessage - Output error description if failed
+Returns: None (results via output parameters)
+Example: EXEC usp_ProcessOrder @OrderID = 123, @ProcessedBy = 'user1'
+Created: 2024-01-15
+Modified: 2024-01-15
+*/</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">SET NOCOUNT ON</span>;
+    <span class="code-keyword">SET XACT_ABORT ON</span>;
+    
+    <span class="code-keyword">BEGIN TRY</span>
+        <span class="code-keyword">BEGIN TRANSACTION</span>;
+        
+            <span class="code-comment">-- Input validation</span>
+            <span class="code-keyword">IF</span> <span class="code-keyword">NOT EXISTS</span> (<span class="code-keyword">SELECT</span> 1 <span class="code-keyword">FROM</span> Orders <span class="code-keyword">WHERE</span> OrderID = @OrderID)
+                <span class="code-keyword">THROW</span> 50001, 'Order not found', 1;
+            
+            <span class="code-comment">-- Business logic</span>
+            <span class="code-keyword">UPDATE</span> Orders <span class="code-keyword">SET</span> Status = 'Processed', ProcessedDate = GETDATE(), 
+                ProcessedBy = @ProcessedBy
+            <span class="code-keyword">WHERE</span> OrderID = @OrderID;
+            
+            <span class="code-comment">-- Update inventory</span>
+            <span class="code-keyword">UPDATE</span> Inventory i
+            <span class="code-keyword">SET</span> i.Quantity = i.Quantity - od.Quantity
+            <span class="code-keyword">FROM</span> Inventory i
+            <span class="code-keyword">INNER JOIN</span> OrderDetails od <span class="code-keyword">ON</span> i.ProductID = od.ProductID
+            <span class="code-keyword">WHERE</span> od.OrderID = @OrderID;
+            
+            <span class="code-keyword">SET</span> @Success = 1;
+            
+        <span class="code-keyword">COMMIT TRANSACTION</span>;
+    <span class="code-keyword">END TRY</span>
+    <span class="code-keyword">BEGIN CATCH</span>
+        <span class="code-keyword">IF</span> <span class="code-function">XACT_STATE</span>() <> 0
+            <span class="code-keyword">ROLLBACK TRANSACTION</span>;
+        
+        <span class="code-keyword">SET</span> @Success = 0;
+        <span class="code-keyword">SET</span> @ErrorMessage = <span class="code-function">ERROR_MESSAGE</span>();
+        
+        <span class="code-keyword">THROW</span>;
+    <span class="code-keyword">END CATCH</span>;
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Calling the procedure</span>
+<span class="code-keyword">DECLARE</span> @Success <span class="code-keyword">BIT</span>, @ErrorMsg <span class="code-keyword">VARCHAR</span>(500);
+<span class="code-keyword">EXEC</span> usp_ProcessOrder @OrderID = 123, @ProcessedBy = 'user1', 
+    @Success = @Success <span class="code-keyword">OUTPUT</span>, @ErrorMessage = @ErrorMsg <span class="code-keyword">OUTPUT</span>;
+
+<span class="code-keyword">SELECT</span> @Success, @ErrorMsg;</code>
+        </div>
+        
+        <h2>📥 Parameters: Input, Output & Table-Valued</h2>
+        
+        <h3>Parameter Types & Usage Patterns</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Input Parameters</div>
+                <div class="concept-description">
+                    <strong style="color: #a78bfa;">Data flow:</strong> Pass values into the procedure<br>
+                    <strong style="color: #a78bfa;">Validation:</strong> Always validate input parameters<br>
+                    <strong style="color: #a78bfa;">Defaults:</strong> Provide sensible default values<br>
+                    <strong style="color: #a78bfa;">Data types:</strong> Match table column types exactly<br>
+                    <strong style="color: #a78bfa;">Performance:</strong> Parameter sniffing considerations
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Output Parameters</div>
+                <div class="concept-description">
+                    <strong style="color: #a78bfa;">Return values:</strong> Pass data back to caller<br>
+                    <strong style="color: #a78bfa;">Multiple results:</strong> Return status, messages, IDs<br>
+                    <strong style="color: #a78bfa;">Initialization:</strong> Set default values in procedure<br>
+                    <strong style="color: #a78bfa;">Size limits:</strong> VARCHAR(MAX) for variable messages<br>
+                    <strong style="color: #a78bfa;">Best practice:</strong> Use for scalar return values
+                </div>
+            </div>
+        </div>
+        
+        <h3>Table-Valued Parameters (TVP)</h3>
+        <div class="concept-box">
+            <div class="concept-title">TVP Benefits & Usage</div>
+            <div class="concept-description">
+                <strong style="color: #a78bfa;">Bulk operations:</strong> Pass multiple rows efficiently<br>
+                <strong style="color: #a78bfa;">Type definition:</strong> User-defined table types<br>
+                <strong style="color: #a78bfa;">Performance:</strong> Better than multiple individual calls<br>
+                <strong style="color: #a78bfa;">Memory tables:</strong> Stored in tempdb, optimized for reads<br>
+                <strong style="color: #a78bfa;">Validation:</strong> Can include constraints on TVP<br>
+                <strong style="color: #a78bfa;">Use cases:</strong> Bulk inserts, batch processing, complex filters
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Table-valued parameter example</span>
+<span class="code-comment">-- 1. Create user-defined table type</span>
+<span class="code-keyword">CREATE TYPE</span> OrderItemTableType <span class="code-keyword">AS TABLE</span> (
+    ProductID <span class="code-keyword">INT</span> <span class="code-keyword">NOT NULL</span>,
+    Quantity <span class="code-keyword">INT</span> <span class="code-keyword">NOT NULL</span> <span class="code-keyword">CHECK</span> (Quantity > 0),
+    UnitPrice <span class="code-keyword">DECIMAL</span>(10,2) <span class="code-keyword">NOT NULL</span>,
+    <span class="code-keyword">PRIMARY KEY</span> (ProductID)
+);
+
+<span class="code-comment">-- 2. Stored procedure using TVP</span>
+<span class="code-keyword">CREATE PROCEDURE</span> usp_BulkInsertOrderItems
+    @OrderID <span class="code-keyword">INT</span>,
+    @OrderItems OrderItemTableType <span class="code-keyword">READONLY</span>,
+    @TotalItems <span class="code-keyword">INT</span> = 0 <span class="code-keyword">OUTPUT</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">SET NOCOUNT ON</span>;
+    
+    <span class="code-keyword">BEGIN TRY</span>
+        <span class="code-keyword">BEGIN TRANSACTION</span>;
+        
+            <span class="code-comment">-- Insert order items</span>
+            <span class="code-keyword">INSERT INTO</span> OrderDetails (OrderID, ProductID, Quantity, UnitPrice)
+            <span class="code-keyword">SELECT</span> @OrderID, ProductID, Quantity, UnitPrice
+            <span class="code-keyword">FROM</span> @OrderItems;
+            
+            <span class="code-comment">-- Update inventory</span>
+            <span class="code-keyword">UPDATE</span> Inventory
+            <span class="code-keyword">SET</span> Quantity = Inventory.Quantity - oi.Quantity
+            <span class="code-keyword">FROM</span> Inventory i
+            <span class="code-keyword">INNER JOIN</span> @OrderItems oi <span class="code-keyword">ON</span> i.ProductID = oi.ProductID;
+            
+            <span class="code-keyword">SET</span> @TotalItems = @@ROWCOUNT;
+            
+        <span class="code-keyword">COMMIT TRANSACTION</span>;
+    <span class="code-keyword">END TRY</span>
+    <span class="code-keyword">BEGIN CATCH</span>
+        <span class="code-keyword">IF</span> <span class="code-function">XACT_STATE</span>() <> 0
+            <span class="code-keyword">ROLLBACK TRANSACTION</span>;
+        <span class="code-keyword">THROW</span>;
+    <span class="code-keyword">END CATCH</span>;
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Using TVP from application code</span>
+<span class="code-comment">-- 1. Create DataTable or equivalent with matching structure</span>
+<span class="code-comment">-- 2. Populate with order items</span>
+<span class="code-comment">-- 3. Pass as parameter</span>
+
+<span class="code-comment">-- T-SQL example using table variable</span>
+<span class="code-keyword">DECLARE</span> @Items OrderItemTableType;
+<span class="code-keyword">INSERT INTO</span> @Items <span class="code-keyword">VALUES</span> (1, 5, 29.99), (2, 3, 49.99), (3, 1, 99.99);
+
+<span class="code-keyword">DECLARE</span> @Total <span class="code-keyword">INT</span>;
+<span class="code-keyword">EXEC</span> usp_BulkInsertOrderItems @OrderID = 123, @OrderItems = @Items, 
+    @TotalItems = @Total <span class="code-keyword">OUTPUT</span>;
+
+<span class="code-keyword">SELECT</span> 'Total items inserted: ' + <span class="code-function">CAST</span>(@Total <span class="code-keyword">AS</span> <span class="code-keyword">VARCHAR</span>);</code>
+        </div>
+        
+        <h2>🔐 Security Considerations</h2>
+        
+        <h3>Securing Stored Procedures</h3>
+        <div class="concept-box">
+            <div class="concept-title">Security Best Practices</div>
+            <div class="concept-description">
+                <strong style="color: #a78bfa;">Execution permissions:</strong> Grant EXECUTE, not direct table access<br>
+                <strong style="color: #a78bfa;">Ownership chaining:</strong> Procedures run with owner's permissions<br>
+                <strong style="color: #a78bfa;">SQL injection:</strong> Use parameters, avoid dynamic SQL concatenation<br>
+                <strong style="color: #a78bfa;">Input validation:</strong> Check data types, ranges, formats<br>
+                <strong style="color: #a78bfa;">Audit logging:</strong> Log sensitive operations<br>
+                <strong style="color: #a78bfa;">Encryption:</strong> Encrypt sensitive parameters if needed<br>
+                <strong style="color: #a78bfa;">Schema qualification:</strong> Always use schema prefixes
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Security-focused procedure</span>
+<span class="code-keyword">CREATE PROCEDURE</span> [dbo].[usp_SecureUserLogin]
+    @Username <span class="code-keyword">NVARCHAR</span>(50),
+    @PasswordHash <span class="code-keyword">VARBINARY</span>(64),  <span class="code-comment">-- Store hash, not plain password</span>
+    @LoginSuccessful <span class="code-keyword">BIT</span> = 0 <span class="code-keyword">OUTPUT</span>,
+    @UserID <span class="code-keyword">INT</span> = 0 <span class="code-keyword">OUTPUT</span>
+<span class="code-keyword">WITH EXECUTE AS OWNER</span>  <span class="code-comment">-- Run with procedure owner's permissions</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">SET NOCOUNT ON</span>;
+    
+    <span class="code-comment">-- Input validation</span>
+    <span class="code-keyword">IF</span> @Username <span class="code-keyword">IS NULL</span> <span class="code-keyword">OR</span> <span class="code-function">LEN</span>(@Username) = 0
+        <span class="code-keyword">THROW</span> 50001, 'Username is required', 1;
+    
+    <span class="code-comment">-- Secure password check</span>
+    <span class="code-keyword">SELECT</span> @UserID = UserID, @LoginSuccessful = 1
+    <span class="code-keyword">FROM</span> Users
+    <span class="code-keyword">WHERE</span> Username = @Username
+        <span class="code-keyword">AND</span> PasswordHash = @PasswordHash
+        <span class="code-keyword">AND</span> IsActive = 1;
+    
+    <span class="code-comment">-- Audit successful logins</span>
+    <span class="code-keyword">IF</span> @LoginSuccessful = 1
+    <span class="code-keyword">BEGIN</span>
+        <span class="code-keyword">INSERT INTO</span> LoginAudit (UserID, LoginTime, IPAddress)
+        <span class="code-keyword">VALUES</span> (@UserID, GETDATE(), <span class="code-comment">-- Get IP from connection</span>);
+    <span class="code-keyword">END</span>;
+    
+    <span class="code-comment">-- Audit failed attempts (be careful with logging sensitive data)</span>
+    <span class="code-keyword">IF</span> @LoginSuccessful = 0
+    <span class="code-keyword">BEGIN</span>
+        <span class="code-keyword">INSERT INTO</span> FailedLoginAudit (Username, AttemptTime)
+        <span class="code-keyword">VALUES</span> (@Username, GETDATE());
+    <span class="code-keyword">END</span>;
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Grant permissions</span>
+<span class="code-keyword">GRANT EXECUTE ON</span> dbo.usp_SecureUserLogin <span class="code-keyword">TO</span> [AppUserRole];
+
+<span class="code-comment">-- Avoid SQL injection - WRONG way</span>
+<span class="code-keyword">DECLARE</span> @SQL <span class="code-keyword">NVARCHAR</span>(MAX) = 'SELECT * FROM Users WHERE Username = ''' + @Username + '''';
+<span class="code-keyword">EXEC</span> sp_executesql @SQL;  <span class="code-comment">-- Vulnerable to injection</span>
+
+<span class="code-comment">-- RIGHT way - use parameters</span>
+<span class="code-keyword">EXEC</span> sp_executesql 
+    N'SELECT * FROM Users WHERE Username = @User',
+    N'@User NVARCHAR(50)',
+    @User = @Username;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Design Guidelines:</strong> Always use schema-qualified names. Implement comprehensive error handling. 
+            Use TVPs for bulk operations instead of multiple procedure calls. Validate all inputs.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Common Mistakes:</strong> Not validating input parameters. Using dynamic SQL without parameters. 
+            Granting excessive permissions. Not handling transactions properly.
+        </div>
+        
+        <h2>📊 Parameter Type Comparison</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Parameter Type</th>
+                <th>Use Case</th>
+                <th>Performance</th>
+                <th>Security</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Input</strong></td>
+                    <td>Filtering, search criteria</td>
+                    <td>Good (parameterized plans)</td>
+                    <td>Prevents SQL injection</td>
+                </tr>
+                <tr>
+                    <td><strong>Output</strong></td>
+                    <td>Return status, IDs, messages</td>
+                    <td>Minimal overhead</td>
+                    <td>Controlled data exposure</td>
+                </tr>
+                <tr>
+                    <td><strong>Table-Valued</strong></td>
+                    <td>Bulk operations, complex data</td>
+                    <td>Excellent for bulk ops</td>
+                    <td>Type safety, validation</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Follow stored procedure naming conventions</li>
+                <li>Implement comprehensive documentation headers</li>
+                <li>Use input parameters with proper validation</li>
+                <li>Implement output parameters for return values</li>
+                <li>Create and use table-valued parameters (TVP)</li>
+                <li>Handle transactions properly with TRY/CATCH</li>
+                <li>Implement proper error handling and logging</li>
+                <li>Use schema-qualified object names</li>
+                <li>Apply principle of least privilege for permissions</li>
+                <li>Prevent SQL injection through parameterization</li>
+                <li>Use EXECUTE AS for permission management</li>
+                <li>Implement audit logging for sensitive operations</li>
+                <li>Avoid cursors and use set-based operations</li>
+                <li>Test procedures with various input scenarios</li>
+                <li>Monitor procedure performance and usage</li>
+                <li>Use NOCOUNT and XACT_ABORT appropriately</li>
+                <li>Implement idempotent operations where needed</li>
+                <li>Document parameter purposes and data types</li>
+                <li>Use TVPs for bulk data operations</li>
+                <li>Validate TVP data before processing</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Basic Procedures:</strong> Create a stored procedure with input and output parameters for user management operations.</li>
+                <li><strong>TVP Implementation:</strong> Design a procedure using table-valued parameters for bulk order processing.</li>
+                <li><strong>Security:</strong> Implement a login procedure with proper security measures, input validation, and audit logging.</li>
+                <li><strong>Error Handling:</strong> Create a procedure with comprehensive error handling, transactions, and retry logic.</li>
+                <li><strong>Performance:</strong> Compare the performance of TVP-based bulk operations vs. individual procedure calls.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/14-transactions-error-handling.html" class="nav-btn">← Previous: Transactions, Error Handling & Retry Patterns</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/16-functions-modular-sql.html" class="nav-btn">Next: Functions & Modular SQL (Scalar/Inline TVF/Multi-statement) →</a>
+        </div>
+    </div>
+</body>
+</html>

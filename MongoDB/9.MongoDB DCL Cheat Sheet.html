@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Cheat Sheet #9 - DCL (Data Control Language)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #fff;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(118,75,162,0.3);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #764ba2;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #f093fb;
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #764ba2;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-bool {
+      color: #ff7b72;
+    }
+    .code-prop {
+      color: #7ee787;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(102,126,234,0.2), rgba(118,75,162,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #f093fb;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(118,75,162,0.2);
+      color: #f093fb;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-blue {
+      background: rgba(33,150,243,0.2);
+      color: #64b5f6;
+    }
+    .tag-green {
+      background: rgba(76,175,80,0.2);
+      color: #81c784;
+    }
+    .tag-orange {
+      background: rgba(255,152,0,0.2);
+      color: #ffb74d;
+    }
+    .tag-red {
+      background: rgba(244,67,54,0.2);
+      color: #e57373;
+    }
+    .tag-purple {
+      background: rgba(156,39,176,0.2);
+      color: #ce93d8;
+    }
+    .tag-cyan {
+      background: rgba(0,188,212,0.2);
+      color: #4dd0e1;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(33,150,243,0.1);
+      border-left: 3px solid #2196f3;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(244,67,54,0.1);
+      border-left: 3px solid #f44336;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(76,175,80,0.1);
+      border-left: 3px solid #4caf50;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .section-title {
+      color: #f093fb;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(240,147,251,0.3);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .comparison-table th {
+      background: rgba(118,75,162,0.2);
+      color: #f093fb;
+    }
+    .comparison-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .example-box {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .example-title {
+      color: #f093fb;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 0.85em;
+      font-weight: bold;
+      margin: 3px;
+    }
+    .role-read {
+      background: rgba(33,150,243,0.3);
+      color: #64b5f6;
+    }
+    .role-write {
+      background: rgba(76,175,80,0.3);
+      color: #81c784;
+    }
+    .role-admin {
+      background: rgba(244,67,54,0.3);
+      color: #e57373;
+    }
+    .role-cluster {
+      background: rgba(156,39,176,0.3);
+      color: #ce93d8;
+    }
+    .security-level {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 15px 0;
+    }
+    .security-card {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 15px;
+      text-align: center;
+      border-top: 3px solid;
+    }
+    .security-card.low {
+      border-color: #4caf50;
+    }
+    .security-card.medium {
+      border-color: #ff9800;
+    }
+    .security-card.high {
+      border-color: #f44336;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+    @media (max-width: 768px) {
+      .security-level {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🍃 MongoDB Cheat Sheet #9</h1>
+      <div class="subtitle">DCL - Data Control Language</div>
+      <div class="badge">🔐 Authentication • Authorization • Users & Roles</div>
+    </div>
+
+    <!-- DCL Overview -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🔐</span>
+          <span class="card-title">MongoDB Security Overview</span>
+        </div>
+        <div class="highlight">
+          MongoDB sử dụng <strong>Authentication</strong> (xác thực) và <strong>Authorization</strong> (phân quyền) để bảo mật dữ liệu
+        </div>
+        
+        <div class="security-level">
+          <div class="security-card low">
+            <div style="font-size: 2em; margin-bottom: 10px;">🔓</div>
+            <strong style="color: #81c784;">No Auth</strong><br>
+            <small>Development only</small><br>
+            <small>Không khuyến khích</small>
+          </div>
+          <div class="security-card medium">
+            <div style="font-size: 2em; margin-bottom: 10px;">🔒</div>
+            <strong style="color: #ffb74d;">Basic Auth</strong><br>
+            <small>Username/Password</small><br>
+            <small>Production cơ bản</small>
+          </div>
+          <div class="security-card high">
+            <div style="font-size: 2em; margin-bottom: 10px;">🔐</div>
+            <strong style="color: #e57373;">Advanced Auth</strong><br>
+            <small>x.509, LDAP, Kerberos</small><br>
+            <small>Enterprise security</small>
+          </div>
+        </div>
+
+        <table class="comparison-table">
+          <tr>
+            <th>Concept</th>
+            <th>Mô tả</th>
+            <th>MongoDB Implementation</th>
+          </tr>
+          <tr>
+            <td><strong>Authentication</strong></td>
+            <td>Xác thực danh tính</td>
+            <td>Username/Password, x.509, LDAP, Kerberos</td>
+          </tr>
+          <tr>
+            <td><strong>Authorization</strong></td>
+            <td>Phân quyền truy cập</td>
+            <td>Role-Based Access Control (RBAC)</td>
+          </tr>
+          <tr>
+            <td><strong>User</strong></td>
+            <td>Tài khoản người dùng</td>
+            <td>Stored in admin.system.users</td>
+          </tr>
+          <tr>
+            <td><strong>Role</strong></td>
+            <td>Tập hợp permissions</td>
+            <td>Built-in roles + Custom roles</td>
+          </tr>
+          <tr>
+            <td><strong>Privilege</strong></td>
+            <td>Quyền thực hiện action</td>
+            <td>Actions on Resources</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Enable Authentication -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🚀</span>
+          <span class="card-title">Enable Authentication</span>
+        </div>
+        <div class="highlight">
+          Bật authentication cho MongoDB instance
+        </div>
+        
+        <div class="section-title">Bước 1: Tạo Admin User</div>
+        <div class="code-block">
+          <span class="code-comment">// Kết nối MongoDB chưa có auth</span><br>
+          mongosh<br><br>
+          
+          <span class="code-comment">// Switch sang admin database</span><br>
+          <span class="code-keyword">use</span> admin<br><br>
+          
+          <span class="code-comment">// Tạo admin user</span><br>
+          db.<span class="code-method">createUser</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">user</span>: <span class="code-string">"admin"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">pwd</span>: <span class="code-string">"securePassword123"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"userAdminAnyDatabase"</span>, <span class="code-prop">db</span>: <span class="code-string">"admin"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"readWriteAnyDatabase"</span>, <span class="code-prop">db</span>: <span class="code-string">"admin"</span> }<br>
+          &nbsp;&nbsp;]<br>
+          })
+        </div>
+
+        <div class="section-title">Bước 2: Enable Auth trong Config</div>
+        <div class="code-block">
+          <span class="code-comment"># mongod.conf</span><br>
+          security:<br>
+          &nbsp;&nbsp;authorization: enabled
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment"># Hoặc start với --auth flag</span><br>
+          mongod --auth --dbpath /data/db
+        </div>
+
+        <div class="section-title">Bước 3: Restart MongoDB</div>
+        <div class="code-block">
+          <span class="code-comment"># Linux/Mac</span><br>
+          sudo systemctl restart mongod<br><br>
+          
+          <span class="code-comment"># Windows</span><br>
+          net stop MongoDB<br>
+          net start MongoDB
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔑</span>
+          <span class="card-title">Connect với Authentication</span>
+        </div>
+        
+        <div class="section-title">Connection String</div>
+        <div class="code-block">
+          <span class="code-comment">// Format cơ bản</span><br>
+          mongodb://username:password@host:port/database<br><br>
+          
+          <span class="code-comment">// Ví dụ</span><br>
+          mongodb://admin:securePassword123@localhost:27017/admin
+        </div>
+
+        <div class="section-title">mongosh CLI</div>
+        <div class="code-block">
+          <span class="code-comment"># Cách 1: Connection string</span><br>
+          mongosh <span class="code-string">"mongodb://admin:password@localhost:27017/admin"</span><br><br>
+          
+          <span class="code-comment"># Cách 2: Separate parameters</span><br>
+          mongosh --username admin --password --authenticationDatabase admin<br><br>
+          
+          <span class="code-comment"># Cách 3: Authenticate sau khi connect</span><br>
+          mongosh<br>
+          use admin<br>
+          db.auth(<span class="code-string">"admin"</span>, <span class="code-string">"password"</span>)
+        </div>
+
+        <div class="section-title">Application Drivers</div>
+        <div class="code-block">
+          <span class="code-comment">// Node.js</span><br>
+          <span class="code-keyword">const</span> { MongoClient } = <span class="code-keyword">require</span>(<span class="code-string">'mongodb'</span>);<br><br>
+          
+          <span class="code-keyword">const</span> uri = <span class="code-string">"mongodb://user:pass@localhost:27017/mydb"</span>;<br>
+          <span class="code-keyword">const</span> client = <span class="code-keyword">new</span> MongoClient(uri);
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment"># Python</span><br>
+          <span class="code-keyword">from</span> pymongo <span class="code-keyword">import</span> MongoClient<br><br>
+          
+          client = MongoClient(<br>
+          &nbsp;&nbsp;<span class="code-string">"mongodb://user:pass@localhost:27017/mydb"</span><br>
+          )
+        </div>
+      </div>
+    </div>
+
+    <!-- User Management -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">👤</span>
+          <span class="card-title">Create Users</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Tạo user cơ bản</span><br>
+          db.<span class="code-method">createUser</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">user</span>: <span class="code-string">"appUser"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">pwd</span>: <span class="code-string">"password123"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"myDatabase"</span> }<br>
+          &nbsp;&nbsp;]<br>
+          })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// User với nhiều roles</span><br>
+          db.<span class="code-method">createUser</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">user</span>: <span class="code-string">"devUser"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">pwd</span>: <span class="code-method">passwordPrompt</span>(),  <span class="code-comment">// Nhập password an toàn</span><br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"dev_db"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"read"</span>, <span class="code-prop">db</span>: <span class="code-string">"prod_db"</span> }<br>
+          &nbsp;&nbsp;]<br>
+          })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// User với custom info</span><br>
+          db.<span class="code-method">createUser</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">user</span>: <span class="code-string">"john.doe"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">pwd</span>: <span class="code-string">"password"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">customData</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">fullName</span>: <span class="code-string">"John Doe"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">email</span>: <span class="code-string">"john@example.com"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">department</span>: <span class="code-string">"Engineering"</span><br>
+          &nbsp;&nbsp;},<br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: [{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"mydb"</span> }]<br>
+          })
+        </div>
+
+        <div class="tip-box">
+          ✅ Dùng <code>passwordPrompt()</code> để không lưu password trong history
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔧</span>
+          <span class="card-title">Manage Users</span>
+        </div>
+        
+        <div class="section-title">View Users</div>
+        <div class="code-block">
+          <span class="code-comment">// Xem tất cả users trong database hiện tại</span><br>
+          db.<span class="code-method">getUsers</span>()<br><br>
+          
+          <span class="code-comment">// Xem user cụ thể</span><br>
+          db.<span class="code-method">getUser</span>(<span class="code-string">"appUser"</span>)<br><br>
+          
+          <span class="code-comment">// Show credentials</span><br>
+          db.<span class="code-method">getUser</span>(<span class="code-string">"appUser"</span>, { <span class="code-prop">showCredentials</span>: <span class="code-bool">true</span> })
+        </div>
+
+        <div class="section-title">Update User</div>
+        <div class="code-block">
+          <span class="code-comment">// Đổi password</span><br>
+          db.<span class="code-method">changeUserPassword</span>(<span class="code-string">"appUser"</span>, <span class="code-string">"newPassword123"</span>)<br><br>
+          
+          <span class="code-comment">// Hoặc dùng passwordPrompt()</span><br>
+          db.<span class="code-method">changeUserPassword</span>(<span class="code-string">"appUser"</span>, <span class="code-method">passwordPrompt</span>())
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Update user (roles, customData...)</span><br>
+          db.<span class="code-method">updateUser</span>(<span class="code-string">"appUser"</span>, {<br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"db1"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"read"</span>, <span class="code-prop">db</span>: <span class="code-string">"db2"</span> }<br>
+          &nbsp;&nbsp;],<br>
+          &nbsp;&nbsp;<span class="code-prop">customData</span>: { <span class="code-prop">status</span>: <span class="code-string">"active"</span> }<br>
+          })
+        </div>
+
+        <div class="section-title">Delete User</div>
+        <div class="code-block">
+          <span class="code-comment">// Xóa user</span><br>
+          db.<span class="code-method">dropUser</span>(<span class="code-string">"appUser"</span>)
+        </div>
+
+        <div class="warning-box">
+          ⚠️ Xóa user sẽ <strong>không thể hoàn tác</strong>. Backup trước khi xóa!
+        </div>
+      </div>
+    </div>
+
+    <!-- Built-in Roles -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🎭</span>
+          <span class="card-title">Built-in Roles</span>
+        </div>
+        
+        <div class="section-title">Database User Roles</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Role</th>
+            <th>Permissions</th>
+            <th>Use Case</th>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-read">read</span></td>
+            <td>Đọc dữ liệu từ tất cả non-system collections</td>
+            <td>Read-only users, reporting</td>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-write">readWrite</span></td>
+            <td>Đọc + ghi dữ liệu (CRUD operations)</td>
+            <td>Application users, developers</td>
+          </tr>
+        </table>
+
+        <div class="section-title">Database Administration Roles</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Role</th>
+            <th>Permissions</th>
+            <th>Use Case</th>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-admin">dbAdmin</span></td>
+            <td>Quản lý database: indexes, stats, compact</td>
+            <td>Database administrators</td>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-admin">dbOwner</span></td>
+            <td>Tất cả quyền trên database (readWrite + dbAdmin + userAdmin)</td>
+            <td>Database owners</td>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-admin">userAdmin</span></td>
+            <td>Tạo/sửa users và roles trong database</td>
+            <td>User management</td>
+          </tr>
+        </table>
+
+        <div class="section-title">Cluster Administration Roles</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Role</th>
+            <th>Permissions</th>
+            <th>Use Case</th>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-cluster">clusterAdmin</span></td>
+            <td>Quản lý cluster: sharding, replication</td>
+            <td>Cluster administrators</td>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-cluster">clusterManager</span></td>
+            <td>Quản lý và monitor cluster</td>
+            <td>Operations team</td>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-cluster">clusterMonitor</span></td>
+            <td>Chỉ đọc monitoring tools</td>
+            <td>Monitoring applications</td>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-cluster">hostManager</span></td>
+            <td>Monitor và quản lý servers</td>
+            <td>Infrastructure team</td>
+          </tr>
+        </table>
+
+        <div class="section-title">All-Database Roles</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Role</th>
+            <th>Scope</th>
+            <th>Equivalent to</th>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-read">readAnyDatabase</span></td>
+            <td>Tất cả databases</td>
+            <td>read trên mọi database</td>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-write">readWriteAnyDatabase</span></td>
+            <td>Tất cả databases</td>
+            <td>readWrite trên mọi database</td>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-admin">userAdminAnyDatabase</span></td>
+            <td>Tất cả databases</td>
+            <td>userAdmin trên mọi database</td>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-admin">dbAdminAnyDatabase</span></td>
+            <td>Tất cả databases</td>
+            <td>dbAdmin trên mọi database</td>
+          </tr>
+        </table>
+
+        <div class="section-title">Superuser Roles</div>
+        <table class="comparison-table">
+          <tr>
+            <th>Role</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td><span class="role-badge role-admin">root</span></td>
+            <td>🔴 <strong>FULL ACCESS</strong> - Tất cả quyền trên tất cả resources</td>
+          </tr>
+        </table>
+
+        <div class="warning-box">
+          ⚠️ <strong>root role</strong> có tất cả quyền - chỉ dùng khi thực sự cần thiết!
+        </div>
+      </div>
+    </div>
+
+    <!-- Grant & Revoke Roles -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">➕</span>
+          <span class="card-title">Grant Roles</span>
+        </div>
+        <div class="highlight">
+          Thêm roles cho user
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Grant một role</span><br>
+          db.<span class="code-method">grantRolesToUser</span>(<br>
+          &nbsp;&nbsp;<span class="code-string">"appUser"</span>,<br>
+          &nbsp;&nbsp;[{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"newDatabase"</span> }]<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Grant nhiều roles</span><br>
+          db.<span class="code-method">grantRolesToUser</span>(<br>
+          &nbsp;&nbsp;<span class="code-string">"devUser"</span>,<br>
+          &nbsp;&nbsp;[<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"db1"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"read"</span>, <span class="code-prop">db</span>: <span class="code-string">"db2"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"dbAdmin"</span>, <span class="code-prop">db</span>: <span class="code-string">"db1"</span> }<br>
+          &nbsp;&nbsp;]<br>
+          )
+        </div>
+
+        <div class="example-box">
+          <div class="example-title">Use Case: Promote user to admin</div>
+          <div class="code-block">
+            <span class="code-comment">// User hiện tại chỉ có read</span><br>
+            db.<span class="code-method">getUser</span>(<span class="code-string">"john"</span>)<br>
+            <span class="code-comment">// roles: [{ role: "read", db: "mydb" }]</span><br><br>
+            
+            <span class="code-comment">// Promote thành dbOwner</span><br>
+            db.<span class="code-method">grantRolesToUser</span>(<br>
+            &nbsp;&nbsp;<span class="code-string">"john"</span>,<br>
+            &nbsp;&nbsp;[{ <span class="code-prop">role</span>: <span class="code-string">"dbOwner"</span>, <span class="code-prop">db</span>: <span class="code-string">"mydb"</span> }]<br>
+            )
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">➖</span>
+          <span class="card-title">Revoke Roles</span>
+        </div>
+        <div class="highlight">
+          Thu hồi roles từ user
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Revoke một role</span><br>
+          db.<span class="code-method">revokeRolesFromUser</span>(<br>
+          &nbsp;&nbsp;<span class="code-string">"appUser"</span>,<br>
+          &nbsp;&nbsp;[{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"oldDatabase"</span> }]<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Revoke nhiều roles</span><br>
+          db.<span class="code-method">revokeRolesFromUser</span>(<br>
+          &nbsp;&nbsp;<span class="code-string">"devUser"</span>,<br>
+          &nbsp;&nbsp;[<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"dbAdmin"</span>, <span class="code-prop">db</span>: <span class="code-string">"db1"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"db2"</span> }<br>
+          &nbsp;&nbsp;]<br>
+          )
+        </div>
+
+        <div class="example-box">
+          <div class="example-title">Use Case: Downgrade admin to read-only</div>
+          <div class="code-block">
+            <span class="code-comment">// User hiện tại là dbOwner</span><br>
+            db.<span class="code-method">getUser</span>(<span class="code-string">"john"</span>)<br>
+            <span class="code-comment">// roles: [{ role: "dbOwner", db: "mydb" }]</span><br><br>
+            
+            <span class="code-comment">// Revoke dbOwner</span><br>
+            db.<span class="code-method">revokeRolesFromUser</span>(<br>
+            &nbsp;&nbsp;<span class="code-string">"john"</span>,<br>
+            &nbsp;&nbsp;[{ <span class="code-prop">role</span>: <span class="code-string">"dbOwner"</span>, <span class="code-prop">db</span>: <span class="code-string">"mydb"</span> }]<br>
+            )<br><br>
+            
+            <span class="code-comment">// Grant read only</span><br>
+            db.<span class="code-method">grantRolesToUser</span>(<br>
+            &nbsp;&nbsp;<span class="code-string">"john"</span>,<br>
+            &nbsp;&nbsp;[{ <span class="code-prop">role</span>: <span class="code-string">"read"</span>, <span class="code-prop">db</span>: <span class="code-string">"mydb"</span> }]<br>
+            )
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Roles -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🎨</span>
+          <span class="card-title">Custom Roles</span>
+        </div>
+        <div class="highlight">
+          Tạo custom roles với privileges cụ thể
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Tạo custom role</span><br>
+          db.<span class="code-method">createRole</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">role</span>: <span class="code-string">"appReadWrite"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">privileges</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">resource</span>: { <span class="code-prop">db</span>: <span class="code-string">"myapp"</span>, <span class="code-prop">collection</span>: <span class="code-string">""</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">actions</span>: [<span class="code-string">"find"</span>, <span class="code-string">"insert"</span>, <span class="code-string">"update"</span>, <span class="code-string">"remove"</span>]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;],<br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: []<br>
+          })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Role chỉ đọc specific collections</span><br>
+          db.<span class="code-method">createRole</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">role</span>: <span class="code-string">"reportsReader"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">privileges</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">resource</span>: { <span class="code-prop">db</span>: <span class="code-string">"analytics"</span>, <span class="code-prop">collection</span>: <span class="code-string">"reports"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">actions</span>: [<span class="code-string">"find"</span>]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;},<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">resource</span>: { <span class="code-prop">db</span>: <span class="code-string">"analytics"</span>, <span class="code-prop">collection</span>: <span class="code-string">"dashboards"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">actions</span>: [<span class="code-string">"find"</span>]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;],<br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: []<br>
+          })
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Role kế thừa built-in roles</span><br>
+          db.<span class="code-method">createRole</span>({<br>
+          &nbsp;&nbsp;<span class="code-prop">role</span>: <span class="code-string">"devRole"</span>,<br>
+          &nbsp;&nbsp;<span class="code-prop">privileges</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">resource</span>: { <span class="code-prop">db</span>: <span class="code-string">"dev"</span>, <span class="code-prop">collection</span>: <span class="code-string">""</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">actions</span>: [<span class="code-string">"createIndex"</span>, <span class="code-string">"dropIndex"</span>]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;],<br>
+          &nbsp;&nbsp;<span class="code-prop">roles</span>: [<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{ <span class="code-prop">role</span>: <span class="code-string">"readWrite"</span>, <span class="code-prop">db</span>: <span class="code-string">"dev"</span> }<br>
+          &nbsp;&nbsp;]<br>
+          })
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔧</span>
+          <span class="card-title">Manage Custom Roles</span>
+        </div>
+        
+        <div class="section-title">View Roles</div>
+        <div class="code-block">
+          <span class="code-comment">// Xem tất cả roles</span><br>
+          db.<span class="code-method">getRoles</span>()<br><br>
+          
+          <span class="code-comment">// Xem role cụ thể</span><br>
+          db.<span class="code-method">getRole</span>(<span class="code-string">"appReadWrite"</span>)<br><br>
+          
+          <span class="code-comment">// Show privileges & inherited roles</span><br>
+          db.<span class="code-method">getRole</span>(<span class="code-string">"appReadWrite"</span>, { <span class="code-prop">showPrivileges</span>: <span class="code-bool">true</span> })
+        </div>
+
+        <div class="section-title">Update Role</div>
+        <div class="code-block">
+          <span class="code-comment">// Grant privileges to role</span><br>
+          db.<span class="code-method">grantPrivilegesToRole</span>(<br>
+          &nbsp;&nbsp;<span class="code-string">"appReadWrite"</span>,<br>
+          &nbsp;&nbsp;[<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">resource</span>: { <span class="code-prop">db</span>: <span class="code-string">"myapp"</span>, <span class="code-prop">collection</span>: <span class="code-string">"logs"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">actions</span>: [<span class="code-string">"insert"</span>]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;]<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Revoke privileges from role</span><br>
+          db.<span class="code-method">revokePrivilegesFromRole</span>(<br>
+          &nbsp;&nbsp;<span class="code-string">"appReadWrite"</span>,<br>
+          &nbsp;&nbsp;[<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">resource</span>: { <span class="code-prop">db</span>: <span class="code-string">"myapp"</span>, <span class="code-prop">collection</span>: <span class="code-string">"sensitive"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">actions</span>: [<span class="code-string">"remove"</span>]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;]<br>
+          )
+        </div>
+
+        <div class="section-title">Delete Role</div>
+        <div class="code-block">
+          <span class="code-comment">// Xóa custom role</span><br>
+          db.<span class="code-method">dropRole</span>(<span class="code-string">"appReadWrite"</span>)
+        </div>
+      </div>
+    </div>
+
+    <!-- Privileges & Actions -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🔐</span>
+          <span class="card-title">Common Actions (Privileges)</span>
+        </div>
+        
+        <div class="section-title">Query & Write Actions</div>
+        <div class="flex-row">
+          <span class="tag-blue tag">find</span>
+          <span class="tag-blue tag">insert</span>
+          <span class="tag-blue tag">update</span>
+          <span class="tag-blue tag">remove</span>
+          <span class="tag-green tag">createCollection</span>
+          <span class="tag-green tag">dropCollection</span>
+          <span class="tag-green tag">renameCollectionSameDB</span>
+        </div>
+
+        <div class="section-title">Database Management Actions</div>
+        <div class="flex-row">
+          <span class="tag-orange tag">createIndex</span>
+          <span class="tag-orange tag">dropIndex</span>
+          <span class="tag-orange tag">listIndexes</span>
+          <span class="tag-orange tag">dbStats</span>
+          <span class="tag-orange tag">collStats</span>
+          <span class="tag-orange tag">compact</span>
+          <span class="tag-orange tag">validate</span>
+        </div>
+
+        <div class="section-title">User Management Actions</div>
+        <div class="flex-row">
+          <span class="tag-red tag">createUser</span>
+          <span class="tag-red tag">updateUser</span>
+          <span class="tag-red tag">dropUser</span>
+          <span class="tag-red tag">viewUser</span>
+          <span class="tag-red tag">createRole</span>
+          <span class="tag-red tag">updateRole</span>
+          <span class="tag-red tag">dropRole</span>
+          <span class="tag-red tag">viewRole</span>
+          <span class="tag-red tag">grantRole</span>
+          <span class="tag-red tag">revokeRole</span>
+        </div>
+
+        <div class="section-title">Cluster Management Actions</div>
+        <div class="flex-row">
+          <span class="tag-purple tag">serverStatus</span>
+          <span class="tag-purple tag">replSetGetStatus</span>
+          <span class="tag-purple tag">shardingState</span>
+          <span class="tag-purple tag">addShard</span>
+          <span class="tag-purple tag">removeShard</span>
+          <span class="tag-purple tag">enableSharding</span>
+          <span class="tag-purple tag">shardCollection</span>
+        </div>
+
+        <div class="info-box">
+          💡 Full list: <a href="https://docs.mongodb.com/manual/reference/privilege-actions/" style="color: #64b5f6;">MongoDB Privilege Actions</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Best Practices -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🛡️</span>
+          <span class="card-title">Security Best Practices</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+          <div>
+            <div class="section-title">✅ DO's</div>
+            <div class="list-item">Luôn enable authentication trong production</div>
+            <div class="list-item">Dùng strong passwords (min 12 chars, mixed case, numbers, symbols)</div>
+            <div class="list-item">Principle of Least Privilege - chỉ cấp quyền cần thiết</div>
+            <div class="list-item">Tạo separate users cho từng application</div>
+            <div class="list-item">Dùng custom roles thay vì built-in roles khi cần fine-grained control</div>
+            <div class="list-item">Enable audit logging trong production</div>
+            <div class="list-item">Encrypt connections với TLS/SSL</div>
+            <div class="list-item">Regularly review và revoke unused accounts</div>
+            <div class="list-item">Backup admin credentials an toàn</div>
+          </div>
+          
+          <div>
+            <div class="section-title">❌ DON'Ts</div>
+            <div class="list-item">Không dùng root role cho applications</div>
+            <div class="list-item">Không hardcode credentials trong code</div>
+            <div class="list-item">Không share user accounts giữa nhiều người</div>
+            <div class="list-item">Không expose MongoDB port ra internet</div>
+            <div class="list-item">Không dùng default passwords</div>
+            <div class="list-item">Không grant readWriteAnyDatabase nếu không cần</div>
+            <div class="list-item">Không disable authentication trong production</div>
+          </div>
+        </div>
+
+        <div class="example-box">
+          <div class="example-title">✅ Good Practice Example:</div>
+          <div class="code-block">
+            <span class="code-comment">// 1. Tạo admin user với strong password</span><br>
+            db.<span class="code-method">createUser</span>({<br>
+            &nbsp;&nbsp;user: <span class="code-string">"admin"</span>,<br>
+            &nbsp;&nbsp;pwd: <span class="code-method">passwordPrompt</span>(),<br>
+            &nbsp;&nbsp;roles: [<span class="code-string">"userAdminAnyDatabase"</span>]<br>
+            })<br><br>
+            
+            <span class="code-comment">// 2. Tạo application user với limited permissions</span><br>
+            db.<span class="code-method">createUser</span>({<br>
+            &nbsp;&nbsp;user: <span class="code-string">"app_user"</span>,<br>
+            &nbsp;&nbsp;pwd: <span class="code-method">passwordPrompt</span>(),<br>
+            &nbsp;&nbsp;roles: [{ role: <span class="code-string">"readWrite"</span>, db: <span class="code-string">"app_db"</span> }]<br>
+            })<br><br>
+            
+            <span class="code-comment">// 3. Tạo read-only user cho reporting</span><br>
+            db.<span class="code-method">createUser</span>({<br>
+            &nbsp;&nbsp;user: <span class="code-string">"reports_user"</span>,<br>
+            &nbsp;&nbsp;pwd: <span class="code-method">passwordPrompt</span>(),<br>
+            &nbsp;&nbsp;roles: [{ role: <span class="code-string">"read"</span>, db: <span class="code-string">"app_db"</span> }]<br>
+            })
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Reference -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">📚</span>
+          <span class="card-title">Quick Reference - DCL Commands</span>
+        </div>
+        <table class="comparison-table">
+          <tr>
+            <th>Command</th>
+            <th>Syntax</th>
+            <th>Mô tả</th>
+          </tr>
+          <tr>
+            <td colspan="3"><strong>User Management</strong></td>
+          </tr>
+          <tr>
+            <td>Create User</td>
+            <td><code>db.createUser({user, pwd, roles})</code></td>
+            <td>Tạo user mới</td>
+          </tr>
+          <tr>
+            <td>Get Users</td>
+            <td><code>db.getUsers()</code></td>
+            <td>Xem tất cả users</td>
+          </tr>
+          <tr>
+            <td>Get User</td>
+            <td><code>db.getUser("username")</code></td>
+            <td>Xem user cụ thể</td>
+          </tr>
+          <tr>
+            <td>Update User</td>
+            <td><code>db.updateUser("user", {roles})</code></td>
+            <td>Cập nhật user</td>
+          </tr>
+          <tr>
+            <td>Change Password</td>
+            <td><code>db.changeUserPassword("user", "pwd")</code></td>
+            <td>Đổi password</td>
+          </tr>
+          <tr>
+            <td>Drop User</td>
+            <td><code>db.dropUser("username")</code></td>
+            <td>Xóa user</td>
+          </tr>
+          <tr>
+            <td colspan="3"><strong>Role Management</strong></td>
+          </tr>
+          <tr>
+            <td>Grant Roles</td>
+            <td><code>db.grantRolesToUser("user", [roles])</code></td>
+            <td>Thêm roles cho user</td>
+          </tr>
+          <tr>
+            <td>Revoke Roles</td>
+            <td><code>db.revokeRolesFromUser("user", [roles])</code></td>
+            <td>Thu hồi roles</td>
+          </tr>
+          <tr>
+            <td>Create Role</td>
+            <td><code>db.createRole({role, privileges, roles})</code></td>
+            <td>Tạo custom role</td>
+          </tr>
+          <tr>
+            <td>Get Roles</td>
+            <td><code>db.getRoles()</code></td>
+            <td>Xem tất cả roles</td>
+          </tr>
+          <tr>
+            <td>Drop Role</td>
+            <td><code>db.dropRole("roleName")</code></td>
+            <td>Xóa role</td>
+          </tr>
+          <tr>
+            <td colspan="3"><strong>Authentication</strong></td>
+          </tr>
+          <tr>
+            <td>Authenticate</td>
+            <td><code>db.auth("user", "password")</code></td>
+            <td>Xác thực user</td>
+          </tr>
+          <tr>
+            <td>Logout</td>
+            <td><code>db.logout()</code></td>
+            <td>Đăng xuất</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <p>📚 MongoDB Cheat Sheet Series | Part 9 of 16</p>
+      <p>Created with Monica AI | December 2024</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #2 - Advanced Querying</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 50px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #3498db; border-radius: 8px; padding: 25px; transition: all 0.3s ease; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(52, 152, 219, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #3498db; margin-bottom: 12px; }
+        .concept-description { color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.9em; line-height: 1.5; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-number { color: #ffeaa7; }
+        .code-comment { color: #636e72; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); border-radius: 8px; overflow: hidden; }
+        th { background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(41, 128, 185, 0.2)); color: #3498db; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #3498db; }
+        td { padding: 12px 15px; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        tr:hover { background: rgba(52, 152, 219, 0.1); }
+        .highlight-box { background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .info-box { background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; color: #85c1e9; }
+        .warning-box { background: rgba(230, 126, 34, 0.1); border-left: 4px solid #e67e22; padding: 20px; border-radius: 8px; margin: 20px 0; color: #fdb462; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 10px 0; padding-left: 30px; position: relative; color: #cbd5e1; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #3498db; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #3498db, #2980b9); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(52, 152, 219, 0.3); }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .hero h1 { font-size: 1.8em; } }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔍 SQLite3 Advanced Querying</h1>
+        <p>Master JOINs, CTEs, Window Functions, and Complex Query Patterns</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers advanced querying techniques in SQLite3. You'll learn how to combine data from 
+            multiple tables using JOINs, write reusable queries with CTEs, perform analytical operations with 
+            window functions, aggregate data effectively, and use set operations to combine result sets.
+        </p>
+        
+        <h2>🔗 JOIN Operations</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">INNER JOIN</div>
+                <div class="concept-description">
+                    Returns only rows where there's a match in both tables. This is the most common type of JOIN 
+                    and is used when you need data that exists in both tables.
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">LEFT JOIN</div>
+                <div class="concept-description">
+                    Returns all rows from the left table and matching rows from the right table. 
+                    If no match exists, NULL values are returned for right table columns.
+                </div>
+            </div>
+        </div>
+        
+        <h3>Sample Tables Setup</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create sample tables</span>
+<span class="code-keyword">CREATE TABLE</span> customers (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    name <span class="code-function">TEXT NOT NULL</span>,
+    email <span class="code-function">TEXT</span>,
+    city <span class="code-function">TEXT</span>
+);
+
+<span class="code-keyword">CREATE TABLE</span> orders (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    customer_id <span class="code-function">INTEGER</span>,
+    product <span class="code-function">TEXT</span>,
+    amount <span class="code-function">REAL</span>,
+    order_date <span class="code-function">TEXT</span>,
+    <span class="code-keyword">FOREIGN KEY</span> (customer_id) <span class="code-keyword">REFERENCES</span> customers(id)
+);
+
+<span class="code-comment">-- Insert sample data</span>
+<span class="code-keyword">INSERT INTO</span> customers <span class="code-keyword">VALUES</span>
+    (<span class="code-number">1</span>, <span class="code-string">'Alice'</span>, <span class="code-string">'alice@email.com'</span>, <span class="code-string">'New York'</span>),
+    (<span class="code-number">2</span>, <span class="code-string">'Bob'</span>, <span class="code-string">'bob@email.com'</span>, <span class="code-string">'London'</span>),
+    (<span class="code-number">3</span>, <span class="code-string">'Charlie'</span>, <span class="code-string">'charlie@email.com'</span>, <span class="code-string">'Paris'</span>);
+
+<span class="code-keyword">INSERT INTO</span> orders <span class="code-keyword">VALUES</span>
+    (<span class="code-number">1</span>, <span class="code-number">1</span>, <span class="code-string">'Laptop'</span>, <span class="code-number">999.99</span>, <span class="code-string">'2024-01-15'</span>),
+    (<span class="code-number">2</span>, <span class="code-number">1</span>, <span class="code-string">'Mouse'</span>, <span class="code-number">29.99</span>, <span class="code-string">'2024-01-16'</span>),
+    (<span class="code-number">3</span>, <span class="code-number">2</span>, <span class="code-string">'Keyboard'</span>, <span class="code-number">79.99</span>, <span class="code-string">'2024-01-17'</span>);</code>
+        </div>
+        
+        <h3>INNER JOIN Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Basic INNER JOIN</span>
+<span class="code-keyword">SELECT</span> 
+    c.name,
+    c.city,
+    o.product,
+    o.amount
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">INNER JOIN</span> orders o <span class="code-keyword">ON</span> c.id = o.customer_id;
+
+<span class="code-comment">-- INNER JOIN with WHERE clause</span>
+<span class="code-keyword">SELECT</span> 
+    c.name,
+    o.product,
+    o.amount
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">INNER JOIN</span> orders o <span class="code-keyword">ON</span> c.id = o.customer_id
+<span class="code-keyword">WHERE</span> o.amount > <span class="code-number">50</span>;
+
+<span class="code-comment">-- Multiple JOINs</span>
+<span class="code-keyword">CREATE TABLE</span> order_details (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    order_id <span class="code-function">INTEGER</span>,
+    detail <span class="code-function">TEXT</span>,
+    <span class="code-keyword">FOREIGN KEY</span> (order_id) <span class="code-keyword">REFERENCES</span> orders(id)
+);
+
+<span class="code-keyword">SELECT</span> 
+    c.name,
+    o.product,
+    od.detail
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">INNER JOIN</span> orders o <span class="code-keyword">ON</span> c.id = o.customer_id
+<span class="code-keyword">INNER JOIN</span> order_details od <span class="code-keyword">ON</span> o.id = od.order_id;</code>
+        </div>
+        
+        <h3>LEFT JOIN Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- LEFT JOIN (all customers, even without orders)</span>
+<span class="code-keyword">SELECT</span> 
+    c.name,
+    c.email,
+    o.product,
+    o.amount
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> c.id = o.customer_id;
+
+<span class="code-comment">-- Find customers with no orders</span>
+<span class="code-keyword">SELECT</span> 
+    c.name,
+    c.email
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> c.id = o.customer_id
+<span class="code-keyword">WHERE</span> o.id <span class="code-keyword">IS NULL</span>;
+
+<span class="code-comment">-- LEFT JOIN with aggregation</span>
+<span class="code-keyword">SELECT</span> 
+    c.name,
+    <span class="code-function">COUNT</span>(o.id) <span class="code-keyword">AS</span> order_count,
+    <span class="code-function">COALESCE</span>(<span class="code-function">SUM</span>(o.amount), <span class="code-number">0</span>) <span class="code-keyword">AS</span> total_spent
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> c.id = o.customer_id
+<span class="code-keyword">GROUP BY</span> c.id, c.name;</code>
+        </div>
+        
+        <h3>CROSS JOIN</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- CROSS JOIN (Cartesian product)</span>
+<span class="code-keyword">CREATE TABLE</span> sizes (size <span class="code-function">TEXT</span>);
+<span class="code-keyword">CREATE TABLE</span> colors (color <span class="code-function">TEXT</span>);
+
+<span class="code-keyword">INSERT INTO</span> sizes <span class="code-keyword">VALUES</span> (<span class="code-string">'S'</span>), (<span class="code-string">'M'</span>), (<span class="code-string">'L'</span>);
+<span class="code-keyword">INSERT INTO</span> colors <span class="code-keyword">VALUES</span> (<span class="code-string">'Red'</span>), (<span class="code-string">'Blue'</span>);
+
+<span class="code-comment">-- Generate all size-color combinations</span>
+<span class="code-keyword">SELECT</span> 
+    s.size,
+    c.color
+<span class="code-keyword">FROM</span> sizes s
+<span class="code-keyword">CROSS JOIN</span> colors c;
+
+<span class="code-comment">-- Result: S-Red, S-Blue, M-Red, M-Blue, L-Red, L-Blue</span></code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 JOIN Performance Tips:</strong><br>
+            • Always index foreign key columns<br>
+            • Use INNER JOIN when possible (faster than LEFT JOIN)<br>
+            • Filter early with WHERE clause before JOIN when possible<br>
+            • Avoid CROSS JOIN on large tables (creates huge result sets)
+        </div>
+        
+        <h2>🔄 Subqueries & CTEs</h2>
+        
+        <h3>Subqueries in WHERE Clause</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Scalar subquery (returns single value)</span>
+<span class="code-keyword">SELECT</span> name, amount
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">WHERE</span> amount > (<span class="code-keyword">SELECT</span> <span class="code-function">AVG</span>(amount) <span class="code-keyword">FROM</span> orders);
+
+<span class="code-comment">-- IN subquery (returns multiple values)</span>
+<span class="code-keyword">SELECT</span> name, email
+<span class="code-keyword">FROM</span> customers
+<span class="code-keyword">WHERE</span> id <span class="code-keyword">IN</span> (
+    <span class="code-keyword">SELECT</span> customer_id 
+    <span class="code-keyword">FROM</span> orders 
+    <span class="code-keyword">WHERE</span> amount > <span class="code-number">100</span>
+);
+
+<span class="code-comment">-- EXISTS subquery (check existence)</span>
+<span class="code-keyword">SELECT</span> name
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">WHERE EXISTS</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-number">1</span> 
+    <span class="code-keyword">FROM</span> orders o 
+    <span class="code-keyword">WHERE</span> o.customer_id = c.id
+);</code>
+        </div>
+        
+        <h3>Subqueries in SELECT Clause</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Correlated subquery in SELECT</span>
+<span class="code-keyword">SELECT</span> 
+    c.name,
+    c.email,
+    (<span class="code-keyword">SELECT</span> <span class="code-function">COUNT</span>(*) 
+     <span class="code-keyword">FROM</span> orders o 
+     <span class="code-keyword">WHERE</span> o.customer_id = c.id) <span class="code-keyword">AS</span> order_count,
+    (<span class="code-keyword">SELECT</span> <span class="code-function">SUM</span>(amount) 
+     <span class="code-keyword">FROM</span> orders o 
+     <span class="code-keyword">WHERE</span> o.customer_id = c.id) <span class="code-keyword">AS</span> total_spent
+<span class="code-keyword">FROM</span> customers c;</code>
+        </div>
+        
+        <h3>Common Table Expressions (CTEs)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Simple CTE with WITH clause</span>
+<span class="code-keyword">WITH</span> high_value_orders <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> 
+        customer_id,
+        product,
+        amount
+    <span class="code-keyword">FROM</span> orders
+    <span class="code-keyword">WHERE</span> amount > <span class="code-number">100</span>
+)
+<span class="code-keyword">SELECT</span> 
+    c.name,
+    h.product,
+    h.amount
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">INNER JOIN</span> high_value_orders h <span class="code-keyword">ON</span> c.id = h.customer_id;
+
+<span class="code-comment">-- Multiple CTEs</span>
+<span class="code-keyword">WITH</span> 
+    customer_totals <span class="code-keyword">AS</span> (
+        <span class="code-keyword">SELECT</span> 
+            customer_id,
+            <span class="code-function">SUM</span>(amount) <span class="code-keyword">AS</span> total
+        <span class="code-keyword">FROM</span> orders
+        <span class="code-keyword">GROUP BY</span> customer_id
+    ),
+    avg_total <span class="code-keyword">AS</span> (
+        <span class="code-keyword">SELECT</span> <span class="code-function">AVG</span>(total) <span class="code-keyword">AS</span> avg_amount
+        <span class="code-keyword">FROM</span> customer_totals
+    )
+<span class="code-keyword">SELECT</span> 
+    c.name,
+    ct.total,
+    <span class="code-keyword">CASE</span> 
+        <span class="code-keyword">WHEN</span> ct.total > a.avg_amount <span class="code-keyword">THEN</span> <span class="code-string">'Above Average'</span>
+        <span class="code-keyword">ELSE</span> <span class="code-string">'Below Average'</span>
+    <span class="code-keyword">END</span> <span class="code-keyword">AS</span> category
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">INNER JOIN</span> customer_totals ct <span class="code-keyword">ON</span> c.id = ct.customer_id
+<span class="code-keyword">CROSS JOIN</span> avg_total a;</code>
+        </div>
+        
+        <h3>Recursive CTEs</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Generate sequence of numbers</span>
+<span class="code-keyword">WITH RECURSIVE</span> numbers(n) <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-number">1</span>
+    <span class="code-keyword">UNION ALL</span>
+    <span class="code-keyword">SELECT</span> n + <span class="code-number">1</span> <span class="code-keyword">FROM</span> numbers <span class="code-keyword">WHERE</span> n < <span class="code-number">10</span>
+)
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> numbers;
+
+<span class="code-comment">-- Hierarchical data (organization chart)</span>
+<span class="code-keyword">CREATE TABLE</span> employees (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    name <span class="code-function">TEXT</span>,
+    manager_id <span class="code-function">INTEGER</span>
+);
+
+<span class="code-keyword">WITH RECURSIVE</span> employee_hierarchy <span class="code-keyword">AS</span> (
+    <span class="code-comment">-- Base case: CEO (no manager)</span>
+    <span class="code-keyword">SELECT</span> id, name, manager_id, <span class="code-number">0</span> <span class="code-keyword">AS</span> level
+    <span class="code-keyword">FROM</span> employees
+    <span class="code-keyword">WHERE</span> manager_id <span class="code-keyword">IS NULL</span>
+    
+    <span class="code-keyword">UNION ALL</span>
+    
+    <span class="code-comment">-- Recursive case: employees with managers</span>
+    <span class="code-keyword">SELECT</span> e.id, e.name, e.manager_id, eh.level + <span class="code-number">1</span>
+    <span class="code-keyword">FROM</span> employees e
+    <span class="code-keyword">INNER JOIN</span> employee_hierarchy eh <span class="code-keyword">ON</span> e.manager_id = eh.id
+)
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> employee_hierarchy;</code>
+        </div>
+        
+        <div class="highlight-box">
+            <strong>CTE vs Subquery:</strong><br>
+            • CTEs are more readable and maintainable<br>
+            • CTEs can be referenced multiple times in the same query<br>
+            • CTEs support recursion (subqueries don't)<br>
+            • Performance is usually similar for simple cases
+        </div>
+        
+        <h2>📊 Window Functions</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">What are Window Functions?</div>
+            <div class="concept-description">
+                Window functions perform calculations across a set of rows related to the current row, 
+                without collapsing the result set like aggregate functions do. They're perfect for 
+                ranking, running totals, moving averages, and comparative analysis.
+            </div>
+        </div>
+        
+        <h3>ROW_NUMBER, RANK, DENSE_RANK</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- ROW_NUMBER: Sequential numbering</span>
+<span class="code-keyword">SELECT</span> 
+    name,
+    amount,
+    <span class="code-function">ROW_NUMBER</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> row_num
+<span class="code-keyword">FROM</span> orders;
+
+<span class="code-comment">-- RANK: Ranking with gaps for ties</span>
+<span class="code-keyword">SELECT</span> 
+    product,
+    amount,
+    <span class="code-function">RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> rank
+<span class="code-keyword">FROM</span> orders;
+
+<span class="code-comment">-- DENSE_RANK: Ranking without gaps</span>
+<span class="code-keyword">SELECT</span> 
+    product,
+    amount,
+    <span class="code-function">DENSE_RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> dense_rank
+<span class="code-keyword">FROM</span> orders;
+
+<span class="code-comment">-- Partition by customer</span>
+<span class="code-keyword">SELECT</span> 
+    customer_id,
+    product,
+    amount,
+    <span class="code-function">ROW_NUMBER</span>() <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">PARTITION BY</span> customer_id 
+        <span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>
+    ) <span class="code-keyword">AS</span> rank_per_customer
+<span class="code-keyword">FROM</span> orders;</code>
+        </div>
+        
+        <h3>LAG and LEAD</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- LAG: Access previous row</span>
+<span class="code-keyword">SELECT</span> 
+    order_date,
+    amount,
+    <span class="code-function">LAG</span>(amount, <span class="code-number">1</span>) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> order_date) <span class="code-keyword">AS</span> prev_amount,
+    amount - <span class="code-function">LAG</span>(amount, <span class="code-number">1</span>) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> order_date) <span class="code-keyword">AS</span> difference
+<span class="code-keyword">FROM</span> orders;
+
+<span class="code-comment">-- LEAD: Access next row</span>
+<span class="code-keyword">SELECT</span> 
+    order_date,
+    amount,
+    <span class="code-function">LEAD</span>(amount, <span class="code-number">1</span>) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> order_date) <span class="code-keyword">AS</span> next_amount
+<span class="code-keyword">FROM</span> orders;
+
+<span class="code-comment">-- Calculate growth rate</span>
+<span class="code-keyword">SELECT</span> 
+    order_date,
+    amount,
+    <span class="code-function">ROUND</span>(
+        (<span class="code-number">100.0</span> * (amount - <span class="code-function">LAG</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> order_date))) 
+        / <span class="code-function">LAG</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> order_date),
+        <span class="code-number">2</span>
+    ) <span class="code-keyword">AS</span> growth_percent
+<span class="code-keyword">FROM</span> orders;</code>
+        </div>
+        
+        <h3>Aggregate Window Functions</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Running total</span>
+<span class="code-keyword">SELECT</span> 
+    order_date,
+    amount,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">ORDER BY</span> order_date
+        <span class="code-keyword">ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+    ) <span class="code-keyword">AS</span> running_total
+<span class="code-keyword">FROM</span> orders;
+
+<span class="code-comment">-- Moving average (3-day window)</span>
+<span class="code-keyword">SELECT</span> 
+    order_date,
+    amount,
+    <span class="code-function">AVG</span>(amount) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">ORDER BY</span> order_date
+        <span class="code-keyword">ROWS BETWEEN</span> <span class="code-number">2</span> <span class="code-keyword">PRECEDING AND CURRENT ROW</span>
+    ) <span class="code-keyword">AS</span> moving_avg_3day
+<span class="code-keyword">FROM</span> orders;
+
+<span class="code-comment">-- Percentage of total</span>
+<span class="code-keyword">SELECT</span> 
+    product,
+    amount,
+    <span class="code-function">ROUND</span>(
+        <span class="code-number">100.0</span> * amount / <span class="code-function">SUM</span>(amount) <span class="code-keyword">OVER</span> (),
+        <span class="code-number">2</span>
+    ) <span class="code-keyword">AS</span> percent_of_total
+<span class="code-keyword">FROM</span> orders;</code>
+        </div>
+        
+        <h3>Window Frame Specifications</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Frame Type</th>
+                    <th>Description</th>
+                    <th>Example</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>ROWS BETWEEN</code></td>
+                    <td>Physical row-based window</td>
+                    <td><code>ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING</code></td>
+                </tr>
+                <tr>
+                    <td><code>RANGE BETWEEN</code></td>
+                    <td>Logical value-based window</td>
+                    <td><code>RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</code></td>
+                </tr>
+                <tr>
+                    <td><code>UNBOUNDED PRECEDING</code></td>
+                    <td>From start of partition</td>
+                    <td>Running total from beginning</td>
+                </tr>
+                <tr>
+                    <td><code>CURRENT ROW</code></td>
+                    <td>Current row only</td>
+                    <td>Up to current position</td>
+                </tr>
+                <tr>
+                    <td><code>UNBOUNDED FOLLOWING</code></td>
+                    <td>To end of partition</td>
+                    <td>Include all future rows</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h2>📈 Aggregate Functions & GROUP BY</h2>
+        
+        <h3>Common Aggregate Functions</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Basic aggregates</span>
+<span class="code-keyword">SELECT</span> 
+    <span class="code-function">COUNT</span>(*) <span class="code-keyword">AS</span> total_orders,
+    <span class="code-function">COUNT</span>(<span class="code-keyword">DISTINCT</span> customer_id) <span class="code-keyword">AS</span> unique_customers,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">AS</span> total_revenue,
+    <span class="code-function">AVG</span>(amount) <span class="code-keyword">AS</span> avg_order_value,
+    <span class="code-function">MIN</span>(amount) <span class="code-keyword">AS</span> min_order,
+    <span class="code-function">MAX</span>(amount) <span class="code-keyword">AS</span> max_order
+<span class="code-keyword">FROM</span> orders;
+
+<span class="code-comment">-- GROUP BY single column</span>
+<span class="code-keyword">SELECT</span> 
+    customer_id,
+    <span class="code-function">COUNT</span>(*) <span class="code-keyword">AS</span> order_count,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">AS</span> total_spent
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">GROUP BY</span> customer_id;
+
+<span class="code-comment">-- GROUP BY multiple columns</span>
+<span class="code-keyword">SELECT</span> 
+    customer_id,
+    <span class="code-function">DATE</span>(order_date) <span class="code-keyword">AS</span> order_day,
+    <span class="code-function">COUNT</span>(*) <span class="code-keyword">AS</span> orders_per_day
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">GROUP BY</span> customer_id, <span class="code-function">DATE</span>(order_date);</code>
+        </div>
+        
+        <h3>HAVING Clause</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Filter aggregated results</span>
+<span class="code-keyword">SELECT</span> 
+    customer_id,
+    <span class="code-function">COUNT</span>(*) <span class="code-keyword">AS</span> order_count,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">AS</span> total_spent
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">GROUP BY</span> customer_id
+<span class="code-keyword">HAVING</span> <span class="code-function">COUNT</span>(*) > <span class="code-number">2</span> <span class="code-keyword">AND</span> <span class="code-function">SUM</span>(amount) > <span class="code-number">500</span>;
+
+<span class="code-comment">-- Find customers above average spending</span>
+<span class="code-keyword">SELECT</span> 
+    customer_id,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">AS</span> total_spent
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">GROUP BY</span> customer_id
+<span class="code-keyword">HAVING</span> <span class="code-function">SUM</span>(amount) > (<span class="code-keyword">SELECT</span> <span class="code-function">AVG</span>(total) 
+                                <span class="code-keyword">FROM</span> (<span class="code-keyword">SELECT</span> <span class="code-function">SUM</span>(amount) <span class="code-keyword">AS</span> total 
+                                      <span class="code-keyword">FROM</span> orders 
+                                      <span class="code-keyword">GROUP BY</span> customer_id));</code>
+        </div>
+        
+        <h3>GROUP_CONCAT (String Aggregation)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Concatenate values into single string</span>
+<span class="code-keyword">SELECT</span> 
+    customer_id,
+    <span class="code-function">GROUP_CONCAT</span>(product, <span class="code-string">', '</span>) <span class="code-keyword">AS</span> products_ordered
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">GROUP BY</span> customer_id;
+
+<span class="code-comment">-- With ORDER BY inside GROUP_CONCAT</span>
+<span class="code-keyword">SELECT</span> 
+    customer_id,
+    <span class="code-function">GROUP_CONCAT</span>(product <span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> products_by_price
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">GROUP BY</span> customer_id;</code>
+        </div>
+        
+        <h2>🔀 Set Operations</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">UNION</div>
+                <div class="concept-description">
+                    Combines results from two queries and removes duplicates. Use <code>UNION ALL</code> 
+                    to keep duplicates (faster).
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">INTERSECT</div>
+                <div class="concept-description">
+                    Returns only rows that appear in both result sets. Useful for finding common elements.
+                </div>
+            </div>
+        </div>
+        
+        <h3>UNION Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- UNION (removes duplicates)</span>
+<span class="code-keyword">SELECT</span> name <span class="code-keyword">FROM</span> customers <span class="code-keyword">WHERE</span> city = <span class="code-string">'New York'</span>
+<span class="code-keyword">UNION</span>
+<span class="code-keyword">SELECT</span> name <span class="code-keyword">FROM</span> customers <span class="code-keyword">WHERE</span> city = <span class="code-string">'London'</span>;
+
+<span class="code-comment">-- UNION ALL (keeps duplicates, faster)</span>
+<span class="code-keyword">SELECT</span> product <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> amount > <span class="code-number">100</span>
+<span class="code-keyword">UNION ALL</span>
+<span class="code-keyword">SELECT</span> product <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> order_date > <span class="code-string">'2024-01-01'</span>;
+
+<span class="code-comment">-- Combine different tables</span>
+<span class="code-keyword">CREATE TABLE</span> archived_orders (
+    id <span class="code-function">INTEGER</span>,
+    product <span class="code-function">TEXT</span>,
+    amount <span class="code-function">REAL</span>
+);
+
+<span class="code-keyword">SELECT</span> product, amount, <span class="code-string">'current'</span> <span class="code-keyword">AS</span> status <span class="code-keyword">FROM</span> orders
+<span class="code-keyword">UNION ALL</span>
+<span class="code-keyword">SELECT</span> product, amount, <span class="code-string">'archived'</span> <span class="code-keyword">AS</span> status <span class="code-keyword">FROM</span> archived_orders;</code>
+        </div>
+        
+        <h3>INTERSECT Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Find customers who placed orders in both 2023 and 2024</span>
+<span class="code-keyword">SELECT</span> customer_id <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> order_date <span class="code-keyword">LIKE</span> <span class="code-string">'2023%'</span>
+<span class="code-keyword">INTERSECT</span>
+<span class="code-keyword">SELECT</span> customer_id <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> order_date <span class="code-keyword">LIKE</span> <span class="code-string">'2024%'</span>;
+
+<span class="code-comment">-- Find products ordered by specific customers</span>
+<span class="code-keyword">SELECT</span> product <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">1</span>
+<span class="code-keyword">INTERSECT</span>
+<span class="code-keyword">SELECT</span> product <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> customer_id = <span class="code-number">2</span>;</code>
+        </div>
+        
+        <h3>EXCEPT Examples</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Find customers who ordered in 2023 but not in 2024</span>
+<span class="code-keyword">SELECT</span> customer_id <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> order_date <span class="code-keyword">LIKE</span> <span class="code-string">'2023%'</span>
+<span class="code-keyword">EXCEPT</span>
+<span class="code-keyword">SELECT</span> customer_id <span class="code-keyword">FROM</span> orders <span class="code-keyword">WHERE</span> order_date <span class="code-keyword">LIKE</span> <span class="code-string">'2024%'</span>;
+
+<span class="code-comment">-- Find products never ordered</span>
+<span class="code-keyword">CREATE TABLE</span> all_products (product <span class="code-function">TEXT</span>);
+
+<span class="code-keyword">SELECT</span> product <span class="code-keyword">FROM</span> all_products
+<span class="code-keyword">EXCEPT</span>
+<span class="code-keyword">SELECT</span> <span class="code-keyword">DISTINCT</span> product <span class="code-keyword">FROM</span> orders;</code>
+        </div>
+        
+        <h2>🎯 CASE Expressions</h2>
+        
+        <h3>Simple CASE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Categorize orders by amount</span>
+<span class="code-keyword">SELECT</span> 
+    product,
+    amount,
+    <span class="code-keyword">CASE</span>
+        <span class="code-keyword">WHEN</span> amount < <span class="code-number">50</span> <span class="code-keyword">THEN</span> <span class="code-string">'Small'</span>
+        <span class="code-keyword">WHEN</span> amount < <span class="code-number">200</span> <span class="code-keyword">THEN</span> <span class="code-string">'Medium'</span>
+        <span class="code-keyword">WHEN</span> amount < <span class="code-number">500</span> <span class="code-keyword">THEN</span> <span class="code-string">'Large'</span>
+        <span class="code-keyword">ELSE</span> <span class="code-string">'Extra Large'</span>
+    <span class="code-keyword">END</span> <span class="code-keyword">AS</span> order_size
+<span class="code-keyword">FROM</span> orders;
+
+<span class="code-comment">-- Conditional aggregation</span>
+<span class="code-keyword">SELECT</span> 
+    customer_id,
+    <span class="code-function">SUM</span>(<span class="code-keyword">CASE WHEN</span> amount > <span class="code-number">100</span> <span class="code-keyword">THEN</span> <span class="code-number">1</span> <span class="code-keyword">ELSE</span> <span class="code-number">0</span> <span class="code-keyword">END</span>) <span class="code-keyword">AS</span> high_value_orders,
+    <span class="code-function">SUM</span>(<span class="code-keyword">CASE WHEN</span> amount <= <span class="code-number">100</span> <span class="code-keyword">THEN</span> <span class="code-number">1</span> <span class="code-keyword">ELSE</span> <span class="code-number">0</span> <span class="code-keyword">END</span>) <span class="code-keyword">AS</span> low_value_orders
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">GROUP BY</span> customer_id;</code>
+        </div>
+        
+        <h3>Pivot Table with CASE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create pivot table</span>
+<span class="code-keyword">SELECT</span> 
+    customer_id,
+    <span class="code-function">SUM</span>(<span class="code-keyword">CASE WHEN</span> product = <span class="code-string">'Laptop'</span> <span class="code-keyword">THEN</span> amount <span class="code-keyword">ELSE</span> <span class="code-number">0</span> <span class="code-keyword">END</span>) <span class="code-keyword">AS</span> laptop_sales,
+    <span class="code-function">SUM</span>(<span class="code-keyword">CASE WHEN</span> product = <span class="code-string">'Mouse'</span> <span class="code-keyword">THEN</span> amount <span class="code-keyword">ELSE</span> <span class="code-number">0</span> <span class="code-keyword">END</span>) <span class="code-keyword">AS</span> mouse_sales,
+    <span class="code-function">SUM</span>(<span class="code-keyword">CASE WHEN</span> product = <span class="code-string">'Keyboard'</span> <span class="code-keyword">THEN</span> amount <span class="code-keyword">ELSE</span> <span class="code-number">0</span> <span class="code-keyword">END</span>) <span class="code-keyword">AS</span> keyboard_sales
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">GROUP BY</span> customer_id;</code>
+        </div>
+        
+        <div class="warning-box">
+            <strong>⚠️ Performance Note:</strong> Complex CASE expressions in WHERE clauses can prevent 
+            index usage. When possible, filter data first, then apply CASE in SELECT.
+        </div>
+        
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Master INNER JOIN, LEFT JOIN, and CROSS JOIN</li>
+            <li>Write efficient subqueries in WHERE and SELECT clauses</li>
+            <li>Use CTEs for readable, maintainable queries</li>
+            <li>Implement recursive CTEs for hierarchical data</li>
+            <li>Apply window functions for ranking and analytics</li>
+            <li>Use LAG/LEAD for time-series analysis</li>
+            <li>Aggregate data effectively with GROUP BY and HAVING</li>
+            <li>Combine result sets with UNION, INTERSECT, EXCEPT</li>
+            <li>Use CASE expressions for conditional logic</li>
+            <li>Optimize queries with proper indexing and filtering</li>
+        </ul>
+        
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> You've mastered advanced querying! Move on to 
+            <strong>Module 3: Indexing & Performance</strong> to learn how to optimize your queries 
+            with indexes, analyze query plans, and tune SQLite for maximum performance.
+        </div>
+        
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

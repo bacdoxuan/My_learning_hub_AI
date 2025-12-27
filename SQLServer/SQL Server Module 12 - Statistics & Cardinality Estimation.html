@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #12 - Statistics & Cardinality Estimation</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #16a34a;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #4ade80;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #4ade80;
+            border-bottom: 2px solid #16a34a;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #86efac;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #16a34a;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #4ade80;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #4ade80;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #4ade80;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #4ade80;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #4ade80;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #4ade80;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #16a34a;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #15803d;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟢 SQL Server Statistics & Cardinality Estimation</h1>
+        <p>Understanding Auto Stats, Updates, Histograms & Estimation Impacts</p>
+        <div class="badge">Performance Core</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module explores SQL Server statistics and cardinality estimation: automatic statistics creation and updates, 
+            histogram analysis for data distribution, when and how to update statistics, sampling methods, and the performance 
+            impacts of inaccurate cardinality estimates on query optimization.
+        </p>
+        
+        <h2>🔄 Auto Statistics & Updates</h2>
+        
+        <h3>Automatic Statistics Management</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Auto Create Statistics</div>
+                <div class="concept-description">
+                    <strong style="color: #4ade80;">Automatic creation:</strong> SQL Server creates statistics when needed for query optimization<br>
+                    <strong style="color: #4ade80;">Threshold-based:</strong> Triggered when table has data and queries reference columns<br>
+                    <strong style="color: #4ade80;">Naming convention:</strong> _WA_Sys_ followed by column ID and table ID<br>
+                    <strong style="color: #4ade80;">Database setting:</strong> AUTO_CREATE_STATISTICS option (default ON)<br>
+                    <strong style="color: #4ade80;">Scope:</strong> Applies to all user databases
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Auto Update Statistics</div>
+                <div class="concept-description">
+                    <strong style="color: #4ade80;">Automatic updates:</strong> Statistics refresh when data changes significantly<br>
+                    <strong style="color: #4ade80;">Threshold trigger:</strong> 20% of rows changed + 500 rows minimum<br>
+                    <strong style="color: #4ade80;">Database setting:</strong> AUTO_UPDATE_STATISTICS option (default ON)<br>
+                    <strong style="color: #4ade80;">Asynchronous option:</strong> AUTO_UPDATE_STATISTICS_ASYNC for non-blocking updates<br>
+                    <strong style="color: #4ade80;">Performance impact:</strong> Updates can cause query recompilation
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Check auto statistics settings</span>
+<span class="code-keyword">SELECT</span> 
+    name,
+    is_auto_create_stats_on,
+    is_auto_update_stats_on,
+    is_auto_update_stats_async_on
+<span class="code-keyword">FROM</span> sys.databases
+<span class="code-keyword">WHERE</span> name = <span class="code-string">'YourDatabase'</span>;
+
+<span class="code-comment">-- Enable/disable auto statistics</span>
+<span class="code-keyword">ALTER DATABASE</span> YourDatabase <span class="code-keyword">SET</span> AUTO_CREATE_STATISTICS ON;
+<span class="code-keyword">ALTER DATABASE</span> YourDatabase <span class="code-keyword">SET</span> AUTO_UPDATE_STATISTICS ON;
+<span class="code-keyword">ALTER DATABASE</span> YourDatabase <span class="code-keyword">SET</span> AUTO_UPDATE_STATISTICS_ASYNC ON;
+
+<span class="code-comment">-- View existing statistics</span>
+<span class="code-keyword">SELECT</span> 
+    object_name(s.object_id) AS TableName,
+    s.name AS StatisticsName,
+    s.auto_created,
+    s.user_created,
+    STATS_DATE(s.object_id, s.stats_id) AS LastUpdated
+<span class="code-keyword">FROM</span> sys.stats s
+<span class="code-keyword">WHERE</span> object_name(s.object_id) = <span class="code-string">'YourTable'</span>;</code>
+        </div>
+        
+        <h2>📊 Histogram Insights</h2>
+        
+        <h3>Data Distribution Analysis</h3>
+        <div class="concept-box">
+            <div class="concept-title">Histogram Structure & Usage</div>
+            <div class="concept-description">
+                <strong style="color: #4ade80;">Steps and ranges:</strong> Up to 200 steps showing data distribution<br>
+                <strong style="color: #4ade80;">RANGE_HI_KEY:</strong> Upper bound of each histogram step<br>
+                <strong style="color: #4ade80;">RANGE_ROWS:</strong> Number of rows within the step range<br>
+                <strong style="color: #4ade80;">EQ_ROWS:</strong> Number of rows equal to RANGE_HI_KEY<br>
+                <strong style="color: #4ade80;">DISTINCT_RANGE_ROWS:</strong> Distinct values within the step<br>
+                <strong style="color: #4ade80;">AVG_RANGE_ROWS:</strong> Average rows per distinct value in range<br>
+                <strong style="color: #4ade80;">Cardinality estimation:</strong> Used by optimizer for row count predictions
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- View histogram details</span>
+<span class="code-keyword">DBCC SHOW_STATISTICS</span> (<span class="code-string">'Sales.Orders'</span>, <span class="code-string">'IX_Orders_OrderDate'</span>);
+
+<span class="code-comment">-- Or using system function</span>
+<span class="code-keyword">SELECT</span> 
+    hist_step_id,
+    range_hi_key,
+    range_rows,
+    eq_rows,
+    distinct_range_rows,
+    avg_range_rows / avg_range_rows AS avg_rows_per_value
+<span class="code-keyword">FROM</span> sys.dm_db_stats_histogram(OBJECT_ID(<span class="code-string">'Sales.Orders'</span>), 
+                                    <span class="code-function">STATS_ID</span>(OBJECT_ID(<span class="code-string">'Sales.Orders'</span>), <span class="code-string">'IX_Orders_OrderDate'</span>));
+
+<span class="code-comment">-- Density information</span>
+<span class="code-keyword">DBCC SHOW_STATISTICS</span> (<span class="code-string">'Sales.Orders'</span>, <span class="code-string">'IX_Orders_OrderDate'</span>) <span class="code-keyword">WITH</span> DENSITY_VECTOR;
+
+<span class="code-comment">-- Understanding histogram:</span>
+<span class="code-comment">-- RANGE_HI_KEY: 2023-01-15 has EQ_ROWS = 5 (exact matches)</span>
+<span class="code-comment">-- Values 2023-01-10 to 2023-01-15 have RANGE_ROWS = 20 (within range)</span>
+<span class="code-comment">-- DISTINCT_RANGE_ROWS = 6 (6 different dates in that range)</span></code>
+        </div>
+        
+        <h2>🔄 When to Update Statistics</h2>
+        
+        <h3>Manual Statistics Maintenance</h3>
+        <div class="concept-box">
+            <div class="concept-title">Update Triggers & Best Practices</div>
+            <div class="concept-description">
+                <strong style="color: #4ade80;">Data changes:</strong> After significant inserts, updates, deletes (>20% + 500 rows)<br>
+                <strong style="color: #4ade80;">Schema changes:</strong> After adding/dropping indexes or columns<br>
+                <strong style="color: #4ade80;">Query performance:</strong> When execution plans show inaccurate estimates<br>
+                <strong style="color: #4ade80;">Bulk operations:</strong> After BULK INSERT, TRUNCATE, or large data loads<br>
+                <strong style="color: #4ade80;">Filtered statistics:</strong> When data distribution changes in filtered subsets<br>
+                <strong style="color: #4ade80;">Maintenance windows:</strong> Schedule updates during low-activity periods
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Update specific statistics</span>
+<span class="code-keyword">UPDATE STATISTICS</span> Sales.Orders IX_Orders_OrderDate;
+
+<span class="code-comment">-- Update all statistics on a table</span>
+<span class="code-keyword">UPDATE STATISTICS</span> Sales.Orders;
+
+<span class="code-comment">-- Fullscan for complete accuracy (slower)</span>
+<span class="code-keyword">UPDATE STATISTICS</span> Sales.Orders IX_Orders_OrderDate <span class="code-keyword">WITH</span> FULLSCAN;
+
+<span class="code-comment">-- Sample-based update (faster, less accurate)</span>
+<span class="code-keyword">UPDATE STATISTICS</span> Sales.Orders IX_Orders_OrderDate <span class="code-keyword">WITH</span> SAMPLE 50 PERCENT;
+
+<span class="code-comment">-- Update all statistics in database</span>
+<span class="code-keyword">EXEC</span> sp_updatestats;
+
+<span class="code-comment">-- Check statistics modification counter</span>
+<span class="code-keyword">SELECT</span> 
+    object_name(object_id) AS TableName,
+    stats_id,
+    modification_counter,
+    rows,
+    modification_counter * 100.0 / rows AS PercentModified
+<span class="code-keyword">FROM</span> sys.dm_db_stats_properties(OBJECT_ID(<span class="code-string">'Sales.Orders'</span>), NULL)
+<span class="code-keyword">WHERE</span> modification_counter > 0;</code>
+        </div>
+        
+        <h2>📈 Sampling Methods</h2>
+        
+        <h3>Statistics Collection Strategies</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Full Scan Sampling</div>
+                <div class="concept-description">
+                    <strong style="color: #4ade80;">Complete accuracy:</strong> Scans all rows for perfect statistics<br>
+                    <strong style="color: #4ade80;">Performance cost:</strong> High I/O and time for large tables<br>
+                    <strong style="color: #4ade80;">Best for:</strong> Critical tables, small datasets, accurate histograms<br>
+                    <strong style="color: #4ade80;">Default behavior:</strong> Used when table size allows<br>
+                    <strong style="color: #4ade80;">Resource intensive:</strong> May impact production performance
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Sample-Based Collection</div>
+                <div class="concept-description">
+                    <strong style="color: #4ade80;">Performance tradeoff:</strong> Faster collection with reduced accuracy<br>
+                    <strong style="color: #4ade80;">Sampling rates:</strong> Default algorithm chooses appropriate sample size<br>
+                    <strong style="color: #4ade80;">Manual control:</strong> Specify PERCENT or ROWS for custom sampling<br>
+                    <strong style="color: #4ade80;">Best for:</strong> Large tables, maintenance windows, acceptable inaccuracy<br>
+                    <strong style="color: #4ade80;">Quality considerations:</strong> Smaller samples may miss data distribution nuances
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Default sampling (SQL Server chooses)</span>
+<span class="code-keyword">UPDATE STATISTICS</span> LargeTable;
+
+<span class="code-comment">-- Explicit percentage sampling</span>
+<span class="code-keyword">UPDATE STATISTICS</span> LargeTable <span class="code-keyword">WITH</span> SAMPLE 30 PERCENT;
+
+<span class="code-comment">-- Fixed number of rows</span>
+<span class="code-keyword">UPDATE STATISTICS</span> LargeTable <span class="code-keyword">WITH</span> SAMPLE 10000 ROWS;
+
+<span class="code-comment">-- Full scan for maximum accuracy</span>
+<span class="code-keyword">UPDATE STATISTICS</span> LargeTable <span class="code-keyword">WITH</span> FULLSCAN;
+
+<span class="code-comment">-- Check sampling rate used</span>
+<span class="code-keyword">SELECT</span> 
+    sp.last_updated,
+    sp.rows,
+    sp.rows_sampled,
+    <span class="code-keyword">CASE</span> <span class="code-keyword">WHEN</span> sp.rows_sampled = sp.rows <span class="code-keyword">THEN</span> 100.0 
+         <span class="code-keyword">ELSE</span> sp.rows_sampled * 100.0 / sp.rows <span class="code-keyword">END</span> AS SamplePercent
+<span class="code-keyword">FROM</span> sys.dm_db_stats_properties(OBJECT_ID(<span class="code-string">'LargeTable'</span>), NULL) sp;</code>
+        </div>
+        
+        <h2>⚡ Impacts of Poor Cardinality Estimation</h2>
+        
+        <h3>Performance Consequences</h3>
+        <div class="concept-box">
+            <div class="concept-title">Estimation Errors & Their Effects</div>
+            <div class="concept-description">
+                <strong style="color: #4ade80;">Suboptimal plans:</strong> Wrong join algorithms, incorrect operator choices<br>
+                <strong style="color: #4ade80;">Memory issues:</strong> Underestimated row counts cause spills to tempdb<br>
+                <strong style="color: #4ade80;">Resource waste:</strong> Overestimated plans allocate excessive memory<br>
+                <strong style="color: #4ade80;">Query timeouts:</strong> Plans that should be fast become slow and vice versa<br>
+                <strong style="color: #4ade80;">Blocking/deadlocks:</strong> Longer-running queries increase concurrency issues<br>
+                <strong style="color: #4ade80;">Index selection:</strong> Wrong indexes chosen for data access
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Detect cardinality estimation issues</span>
+<span class="code-keyword">SELECT</span> 
+    qs.execution_count,
+    qs.total_logical_reads,
+    qs.total_logical_writes,
+    qs.total_elapsed_time / qs.execution_count AS avg_elapsed_time,
+    SUBSTRING(st.text, (qs.statement_start_offset/2)+1,
+        ((<span class="code-keyword">CASE</span> qs.statement_end_offset <span class="code-keyword">WHEN</span> -1 <span class="code-keyword">THEN</span> DATALENGTH(st.text)
+             <span class="code-keyword">ELSE</span> qs.statement_end_offset <span class="code-keyword">END</span> - qs.statement_start_offset)/2) + 1) AS query_text
+<span class="code-keyword">FROM</span> sys.dm_exec_query_stats qs
+<span class="code-keyword">CROSS APPLY</span> sys.dm_exec_sql_text(qs.sql_handle) st
+<span class="code-keyword">WHERE</span> qs.last_execution_time > DATEADD(hour, -24, GETDATE())
+<span class="code-keyword">ORDER BY</span> qs.total_logical_reads <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- Check for spills in execution plans</span>
+<span class="code-comment">-- Look for "Hash Warning" or "Sort Warning" in actual plans</span>
+
+<span class="code-comment">-- Query with cardinality mismatch</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> LargeTable
+<span class="code-keyword">WHERE</span> FilteredColumn = <span class="code-string">'RareValue'</span>;  <span class="code-comment">-- Statistics may underestimate rows</span></code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Statistics Best Practices:</strong> Keep auto-update enabled but supplement with manual updates for critical tables. Use FULLSCAN for important statistics. 
+            Monitor for cardinality estimation errors through execution plan analysis.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Common Pitfalls:</strong> Outdated statistics cause poor query performance. Over-sampling wastes time without benefit. 
+            Under-sampling misses important data distribution characteristics.
+        </div>
+        
+        <h2>📊 Statistics Maintenance Strategy</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Scenario</th>
+                <th>Recommended Approach</th>
+                <th>Rationale</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>OLTP Database</strong></td>
+                <td>Auto-update with async option</td>
+                <td>Minimize blocking during updates</td>
+                </tr>
+                <tr>
+                    <td><strong>Data Warehouse</strong></td>
+                <td>Scheduled FULLSCAN updates</td>
+                <td>Maximize accuracy for complex queries</td>
+                </tr>
+                <tr>
+                    <td><strong>Large Tables</strong></td>
+                <td>Sample-based updates (30-50%)</td>
+                <td>Balance accuracy with maintenance time</td>
+                </tr>
+                <tr>
+                    <td><strong>Critical Queries</strong></td>
+                <td>Manual updates after data loads</td>
+                <td>Ensure optimal plans for important workloads</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Understand auto-create and auto-update statistics behavior</li>
+                <li>Configure database statistics settings appropriately</li>
+                <li>Analyze histogram data distribution using DBCC SHOW_STATISTICS</li>
+                <li>Interpret RANGE_HI_KEY, EQ_ROWS, and RANGE_ROWS values</li>
+                <li>Identify when manual statistics updates are needed</li>
+                <li>Use FULLSCAN vs sample-based updates appropriately</li>
+                <li>Monitor statistics freshness using modification counters</li>
+                <li>Detect cardinality estimation errors in execution plans</li>
+                <li>Implement appropriate sampling strategies for different scenarios</li>
+                <li>Schedule statistics maintenance during maintenance windows</li>
+                <li>Troubleshoot query performance issues caused by stale statistics</li>
+                <li>Use filtered statistics for subset-specific queries</li>
+                <li>Monitor the impact of statistics updates on query recompilation</li>
+                <li>Balance statistics accuracy with maintenance performance</li>
+                <li>Implement statistics maintenance in ETL processes</li>
+                <li>Use system DMVs to track statistics usage and effectiveness</li>
+                <li>Understand the relationship between statistics and query optimization</li>
+                <li>Apply statistics best practices to real-world scenarios</li>
+                <li>Debug cardinality estimation issues systematically</li>
+                <li>Test statistics changes in development environments</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Statistics Analysis:</strong> Examine statistics on a large table using DBCC SHOW_STATISTICS. Analyze the histogram and identify data distribution patterns.</li>
+                <li><strong>Update Strategies:</strong> Compare the performance and accuracy of FULLSCAN vs sample-based statistics updates on the same table.</li>
+                <li><strong>Cardinality Issues:</strong> Create a query that demonstrates poor cardinality estimation. Update statistics and show the improvement in execution plans.</li>
+                <li><strong>Maintenance Planning:</strong> Design a statistics maintenance plan for a mixed OLTP and reporting database, including scheduling and sampling strategies.</li>
+                <li><strong>Monitoring:</strong> Use DMVs to monitor statistics usage and identify tables that need manual updates.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/11-execution-plans.html" class="nav-btn">← Previous: Execution Plans & Query Optimizer Basics</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/13-locks-blocking.html" class="nav-btn">Next: Locks, Blocking & Isolation Levels →</a>
+        </div>
+    </div>
+</body>
+</html>

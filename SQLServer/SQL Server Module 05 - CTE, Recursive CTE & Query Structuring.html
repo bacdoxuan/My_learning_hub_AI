@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #5 - CTE, Recursive CTE & Query Structuring</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #8b5cf6;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #a78bfa;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #a78bfa;
+            border-bottom: 2px solid #8b5cf6;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #c4b5fd;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #8b5cf6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #a78bfa;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #fbbf24;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #a78bfa;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #a78bfa;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #a78bfa;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #a78bfa;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #8b5cf6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #7c3aed;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟣 SQL Server CTE, Recursive CTE & Query Structuring</h1>
+        <p>Master Advanced Query Techniques with CTEs and Optimal Query Design</p>
+        <div class="badge">Advanced</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module dives deep into Common Table Expressions (CTEs), focusing on patterns for improved readability, recursive CTEs for hierarchical data like employee org charts, 
+            and when to choose temp tables over CTEs. Learn query structuring best practices for maintainable and performant T-SQL code.
+        </p>
+        
+        <h2>🎯 CTE Patterns & Readability</h2>
+        
+        <h3>CTE Design Patterns</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Single CTE for Simplification</div>
+                <div class="concept-description">
+                    <strong style="color: #a78bfa;">Base aggregation:</strong> Pre-aggregate data for complex calculations<br>
+                    <strong style="color: #a78bfa;">Intermediate results:</strong> Break down complex logic into steps<br>
+                    <strong style="color: #a78bfa;">Code reuse:</strong> Reference same logic multiple times<br>
+                    <strong style="color: #a78bfa;">Readability:</strong> Self-documenting query structure
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Multiple CTEs (Chained)</div>
+                <div class="concept-description">
+                    <strong style="color: #a78bfa;">Sequential processing:</strong> Each CTE builds on previous<br>
+                    <strong style="color: #a78bfa;">Data transformation pipeline:</strong> Clean → Transform → Aggregate<br>
+                    <strong style="color: #a78bfa;">Debugging:</strong> Test each step independently<br>
+                    <strong style="color: #a78bfa;">Maintenance:</strong> Easier to modify individual components
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Single CTE: Monthly sales with running totals</span>
+<span class="code-keyword">WITH</span> MonthlySales AS (
+    <span class="code-keyword">SELECT</span> 
+        <span class="code-function">YEAR</span>(OrderDate) AS SalesYear,
+        <span class="code-function">MONTH</span>(OrderDate) AS SalesMonth,
+        <span class="code-function">SUM</span>(TotalAmount) AS MonthlyTotal
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">GROUP BY</span> <span class="code-function">YEAR</span>(OrderDate), <span class="code-function">MONTH</span>(OrderDate)
+)
+<span class="code-keyword">SELECT</span> SalesYear, SalesMonth, MonthlyTotal,
+       <span class="code-function">SUM</span>(MonthlyTotal) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> SalesYear, SalesMonth) AS YTDTotal
+<span class="code-keyword">FROM</span> MonthlySales
+<span class="code-keyword">ORDER BY</span> SalesYear, SalesMonth;
+
+<span class="code-comment">-- Multiple CTEs: Data processing pipeline</span>
+<span class="code-keyword">WITH</span> 
+RawData AS (
+    <span class="code-keyword">SELECT</span> CustomerID, OrderDate, TotalAmount
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">WHERE</span> OrderDate >= '2023-01-01'
+),
+CleanedData AS (
+    <span class="code-keyword">SELECT</span> CustomerID, OrderDate, 
+           <span class="code-function">ISNULL</span>(TotalAmount, 0) AS TotalAmount
+    <span class="code-keyword">FROM</span> RawData
+    <span class="code-keyword">WHERE</span> TotalAmount > 0
+),
+AggregatedData AS (
+    <span class="code-keyword">SELECT</span> CustomerID, 
+           <span class="code-function">COUNT</span>(*) AS OrderCount,
+           <span class="code-function">SUM</span>(TotalAmount) AS TotalSpent
+    <span class="code-keyword">FROM</span> CleanedData
+    <span class="code-keyword">GROUP BY</span> CustomerID
+)
+<span class="code-keyword">SELECT</span> c.CustomerName, ad.OrderCount, ad.TotalSpent
+<span class="code-keyword">FROM</span> AggregatedData ad
+<span class="code-keyword">JOIN</span> Customers c <span class="code-keyword">ON</span> ad.CustomerID = c.CustomerID;</code>
+        </div>
+        
+        <h2>🔄 Recursive CTEs for Hierarchies</h2>
+        
+        <h3>Recursive CTE Structure</h3>
+        <div class="concept-box">
+            <div class="concept-title">Components of Recursive CTE</div>
+            <div class="concept-description">
+                <strong style="color: #a78bfa;">Anchor member:</strong> Starting point (non-recursive)<br>
+                <strong style="color: #a78bfa;">UNION ALL:</strong> Combines anchor with recursive member<br>
+                <strong style="color: #a78bfa;">Recursive member:</strong> References the CTE itself<br>
+                <strong style="color: #a78bfa;">Termination condition:</strong> Implicit (no more rows returned)
+            </div>
+        </div>
+        
+        <h3>Employee Org Chart Example</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Employee hierarchy with levels and paths</span>
+<span class="code-keyword">WITH</span> EmployeeHierarchy AS (
+    <span class="code-comment">-- Anchor: Top-level employees (CEO, etc.)</span>
+    <span class="code-keyword">SELECT</span> 
+        EmployeeID,
+        ManagerID,
+        EmployeeName,
+        0 AS HierarchyLevel,
+        <span class="code-function">CAST</span>(EmployeeName <span class="code-keyword">AS</span> <span class="code-keyword">NVARCHAR</span>(MAX)) AS HierarchyPath,
+        EmployeeName AS RootManager
+    <span class="code-keyword">FROM</span> Employees
+    <span class="code-keyword">WHERE</span> ManagerID <span class="code-keyword">IS NULL</span>
+    
+    <span class="code-keyword">UNION ALL</span>
+    
+    <span class="code-comment">-- Recursive: All subordinates</span>
+    <span class="code-keyword">SELECT</span> 
+        e.EmployeeID,
+        e.ManagerID,
+        e.EmployeeName,
+        eh.HierarchyLevel + 1,
+        <span class="code-function">CAST</span>(eh.HierarchyPath + ' > ' + e.EmployeeName <span class="code-keyword">AS</span> <span class="code-keyword">NVARCHAR</span>(MAX)),
+        eh.RootManager
+    <span class="code-keyword">FROM</span> Employees e
+    <span class="code-keyword">INNER JOIN</span> EmployeeHierarchy eh <span class="code-keyword">ON</span> e.ManagerID = eh.EmployeeID
+)
+<span class="code-keyword">SELECT</span> 
+    <span class="code-function">REPLICATE</span>('  ', HierarchyLevel) + EmployeeName AS IndentedName,
+    HierarchyLevel,
+    HierarchyPath,
+    RootManager
+<span class="code-keyword">FROM</span> EmployeeHierarchy
+<span class="code-keyword">ORDER BY</span> RootManager, HierarchyLevel, EmployeeName
+<span class="code-keyword">OPTION</span> (MAXRECURSION 10);</code>
+        </div>
+        
+        <h3>Advanced Recursive Patterns</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Bill of Materials (BOM)</div>
+                <div class="concept-description">
+                    <strong style="color: #a78bfa;">Multi-level explosion:</strong> Component hierarchies<br>
+                    <strong style="color: #a78bfa;">Cost rollup:</strong> Calculate total material costs<br>
+                    <strong style="color: #a78bfa;">Dependency chains:</strong> Find all required components<br>
+                    <strong style="color: #a78bfa;">Circular reference prevention:</strong> Track visited nodes
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Category Trees</div>
+                <div class="concept-description">
+                    <strong style="color: #a78bfa;">Product categories:</strong> Parent-child relationships<br>
+                    <strong style="color: #a78bfa;">Breadcrumb paths:</strong> Full category paths<br>
+                    <strong style="color: #a78bfa;">Subtree queries:</strong> All descendants of a category<br>
+                    <strong style="color: #a78bfa;">Tree balancing:</strong> Performance optimization
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- BOM: Component explosion with quantities</span>
+<span class="code-keyword">WITH</span> BOMExplosion AS (
+    <span class="code-keyword">SELECT</span> 
+        ComponentID,
+        ParentComponentID,
+        ComponentName,
+        1.0 AS QuantityRequired,
+        0 AS Level,
+        <span class="code-function">CAST</span>(ComponentName <span class="code-keyword">AS</span> <span class="code-keyword">NVARCHAR</span>(MAX)) AS ComponentPath
+    <span class="code-keyword">FROM</span> Components
+    <span class="code-keyword">WHERE</span> ParentComponentID <span class="code-keyword">IS NULL</span>
+    
+    <span class="code-keyword">UNION ALL</span>
+    
+    <span class="code-keyword">SELECT</span> 
+        c.ComponentID,
+        c.ParentComponentID,
+        c.ComponentName,
+        be.QuantityRequired * bc.Quantity AS QuantityRequired,
+        be.Level + 1,
+        <span class="code-function">CAST</span>(be.ComponentPath + ' > ' + c.ComponentName <span class="code-keyword">AS</span> <span class="code-keyword">NVARCHAR</span>(MAX))
+    <span class="code-keyword">FROM</span> Components c
+    <span class="code-keyword">INNER JOIN</span> BOMExplosion be <span class="code-keyword">ON</span> c.ParentComponentID = be.ComponentID
+    <span class="code-keyword">INNER JOIN</span> BillOfMaterials bc <span class="code-keyword">ON</span> bc.ComponentID = c.ComponentID 
+        <span class="code-keyword">AND</span> bc.ParentID = c.ParentComponentID
+)
+<span class="code-keyword">SELECT</span> ComponentPath, QuantityRequired, Level
+<span class="code-keyword">FROM</span> BOMExplosion
+<span class="code-keyword">ORDER BY</span> ComponentPath;</code>
+        </div>
+        
+        <h2>⚖️ CTE vs Temp Tables</h2>
+        
+        <h3>When to Use Temp Tables</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Scenario</th>
+                    <th>Temp Table</th>
+                    <th>CTE</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Reusability</strong></td>
+                    <td>Can be referenced multiple times in same batch</td>
+                    <td>Single use per statement</td>
+                </tr>
+                <tr>
+                    <td><strong>Materialization</strong></td>
+                    <td>Physical storage, indexes possible</td>
+                    <td>Logical, not materialized</td>
+                </tr>
+                <tr>
+                    <td><strong>Performance</strong></td>
+                    <td>Better for large datasets, complex operations</td>
+                    <td>Better for small datasets, readability</td>
+                </tr>
+                <tr>
+                    <td><strong>Indexing</strong></td>
+                    <td>Can create indexes for performance</td>
+                    <td>No indexing possible</td>
+                </tr>
+                <tr>
+                    <td><strong>Scope</strong></td>
+                    <td>Session or global (##)</td>
+                    <td>Statement-level only</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- When to use temp table: Complex multi-step processing</span>
+<span class="code-keyword">CREATE TABLE</span> #TempSalesData (
+    CustomerID <span class="code-keyword">INT</span>,
+    OrderYear <span class="code-keyword">INT</span>,
+    TotalSales <span class="code-keyword">DECIMAL</span>(10,2),
+    <span class="code-keyword">INDEX</span> idx_CustomerYear (CustomerID, OrderYear)
+);
+
+<span class="code-keyword">INSERT INTO</span> #TempSalesData
+<span class="code-keyword">SELECT</span> CustomerID, <span class="code-function">YEAR</span>(OrderDate), <span class="code-function">SUM</span>(TotalAmount)
+<span class="code-keyword">FROM</span> Orders
+<span class="code-keyword">GROUP BY</span> CustomerID, <span class="code-function">YEAR</span>(OrderDate);
+
+<span class="code-comment">-- Use multiple times</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> #TempSalesData <span class="code-keyword">WHERE</span> TotalSales > 10000;
+<span class="code-keyword">SELECT</span> OrderYear, <span class="code-function">AVG</span>(TotalSales) <span class="code-keyword">FROM</span> #TempSalesData <span class="code-keyword">GROUP BY</span> OrderYear;
+
+<span class="code-keyword">DROP TABLE</span> #TempSalesData;
+
+<span class="code-comment">-- CTE equivalent (less efficient for multiple uses)</span>
+<span class="code-keyword">WITH</span> SalesData AS (
+    <span class="code-keyword">SELECT</span> CustomerID, <span class="code-function">YEAR</span>(OrderDate) AS OrderYear, <span class="code-function">SUM</span>(TotalAmount) AS TotalSales
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">GROUP BY</span> CustomerID, <span class="code-function">YEAR</span>(OrderDate)
+)
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> SalesData <span class="code-keyword">WHERE</span> TotalSales > 10000;</code>
+        </div>
+        
+        <h2>🏗️ Query Structuring Best Practices</h2>
+        
+        <h3>Code Organization Principles</h3>
+        <div class="concept-box">
+            <div class="concept-title">Maintainable Query Design</div>
+            <div class="concept-description">
+                <strong style="color: #a78bfa;">Modular breakdown:</strong> Split complex queries into logical CTEs<br>
+                <strong style="color: #a78bfa;">Consistent formatting:</strong> Use proper indentation and aliases<br>
+                <strong style="color: #a78bfa;">Documentation:</strong> Comment complex logic and business rules<br>
+                <strong style="color: #a78bfa;">Performance awareness:</strong> Consider execution plans and indexing<br>
+                <strong style="color: #a78bfa;">Testability:</strong> Design for easy unit testing of components
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Well-structured complex query</span>
+<span class="code-keyword">WITH</span>
+<span class="code-comment">-- 1. Filter and prepare base data</span>
+FilteredOrders AS (
+    <span class="code-keyword">SELECT</span> 
+        o.OrderID,
+        o.CustomerID,
+        o.OrderDate,
+        o.TotalAmount,
+        <span class="code-function">DATEDIFF</span>(<span class="code-keyword">DAY</span>, o.OrderDate, GETDATE()) AS DaysSinceOrder
+    <span class="code-keyword">FROM</span> Orders o
+    <span class="code-keyword">WHERE</span> o.OrderDate >= <span class="code-function">DATEADD</span>(<span class="code-keyword">MONTH</span>, -12, GETDATE())
+        <span class="code-keyword">AND</span> o.Status = 'Completed'
+),
+
+<span class="code-comment">-- 2. Calculate customer metrics</span>
+CustomerMetrics AS (
+    <span class="code-keyword">SELECT</span> 
+        CustomerID,
+        <span class="code-function">COUNT</span>(*) AS TotalOrders,
+        <span class="code-function">SUM</span>(TotalAmount) AS TotalSpent,
+        <span class="code-function">AVG</span>(TotalAmount) AS AvgOrderValue,
+        <span class="code-function">MAX</span>(OrderDate) AS LastOrderDate,
+        <span class="code-function">MIN</span>(DaysSinceOrder) AS DaysSinceLastOrder
+    <span class="code-keyword">FROM</span> FilteredOrders
+    <span class="code-keyword">GROUP BY</span> CustomerID
+),
+
+<span class="code-comment">-- 3. Apply business rules and scoring</span>
+CustomerScoring AS (
+    <span class="code-keyword">SELECT</span> 
+        cm.*,
+        <span class="code-keyword">CASE</span> 
+            <span class="code-keyword">WHEN</span> TotalSpent > 5000 <span class="code-keyword">AND</span> TotalOrders > 5 <span class="code-keyword">THEN</span> 'Platinum'
+            <span class="code-keyword">WHEN</span> TotalSpent > 1000 <span class="code-keyword">THEN</span> 'Gold'
+            <span class="code-keyword">ELSE</span> 'Standard'
+        <span class="code-keyword">END</span> AS CustomerTier
+    <span class="code-keyword">FROM</span> CustomerMetrics cm
+)
+
+<span class="code-comment">-- 4. Final presentation</span>
+<span class="code-keyword">SELECT</span> 
+    c.CustomerName,
+    cs.TotalOrders,
+    cs.TotalSpent,
+    cs.AvgOrderValue,
+    cs.CustomerTier,
+    cs.DaysSinceLastOrder
+<span class="code-keyword">FROM</span> CustomerScoring cs
+<span class="code-keyword">JOIN</span> Customers c <span class="code-keyword">ON</span> cs.CustomerID = c.CustomerID
+<span class="code-keyword">ORDER BY</span> cs.TotalSpent <span class="code-keyword">DESC</span>;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Key Decision Framework:</strong> Use CTEs for readability and single-use derived tables. Use temp tables when you need to reference the data multiple times, 
+            require indexing, or are dealing with very large datasets where materialization improves performance.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Recursive CTE Warnings:</strong> Always set MAXRECURSION to prevent infinite loops. Default is 100. 
+            For deep hierarchies, consider alternative approaches like nested sets or closure tables.
+        </div>
+        
+        <h2>📊 Comparison: CTE vs Temp Tables</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Aspect</th>
+                    <th>CTE</th>
+                <th>Temp Table</th>
+            </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Storage</strong></td>
+                <td>Logical (not materialized)</td>
+                <td>Physical (tempdb)</td>
+                </tr>
+                <tr>
+                    <td><strong>Indexing</strong></td>
+                <td>Not possible</td>
+                <td>Yes, can create indexes</td>
+                </tr>
+                <tr>
+                    <td><strong>Reusability</strong></td>
+                <td>Single statement</td>
+                <td>Multiple statements in batch</td>
+                </tr>
+                <tr>
+                    <td><strong>Performance</strong></td>
+                <td>Better for small datasets</td>
+                <td>Better for large/complex operations</td>
+                </tr>
+                <tr>
+                    <td><strong>Memory usage</strong></td>
+                <td>Lower (no physical storage)</td>
+                <td>Higher (tempdb space)</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Write single CTEs for query simplification and readability</li>
+                <li>Create chained multiple CTEs for complex data processing</li>
+                <li>Implement recursive CTEs for hierarchical data structures</li>
+                <li>Handle employee org charts with proper level tracking</li>
+                <li>Use recursive CTEs for bill of materials and category trees</li>
+                <li>Prevent infinite recursion with MAXRECURSION option</li>
+                <li>Choose between CTEs and temp tables based on use case</li>
+                <li>Create and index temp tables for performance-critical operations</li>
+                <li>Structure complex queries with modular CTE design</li>
+                <li>Apply consistent formatting and documentation practices</li>
+                <li>Optimize CTE performance through proper indexing strategies</li>
+                <li>Test CTE components individually for debugging</li>
+                <li>Understand materialization vs logical processing differences</li>
+                <li>Implement business rules within CTE chains</li>
+                <li>Monitor tempdb usage when using temp tables</li>
+                <li>Refactor monolithic queries into maintainable CTE structures</li>
+                <li>Use CTEs for recursive operations on tree-like data</li>
+                <li>Balance readability with performance considerations</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>CTE Patterns:</strong> Refactor a complex JOIN query into multiple CTEs for better readability. Implement a CTE that calculates customer lifetime value with intermediate aggregations.</li>
+                <li><strong>Recursive Hierarchies:</strong> Create a recursive CTE to display a product category tree with full paths. Implement an employee reporting structure showing management chains.</li>
+                <li><strong>CTE vs Temp Tables:</strong> Compare performance between a multi-CTE query and equivalent temp table approach for a large dataset. Create indexed temp tables for complex reporting queries.</li>
+                <li><strong>Query Structuring:</strong> Break down a monolithic sales analysis query into logical CTE components. Implement proper error handling and documentation in complex query structures.</li>
+                <li><strong>Advanced Scenarios:</strong> Use recursive CTEs to solve gaps and islands problems. Implement BOM explosion with cost rollup using recursive techniques.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/04-joins-set-ops-subqueries.html" class="nav-btn">← Previous: Joins, Set Ops & Subqueries</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/06-window-functions-analytical.html" class="nav-btn">Next: Window Functions & Analytical Patterns →</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Cheat Sheet #1 - Foundations & Data Types</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+        }
+        
+        .hero h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .hero p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .concept-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid #2ecc71;
+            border-radius: 8px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .concept-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(46, 204, 113, 0.2);
+        }
+        
+        .concept-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2ecc71;
+            margin-bottom: 12px;
+        }
+        
+        .concept-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a8d5ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-block code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+            display: block;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+        
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-number { color: #ffeaa7; }
+        .code-comment { color: #636e72; }
+        
+        h2 {
+            font-size: 2em;
+            color: #f1f5f9;
+            margin: 40px 0 20px 0;
+            border-bottom: 2px solid #2ecc71;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            font-size: 1.3em;
+            color: #cbd5e1;
+            margin: 25px 0 15px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(39, 174, 96, 0.2));
+            color: #2ecc71;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #2ecc71;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+        
+        tr:hover {
+            background: rgba(46, 204, 113, 0.1);
+        }
+        
+        .highlight-box {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .highlight-box strong {
+            color: #2ecc71;
+        }
+        
+        .warning-box {
+            background: rgba(230, 126, 34, 0.1);
+            border-left: 4px solid #e67e22;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #fdb462;
+        }
+        
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #85c1e9;
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+        
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+        }
+        
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(46, 204, 113, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .hero h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟢 PostgreSQL Foundations & Data Types</h1>
+        <p>Master RDBMS Architecture, ACID Properties, and Advanced Data Types</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers the fundamental concepts of PostgreSQL and relational databases. You'll learn about RDBMS architecture, 
+            ACID properties that ensure data reliability, rich data types (JSON/JSONB, Arrays, UUID, geometric), DDL operations 
+            (CREATE, ALTER, DROP), and basic CRUD operations.
+        </p>
+        
+        <h2>🏗️ RDBMS Architecture</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">What is RDBMS?</div>
+                <div class="concept-description">
+                    Relational Database Management System organizes data into tables with rows and columns. 
+                    PostgreSQL is an object-relational database with advanced features like custom types, 
+                    inheritance, and procedural languages.
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Database Architecture Layers</div>
+                <div class="concept-description">
+                    <strong style="color: #2ecc71;">Storage Layer:</strong> Manages data on disk<br>
+                    <strong style="color: #2ecc71;">Buffer Layer:</strong> Caches frequently accessed data<br>
+                    <strong style="color: #2ecc71;">Query Layer:</strong> Processes SQL statements<br>
+                    <strong style="color: #2ecc71;">Access Layer:</strong> Handles connections
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Key Point:</strong> PostgreSQL follows the MVCC (Multi-Version Concurrency Control) model, 
+            allowing multiple readers to see consistent snapshots while writes are happening.
+        </div>
+        
+        <h2>🔐 ACID Properties</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 20%;">Property</th>
+                    <th>Description</th>
+                    <th>PostgreSQL Implementation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Atomicity</strong></td>
+                    <td>Transaction either completes fully or not at all</td>
+                    <td>WAL (Write-Ahead Logging) ensures all-or-nothing execution</td>
+                </tr>
+                <tr>
+                    <td><strong>Consistency</strong></td>
+                    <td>Database moves from one valid state to another</td>
+                    <td>Constraints, triggers, and referential integrity rules</td>
+                </tr>
+                <tr>
+                    <td><strong>Isolation</strong></td>
+                    <td>Concurrent transactions don't interfere</td>
+                    <td>MVCC ensures snapshot isolation between transactions</td>
+                </tr>
+                <tr>
+                    <td><strong>Durability</strong></td>
+                    <td>Committed data survives system failures</td>
+                    <td>Data written to persistent storage (fsync)</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h2>📊 PostgreSQL Data Types</h2>
+        
+        <h3>Basic Types</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Example</th>
+                    <th>Storage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>INTEGER</code></td>
+                    <td>32-bit signed integer</td>
+                    <td>42</td>
+                    <td>4 bytes</td>
+                </tr>
+                <tr>
+                    <td><code>BIGINT</code></td>
+                    <td>64-bit signed integer</td>
+                    <td>9223372036854775807</td>
+                    <td>8 bytes</td>
+                </tr>
+                <tr>
+                    <td><code>DECIMAL/NUMERIC</code></td>
+                    <td>Arbitrary precision decimal</td>
+                    <td>999.99</td>
+                    <td>Variable</td>
+                </tr>
+                <tr>
+                    <td><code>FLOAT/DOUBLE</code></td>
+                    <td>IEEE floating-point</td>
+                    <td>3.14159</td>
+                    <td>8 bytes</td>
+                </tr>
+                <tr>
+                    <td><code>VARCHAR(n)</code></td>
+                    <td>Variable-length string</td>
+                    <td>'Hello World'</td>
+                    <td>Variable</td>
+                </tr>
+                <tr>
+                    <td><code>TEXT</code></td>
+                    <td>Unlimited-length text</td>
+                    <td>'Long content'</td>
+                    <td>Variable</td>
+                </tr>
+                <tr>
+                    <td><code>BOOLEAN</code></td>
+                    <td>True/False values</td>
+                    <td>true, false</td>
+                    <td>1 byte</td>
+                </tr>
+                <tr>
+                    <td><code>DATE</code></td>
+                    <td>Calendar date</td>
+                    <td>'2024-12-25'</td>
+                    <td>4 bytes</td>
+                </tr>
+                <tr>
+                    <td><code>TIMESTAMP</code></td>
+                    <td>Date and time with timezone</td>
+                    <td>'2024-12-25 10:30:00 UTC'</td>
+                    <td>8 bytes</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Advanced/Rich Data Types</h3>
+        
+        <div class="concept-box" style="border-left-color: #3498db; margin-bottom: 20px;">
+            <div class="concept-title" style="color: #3498db;">UUID (Universally Unique Identifier)</div>
+            <div class="concept-description">
+                16-byte identifier that's globally unique. Perfect for distributed systems and exposing PKs publicly.
+            </div>
+            <div class="code-block">
+<code><span class="code-keyword">CREATE TABLE</span> users (
+    id UUID <span class="code-keyword">PRIMARY KEY DEFAULT</span> <span class="code-function">gen_random_uuid</span>(),
+    name TEXT
+);
+
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> id = <span class="code-string">'550e8400-e29b-41d4-a716-446655440000'</span>::uuid;</code>
+            </div>
+        </div>
+        
+        <div class="concept-box" style="border-left-color: #e74c3c; margin-bottom: 20px;">
+            <div class="concept-title" style="color: #e74c3c;">JSON vs JSONB</div>
+            <div class="concept-description">
+                <strong style="color: #e74c3c;">JSON:</strong> Stores text with whitespace preservation. Reparsed on each access.<br>
+                <strong style="color: #e74c3c;">JSONB:</strong> Binary format, compressed, indexed. Preferred for production use.
+            </div>
+            <div class="code-block">
+<code><span class="code-keyword">CREATE TABLE</span> products (
+    id INTEGER,
+    data JSONB
+);
+
+<span class="code-keyword">INSERT INTO</span> products <span class="code-keyword">VALUES</span> 
+    (<span class="code-number">1</span>, <span class="code-string">'{"name":"Laptop","price":999.99,"tags":["electronics","computers"]}'</span>::jsonb);
+
+<span class="code-comment">-- Query JSON data</span>
+<span class="code-keyword">SELECT</span> data-><span class="code-string">'name'</span> <span class="code-keyword">FROM</span> products;
+<span class="code-keyword">SELECT</span> data->><span class="code-string">'name'</span> <span class="code-keyword">FROM</span> products; <span class="code-comment">-- Returns text</span>
+
+<span class="code-comment">-- Contains operator</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> products <span class="code-keyword">WHERE</span> data @> <span class="code-string">'{"price":999.99}'</span>::jsonb;</code>
+            </div>
+        </div>
+        
+        <div class="concept-box" style="border-left-color: #9b59b6; margin-bottom: 20px;">
+            <div class="concept-title" style="color: #9b59b6;">Arrays</div>
+            <div class="concept-description">
+                Store multiple values of the same type. Useful for tags, ratings, and multi-value attributes.
+            </div>
+            <div class="code-block">
+<code><span class="code-keyword">CREATE TABLE</span> articles (
+    id INTEGER,
+    tags TEXT[],
+    scores INTEGER[]
+);
+
+<span class="code-keyword">INSERT INTO</span> articles <span class="code-keyword">VALUES</span>
+    (<span class="code-number">1</span>, <span class="code-string">'{postgresql,database,sql}'</span>, <span class="code-string">'{8,9,7}'</span>);
+
+<span class="code-comment">-- Array operations</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> articles <span class="code-keyword">WHERE</span> <span class="code-string">'postgresql'</span> = <span class="code-keyword">ANY</span>(tags);
+<span class="code-keyword">SELECT</span> tags[<span class="code-number">1</span>] <span class="code-keyword">FROM</span> articles; <span class="code-comment">-- First element</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">array_length</span>(tags, <span class="code-number">1</span>) <span class="code-keyword">FROM</span> articles;</code>
+            </div>
+        </div>
+        
+        <div class="concept-box" style="border-left-color: #f39c12; margin-bottom: 20px;">
+            <div class="concept-title" style="color: #f39c12;">Geometric Types</div>
+            <div class="concept-description">
+                Represent geometric objects like points, lines, polygons. Essential for GIS applications.
+            </div>
+            <div class="code-block">
+<code><span class="code-keyword">CREATE TABLE</span> locations (
+    id INTEGER,
+    point POINT,
+    polygon POLYGON
+);
+
+<span class="code-keyword">INSERT INTO</span> locations <span class="code-keyword">VALUES</span>
+    (<span class="code-number">1</span>, <span class="code-string">'(21.028511, 105.804048)'</span>, <span class="code-string">'((0,0),(10,0),(10,10),(0,10))'</span>);
+
+<span class="code-comment">-- Distance calculation (requires PostGIS)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> locations <span class="code-keyword">WHERE</span> point @> <span class="code-string">'(20,100)'</span>::point;</code>
+            </div>
+        </div>
+        
+        <h2>🔄 DDL Operations</h2>
+        
+        <h3>CREATE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Create a basic table</span>
+<span class="code-keyword">CREATE TABLE</span> users (
+    id SERIAL <span class="code-keyword">PRIMARY KEY</span>,
+    email VARCHAR(<span class="code-number">255</span>) <span class="code-keyword">UNIQUE NOT NULL</span>,
+    created_at TIMESTAMP <span class="code-keyword">DEFAULT CURRENT_TIMESTAMP</span>,
+    is_active BOOLEAN <span class="code-keyword">DEFAULT</span> true
+);
+
+<span class="code-comment">-- Create with foreign key constraint</span>
+<span class="code-keyword">CREATE TABLE</span> posts (
+    id SERIAL <span class="code-keyword">PRIMARY KEY</span>,
+    user_id INTEGER <span class="code-keyword">NOT NULL REFERENCES</span> users(id) <span class="code-keyword">ON DELETE CASCADE</span>,
+    title VARCHAR(<span class="code-number">200</span>) <span class="code-keyword">NOT NULL</span>,
+    content TEXT,
+    published_at TIMESTAMP
+);</code>
+        </div>
+        
+        <h3>ALTER</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Add column</span>
+<span class="code-keyword">ALTER TABLE</span> users <span class="code-keyword">ADD COLUMN</span> phone VARCHAR(<span class="code-number">20</span>);
+
+<span class="code-comment">-- Rename column</span>
+<span class="code-keyword">ALTER TABLE</span> users <span class="code-keyword">RENAME COLUMN</span> email <span class="code-keyword">TO</span> email_address;
+
+<span class="code-comment">-- Change column type</span>
+<span class="code-keyword">ALTER TABLE</span> users <span class="code-keyword">ALTER COLUMN</span> phone <span class="code-keyword">TYPE</span> TEXT;
+
+<span class="code-comment">-- Add constraint</span>
+<span class="code-keyword">ALTER TABLE</span> users <span class="code-keyword">ADD CONSTRAINT</span> email_check 
+    <span class="code-keyword">CHECK</span> (email <span class="code-keyword">LIKE</span> <span class="code-string">'%@%.%'</span>);</code>
+        </div>
+        
+        <h3>DROP & TRUNCATE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Drop table (removes structure and data)</span>
+<span class="code-keyword">DROP TABLE</span> users;
+
+<span class="code-comment">-- Drop with cascade (removes dependent objects)</span>
+<span class="code-keyword">DROP TABLE</span> users <span class="code-keyword">CASCADE</span>;
+
+<span class="code-comment">-- Truncate table (removes data, keeps structure)</span>
+<span class="code-keyword">TRUNCATE TABLE</span> users;
+
+<span class="code-comment">-- Truncate with cascade</span>
+<span class="code-keyword">TRUNCATE TABLE</span> users <span class="code-keyword">CASCADE RESTART IDENTITY</span>;</code>
+        </div>
+        
+        <h2>✏️ CRUD Operations with psql</h2>
+        
+        <h3>CREATE (INSERT)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Insert single row</span>
+<span class="code-keyword">INSERT INTO</span> users (email, created_at) 
+<span class="code-keyword">VALUES</span> (<span class="code-string">'john@example.com'</span>, NOW());
+
+<span class="code-comment">-- Insert multiple rows</span>
+<span class="code-keyword">INSERT INTO</span> users (email) <span class="code-keyword">VALUES</span>
+    (<span class="code-string">'alice@example.com'</span>),
+    (<span class="code-string">'bob@example.com'</span>),
+    (<span class="code-string">'carol@example.com'</span>);
+
+<span class="code-comment">-- Return inserted row</span>
+<span class="code-keyword">INSERT INTO</span> users (email) <span class="code-keyword">VALUES</span> (<span class="code-string">'new@example.com'</span>) 
+<span class="code-keyword">RETURNING</span> id, email, created_at;</code>
+        </div>
+        
+        <h3>READ (SELECT)</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Select all columns</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> users;
+
+<span class="code-comment">-- Select specific columns with conditions</span>
+<span class="code-keyword">SELECT</span> id, email <span class="code-keyword">FROM</span> users 
+<span class="code-keyword">WHERE</span> is_active = true 
+<span class="code-keyword">ORDER BY</span> created_at <span class="code-keyword">DESC</span> 
+<span class="code-keyword">LIMIT</span> <span class="code-number">10</span>;
+
+<span class="code-comment">-- Count records</span>
+<span class="code-keyword">SELECT COUNT</span>(*) <span class="code-keyword">FROM</span> users;
+
+<span class="code-comment">-- Check if email exists</span>
+<span class="code-keyword">SELECT EXISTS</span> (<span class="code-keyword">SELECT</span> <span class="code-number">1</span> <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> email = <span class="code-string">'john@example.com'</span>);</code>
+        </div>
+        
+        <h3>UPDATE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Update specific user</span>
+<span class="code-keyword">UPDATE</span> users 
+<span class="code-keyword">SET</span> is_active = false 
+<span class="code-keyword">WHERE</span> id = <span class="code-number">1</span>;
+
+<span class="code-comment">-- Update multiple columns</span>
+<span class="code-keyword">UPDATE</span> users 
+<span class="code-keyword">SET</span> email = <span class="code-string">'newemail@example.com'</span>, is_active = true
+<span class="code-keyword">WHERE</span> id = <span class="code-number">5</span>
+<span class="code-keyword">RETURNING</span> *;
+
+<span class="code-comment">-- Conditional update</span>
+<span class="code-keyword">UPDATE</span> users 
+<span class="code-keyword">SET</span> created_at = NOW()
+<span class="code-keyword">WHERE</span> created_at <span class="code-keyword">IS NULL</span>;</code>
+        </div>
+        
+        <h3>DELETE</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- Delete specific row</span>
+<span class="code-keyword">DELETE FROM</span> users <span class="code-keyword">WHERE</span> id = <span class="code-number">10</span>;
+
+<span class="code-comment">-- Delete with condition</span>
+<span class="code-keyword">DELETE FROM</span> users 
+<span class="code-keyword">WHERE</span> is_active = false 
+<span class="code-keyword">AND</span> created_at < NOW() - INTERVAL <span class="code-string">'1 year'</span>;
+
+<span class="code-comment">-- Delete all (use TRUNCATE instead for performance)</span>
+<span class="code-keyword">DELETE FROM</span> users;
+
+<span class="code-comment">-- Return deleted rows</span>
+<span class="code-keyword">DELETE FROM</span> users <span class="code-keyword">WHERE</span> id = <span class="code-number">3</span> <span class="code-keyword">RETURNING</span> *;</code>
+        </div>
+        
+        <h2>💻 psql Commands</h2>
+        <div class="highlight-box">
+            <ul class="checklist">
+                <li><code>\l</code> - List all databases</li>
+                <li><code>\c dbname</code> - Connect to database</li>
+                <li><code>\dt</code> - List tables</li>
+                <li><code>\d tablename</code> - Describe table structure</li>
+                <li><code>\du</code> - List users/roles</li>
+                <li><code>\i file.sql</code> - Execute SQL file</li>
+                <li><code>\x</code> - Toggle expanded display</li>
+                <li><code>\timing</code> - Toggle query timing</li>
+                <li><code>\h</code> - Help on SQL commands</li>
+            </ul>
+        </div>
+        
+        <h2>✅ Learning Checklist</h2>
+        <ul class="checklist">
+            <li>Understand relational database concepts (tables, rows, columns)</li>
+            <li>Memorize ACID properties and their importance</li>
+            <li>Know basic vs advanced data types and when to use each</li>
+            <li>Master DDL operations (CREATE, ALTER, DROP, TRUNCATE)</li>
+            <li>Practice CRUD operations with actual data</li>
+            <li>Get comfortable with psql command-line interface</li>
+            <li>Understand constraints (PK, FK, UNIQUE, NOT NULL, CHECK)</li>
+            <li>Explore JSON/JSONB for semi-structured data</li>
+        </ul>
+        
+        <div class="warning-box">
+            <strong>⚠️ Important:</strong> Always backup your database before running DROP or TRUNCATE commands on production systems. 
+            Use transactions to test changes before committing them.
+        </div>
+        
+        <a href="index-postgresql.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

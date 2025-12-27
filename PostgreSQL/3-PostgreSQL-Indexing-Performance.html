@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PostgreSQL Cheat Sheet #3 - Indexing & Performance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
+        .hero { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); padding: 60px 20px; text-align: center; color: white; }
+        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
+        .hero p { font-size: 1.1em; opacity: 0.95; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #9b59b6; border-radius: 8px; padding: 25px; margin: 20px 0; transition: all 0.3s ease; }
+        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(155, 89, 182, 0.2); }
+        .concept-title { font-size: 1.3em; font-weight: 700; color: #9b59b6; margin-bottom: 12px; }
+        .concept-description { color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; }
+        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.9em; }
+        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; }
+        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.9em; line-height: 1.5; }
+        .code-keyword { color: #ff7675; }
+        .code-string { color: #55efc4; }
+        .code-function { color: #74b9ff; }
+        .code-comment { color: #636e72; }
+        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #9b59b6; padding-bottom: 10px; }
+        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); border-radius: 8px; }
+        th { background: linear-gradient(135deg, rgba(155, 89, 182, 0.2), rgba(142, 68, 173, 0.2)); color: #9b59b6; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #9b59b6; }
+        td { padding: 12px 15px; border-bottom: 1px solid #334155; color: #cbd5e1; }
+        tr:hover { background: rgba(155, 89, 182, 0.1); }
+        .info-box { background: rgba(155, 89, 182, 0.1); border-left: 4px solid #9b59b6; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .checklist { list-style: none; padding: 0; margin: 15px 0; }
+        .checklist li { padding: 10px 0; padding-left: 30px; position: relative; color: #cbd5e1; }
+        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #9b59b6; font-weight: bold; }
+        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #9b59b6, #8e44ad); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
+        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(155, 89, 182, 0.3); }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟣 PostgreSQL Indexing & Performance</h1>
+        <p>Master Index Types, Query Optimization, and EXPLAIN Analysis</p>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8;">
+            This module covers advanced index types (B-tree, Hash, GIN, GiST, BRIN, SP-GiST), query planning with EXPLAIN/EXPLAIN ANALYZE, 
+            optimization strategies, and database maintenance through vacuuming and autovacuum configuration.
+        </p>
+        
+        <h2>🗂️ Index Types</h2>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Index Type</th>
+                    <th>Best For</th>
+                    <th>Operators</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>B-tree</strong></td>
+                    <td>General queries</td>
+                    <td>=, <, >, <=, >=, BETWEEN</td>
+                    <td>Default for most queries</td>
+                </tr>
+                <tr>
+                    <td><strong>Hash</strong></td>
+                    <td>Exact matches</td>
+                    <td>= only</td>
+                    <td>Fast single-value lookups</td>
+                </tr>
+                <tr>
+                    <td><strong>GIN</strong></td>
+                    <td>Full-text, JSON, arrays</td>
+                    <td>@>, @<, &&, ?</td>
+                    <td>Search within complex data</td>
+                </tr>
+                <tr>
+                    <td><strong>GiST</strong></td>
+                    <td>Geospatial, range</td>
+                    <td>Geometric operators</td>
+                    <td>PostGIS, spatial queries</td>
+                </tr>
+                <tr>
+                    <td><strong>BRIN</strong></td>
+                    <td>Large sequential data</td>
+                    <td>Range queries</td>
+                    <td>Time-series, very large tables</td>
+                </tr>
+                <tr>
+                    <td><strong>SP-GiST</strong></td>
+                    <td>Hierarchical data</td>
+                    <td>Custom operators</td>
+                    <td>IP ranges, hierarchies</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Creating Indexes</h3>
+        <div class="code-block">
+<code><span class="code-comment">-- B-tree index (default)</span>
+<span class="code-keyword">CREATE INDEX</span> idx_users_email <span class="code-keyword">ON</span> users(email);
+
+<span class="code-comment">-- Composite index</span>
+<span class="code-keyword">CREATE INDEX</span> idx_posts_user_date <span class="code-keyword">ON</span> posts(user_id, created_at <span class="code-keyword">DESC</span>);
+
+<span class="code-comment">-- Partial index (conditional)</span>
+<span class="code-keyword">CREATE INDEX</span> idx_active_users <span class="code-keyword">ON</span> users(email) <span class="code-keyword">WHERE</span> is_active = true;
+
+<span class="code-comment">-- Expression index</span>
+<span class="code-keyword">CREATE INDEX</span> idx_email_lower <span class="code-keyword">ON</span> users(<span class="code-function">LOWER</span>(email));
+
+<span class="code-comment">-- GIN index for JSONB</span>
+<span class="code-keyword">CREATE INDEX</span> idx_products_data <span class="code-keyword">ON</span> products <span class="code-keyword">USING GIN</span> (data);
+
+<span class="code-comment">-- GIN index for arrays</span>
+<span class="code-keyword">CREATE INDEX</span> idx_articles_tags <span class="code-keyword">ON</span> articles <span class="code-keyword">USING GIN</span> (tags);
+
+<span class="code-comment">-- Hash index for exact matches</span>
+<span class="code-keyword">CREATE INDEX</span> idx_user_id <span class="code-keyword">ON</span> posts <span class="code-keyword">USING HASH</span> (user_id);
+
+<span class="code-comment">-- BRIN for large sequential data</span>
+<span class="code-keyword">CREATE INDEX</span> idx_events_time <span class="code-keyword">ON</span> events <span class="code-keyword">USING BRIN</span> (created_at);</code>
+        </div>
+        
+        <div class="concept-box">
+            <div class="concept-title">Index Management</div>
+            <div class="code-block" style="margin: 0;">
+<code><span class="code-comment">-- List all indexes on a table</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> pg_indexes <span class="code-keyword">WHERE</span> tablename = <span class="code-string">'users'</span>;
+
+<span class="code-comment">-- Check index size</span>
+<span class="code-keyword">SELECT</span> indexname, <span class="code-function">pg_size_pretty</span>(<span class="code-function">pg_relation_size</span>(indexrelid)) 
+<span class="code-keyword">FROM</span> pg_indexes;
+
+<span class="code-comment">-- Drop index</span>
+<span class="code-keyword">DROP INDEX</span> idx_users_email;
+
+<span class="code-comment">-- Reindex (rebuild)</span>
+<span class="code-keyword">REINDEX INDEX</span> idx_users_email;</code>
+            </div>
+        </div>
+        
+        <h2>🔍 EXPLAIN & Query Optimization</h2>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Basic EXPLAIN (shows plan)</span>
+<span class="code-keyword">EXPLAIN SELECT</span> * <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> email = <span class="code-string">'john@example.com'</span>;
+
+<span class="code-comment">-- EXPLAIN ANALYZE (executes and shows actual times)</span>
+<span class="code-keyword">EXPLAIN ANALYZE SELECT</span> * <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> email = <span class="code-string">'john@example.com'</span>;
+
+<span class="code-comment">-- With FORMAT JSON for parsing</span>
+<span class="code-keyword">EXPLAIN</span> (<span class="code-keyword">FORMAT</span> JSON, ANALYZE) <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> users;</code>
+        </div>
+        
+        <h3>Plan Node Types</h3>
+        <ul class="checklist">
+            <li><strong>Seq Scan:</strong> Reads entire table (slow for large tables)</li>
+            <li><strong>Index Scan:</strong> Uses index efficiently</li>
+            <li><strong>Bitmap Index Scan:</strong> Combines multiple indexes</li>
+            <li><strong>Hash Join:</strong> For joining large tables</li>
+            <li><strong>Nested Loop:</strong> For small result sets</li>
+            <li><strong>Sort:</strong> Sorts results (expensive operation)</li>
+        </ul>
+        
+        <h2>⚡ Query Optimization Tips</h2>
+        
+        <div class="concept-box">
+            <div class="concept-title">Common Optimization Techniques</div>
+            <ul class="checklist" style="margin-top: 15px;">
+                <li><strong>Index heavily filtered columns:</strong> WHERE, JOIN conditions</li>
+                <li><strong>Use composite indexes wisely:</strong> Match query filter order</li>
+                <li><strong>Avoid SELECT *:</strong> Retrieve only needed columns</li>
+                <li><strong>Use LIMIT:</strong> Stop query early if possible</li>
+                <li><strong>Denormalize strategically:</strong> For read-heavy queries</li>
+                <li><strong>Partition large tables:</strong> Prune partitions in queries</li>
+                <li><strong>Use covering indexes:</strong> Include all columns in index</li>
+                <li><strong>ANALYZE regularly:</strong> Keep statistics current</li>
+            </ul>
+        </div>
+        
+        <h2>🧹 Vacuuming & Maintenance</h2>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Manual VACUUM (removes dead tuples)</span>
+<span class="code-keyword">VACUUM users</span>;
+
+<span class="code-comment">-- VACUUM ANALYZE (also updates statistics)</span>
+<span class="code-keyword">VACUUM ANALYZE users</span>;
+
+<span class="code-comment">-- FULL VACUUM (rewrites table, slow but reclaims space)</span>
+<span class="code-keyword">VACUUM FULL users</span>;
+
+<span class="code-comment">-- Autovacuum settings in postgresql.conf</span>
+shared_preload_libraries = <span class="code-string">'pg_stat_statements'</span>
+autovacuum = on
+autovacuum_naptime = <span class="code-string">'1min'</span>
+autovacuum_vacuum_threshold = <span class="code-number">50</span></code>
+        </div>
+        
+        <h2>📊 Index Usage Monitoring</h2>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Find unused indexes</span>
+<span class="code-keyword">SELECT</span> schemaname, tablename, indexname
+<span class="code-keyword">FROM</span> pg_stat_user_indexes
+<span class="code-keyword">WHERE</span> idx_scan = <span class="code-number">0</span> <span class="code-keyword">ORDER BY</span> idx_blks_read <span class="code-keyword">DESC</span>;
+
+<span class="code-comment">-- Find missing indexes</span>
+<span class="code-keyword">SELECT</span> schemaname, tablename, attname, n_distinct
+<span class="code-keyword">FROM</span> pg_stats
+<span class="code-keyword">WHERE</span> schemaname = <span class="code-string">'public'</span> <span class="code-keyword">AND</span> n_distinct > <span class="code-number">100</span>;</code>
+        </div>
+        
+        <h2>✅ Learning Checklist</h2>
+        <ul class="checklist">
+            <li>Know when to use each index type</li>
+            <li>Create efficient composite indexes</li>
+            <li>Use partial and expression indexes</li>
+            <li>Read and interpret EXPLAIN plans</li>
+            <li>Identify Seq Scans vs Index Scans</li>
+            <li>Monitor index usage and remove unused ones</li>
+            <li>Configure autovacuum properly</li>
+            <li>Use ANALYZE to keep statistics current</li>
+        </ul>
+        
+        <div class="info-box">
+            <strong>💡 Pro Tip:</strong> Always run EXPLAIN ANALYZE to understand actual execution time. 
+            Estimated costs from EXPLAIN can differ significantly from actual performance.
+        </div>
+        
+        <a href="index-postgresql.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+</html>

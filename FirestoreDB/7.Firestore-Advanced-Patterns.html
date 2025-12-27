@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Cheat Sheet #7 - Advanced Patterns</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .hero {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 100%);
+            padding: 40px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .concept-section {
+            background: #1a2844;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .concept-title {
+            color: #6366f1;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .concept-text {
+            color: #a0aec0;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        .code-block {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #6366f1;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.8rem;
+        }
+        .code-block code {
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            line-height: 1.5;
+        }
+        .code-keyword { color: #667eea; }
+        .code-string { color: #38ef7d; }
+        .code-method { color: #fbbf24; }
+        .code-number { color: #f87171; }
+        .code-comment { color: #6b7280; font-style: italic; }
+        .info-box {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 3px solid #6366f1;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid #ef4444;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .tip-box {
+            background: rgba(56, 239, 125, 0.1);
+            border-left: 3px solid #38ef7d;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a2844;
+            margin: 20px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            background: #334155;
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        .checklist {
+            background: #1a2844;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .checkbox-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            align-items: flex-start;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 768px) {
+            .content { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+            .code-block { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="hero-badge">Module 7 of 7</div>
+            <h1>Advanced Patterns</h1>
+            <p style="color: rgba(255,255,255,0.8); margin-top: 10px;">Master transactions, Cloud Functions, and optimization</p>
+        </div>
+
+        <div class="content">
+            <div class="concept-section">
+                <div class="concept-title">💫 Transactions Deep Dive</div>
+                <div class="concept-text">
+                    Atomically read and write multiple documents:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">await</span> <span class="code-method">runTransaction</span>(db, <span class="code-keyword">async</span> (transaction) => {
+  <span class="code-comment">// Read user balance</span>
+  <span class="code-keyword">const</span> userSnap = <span class="code-keyword">await</span> transaction
+    .<span class="code-method">get</span>(userRef);
+
+  <span class="code-keyword">const</span> balance = userSnap.<span class="code-method">data</span>().balance;
+
+  <span class="code-comment">// Update if sufficient funds</span>
+  <span class="code-keyword">if</span> (balance >= amount) {
+    transaction.<span class="code-method">update</span>(userRef, {
+      balance: balance - amount
+    });
+  } <span class="code-keyword">else</span> {
+    <span class="code-keyword">throw</span> <span class="code-keyword">new</span> <span class="code-method">Error</span>(<span class="code-string">"Insufficient funds"</span>);
+  }
+});
+                </code></div>
+                <div class="warning-box">
+                    ⚠️ Transactions may retry if conflicts occur. Keep them idempotent
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">📦 Batch Transactions</div>
+                <div class="concept-text">
+                    Perform multiple operations in one atomic batch:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">const</span> batch = <span class="code-method">writeBatch</span>(db);
+
+<span class="code-comment">// Multiple operations</span>
+batch.<span class="code-method">set</span>(doc1Ref, { value: <span class="code-number">1</span> });
+batch.<span class="code-method">update</span>(doc2Ref, { counter: <span class="code-number">5</span> });
+batch.<span class="code-method">delete</span>(doc3Ref);
+
+<span class="code-comment">// All or nothing</span>
+<span class="code-keyword">await</span> batch.<span class="code-method">commit</span>();
+                </code></div>
+                <div class="info-box">
+                    <strong>Limits:</strong> Max 500 writes per batch, 10 MiB total size
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🚀 Cloud Functions Integration</div>
+                <div class="concept-text">
+                    Trigger functions on Firestore changes:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">const</span> functions = <span class="code-method">require</span>(<span class="code-string">"firebase-functions"</span>);
+<span class="code-keyword">const</span> admin = <span class="code-method">require</span>(<span class="code-string">"firebase-admin"</span>);
+
+<span class="code-method">exports.onUserCreate</span> = functions
+  .<span class="code-method">firestore</span>
+  .<span class="code-method">document</span>(<span class="code-string">"users/{userId}"</span>)
+  .<span class="code-method">onCreate</span>(<span class="code-keyword">async</span> (snap, context) => {
+    <span class="code-keyword">const</span> userId = context.params.userId;
+    <span class="code-keyword">const</span> userData = snap.<span class="code-method">data</span>();
+
+    <span class="code-comment">// Send welcome email, etc.</span>
+  });
+                </code></div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">💰 Cost Optimization</div>
+                <div class="concept-text">
+                    Strategies to minimize Firestore costs:
+                </div>
+                <div class="tip-box">
+                    <strong>Read Optimization:</strong><br>
+                    ✓ Use pagination and limits<br>
+                    ✓ Query only needed fields<br>
+                    ✓ Cache data client-side<br>
+                    ✓ Use collection group queries sparingly
+                </div>
+                <div class="tip-box">
+                    <strong>Write Optimization:</strong><br>
+                    ✓ Batch multiple writes<br>
+                    ✓ Avoid frequent updates<br>
+                    ✓ Use subcollections for scaling<br>
+                    ✓ Archive old data periodically
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🏗️ Database Sharding</div>
+                <div class="concept-text">
+                    Distribute writes across documents to avoid hotspots:
+                </div>
+                <div class="code-block"><code>
+<span class="code-comment">// Shard across multiple docs</span>
+<span class="code-keyword">const</span> shardId = Math.<span class="code-method">floor</span>(Math.<span class="code-method">random</span>() * <span class="code-number">10</span>);
+<span class="code-keyword">const</span> shardRef = <span class="code-method">doc</span>(
+  db, <span class="code-string">"shards"</span>, 
+  <span class="code-string">"counters_"</span> + shardId
+);
+
+<span class="code-keyword">await</span> <span class="code-method">updateDoc</span>(shardRef, {
+  count: <span class="code-method">increment</span>(<span class="code-number">1</span>)
+});
+                </code></div>
+                <div class="info-box">
+                    Useful for high-frequency updates to a single field
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">📤 Data Migration & Bulk Operations</div>
+                <div class="code-block"><code>
+<span class="code-comment">// Bulk migrate data</span>
+<span class="code-keyword">const</span> batch = <span class="code-method">writeBatch</span>(db);
+<span class="code-keyword">const</span> snapshot = <span class="code-keyword">await</span> <span class="code-method">getDocs</span>(
+  <span class="code-method">collection</span>(db, <span class="code-string">"old_collection"</span>)
+);
+
+snapshot.<span class="code-method">forEach</span>(<span class="code-keyword">async</span> (doc) => {
+  batch.<span class="code-method">set</span>(
+    <span class="code-method">doc</span>(db, <span class="code-string">"new_collection"</span>, doc.id),
+    doc.<span class="code-method">data</span>()
+  );
+});
+
+<span class="code-keyword">await</span> batch.<span class="code-method">commit</span>();
+                </code></div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🔄 Distributed Counters</div>
+                <div class="concept-text">
+                    Increment counters without conflicts:
+                </div>
+                <div class="code-block"><code>
+<span class="code-comment">// Atomic increment</span>
+<span class="code-keyword">await</span> <span class="code-method">updateDoc</span>(counterRef, {
+  count: <span class="code-method">increment</span>(<span class="code-number">1</span>)
+});
+
+<span class="code-comment">// Increment in transaction</span>
+<span class="code-keyword">await</span> <span class="code-method">runTransaction</span>(db, <span class="code-keyword">async</span> (t) => {
+  <span class="code-keyword">const</span> snap = <span class="code-keyword">await</span> t.<span class="code-method">get</span>(ref);
+  t.<span class="code-method">update</span>(ref, {
+    count: snap.<span class="code-method">data</span>().count + <span class="code-number">1</span>
+  });
+});
+                </code></div>
+            </div>
+        </div>
+
+        <div class="concept-section" style="margin-bottom: 30px;">
+            <div class="concept-title">📋 Transaction vs Batch Comparison</div>
+            <table>
+                <tr>
+                    <th>Feature</th>
+                    <th>Transaction</th>
+                    <th>Batch</th>
+                </tr>
+                <tr>
+                    <td>Atomicity</td>
+                    <td>✓ All or nothing</td>
+                    <td>✓ All or nothing</td>
+                </tr>
+                <tr>
+                    <td>Read + Write</td>
+                    <td>✓ Support both</td>
+                    <td>✗ Write only</td>
+                </tr>
+                <tr>
+                    <td>Automatic Retry</td>
+                    <td>✓ Yes, if conflict</td>
+                    <td>✗ No retry</td>
+                </tr>
+                <tr>
+                    <td>Max Operations</td>
+                    <td>No limit</td>
+                    <td>500 writes</td>
+                </tr>
+                <tr>
+                    <td>Read Before Write</td>
+                    <td>✓ Yes</td>
+                    <td>✗ No</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="concept-section" style="margin-bottom: 30px;">
+            <div class="concept-title">💻 Cloud Functions Triggers</div>
+            <table>
+                <tr>
+                    <th>Trigger</th>
+                    <th>Example</th>
+                    <th>Use Case</th>
+                </tr>
+                <tr>
+                    <td>onCreate</td>
+                    <td>.onCreate()</td>
+                    <td>Send welcome email</td>
+                </tr>
+                <tr>
+                    <td>onUpdate</td>
+                    <td>.onUpdate()</td>
+                    <td>Update denormalized data</td>
+                </tr>
+                <tr>
+                    <td>onDelete</td>
+                    <td>.onDelete()</td>
+                    <td>Cleanup related data</td>
+                </tr>
+                <tr>
+                    <td>onWrite</td>
+                    <td>.onWrite()</td>
+                    <td>Any write operation</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="checklist">
+            <div class="concept-title">✅ Learning Checklist</div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c1">
+                <label for="c1">Implement transactions for complex operations</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c2">
+                <label for="c2">Use batch writes for bulk operations</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c3">
+                <label for="c3">Deploy Cloud Functions for server-side logic</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c4">
+                <label for="c4">Optimize for cost and performance</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c5">
+                <label for="c5">Handle data migrations at scale</label>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px;">
+            <a href="index.html" style="color: #667eea; text-decoration: none; font-weight: 600;">← Back to Index</a>
+        </div>
+    </div>
+</body>
+</html>

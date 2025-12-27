@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #1 - Overview & Tooling</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #60a5fa;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #60a5fa;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #93c5fd;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #fbbf24;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #60a5fa;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #60a5fa;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #2563eb;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟢 SQL Server Overview & Tooling</h1>
+        <p>Master SQL Server Architecture, Tools, and Environment Setup</p>
+        <div class="badge">Foundation</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers the fundamental concepts of SQL Server and relational databases. You'll learn about SQL Server architecture (Instance, Database, File, Filegroup), 
+            essential tools like SQL Server Management Studio (SSMS) and Azure Data Studio, command-line utilities like sqlcmd, and best practices for organizing development, test, and production environments.
+        </p>
+        
+        <h2>🏗️ SQL Server Architecture</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">What is SQL Server?</div>
+                <div class="concept-description">
+                    SQL Server is Microsoft's enterprise RDBMS that organizes data into databases with tables, views, and stored procedures. 
+                    It supports ACID transactions, advanced analytics, and integrates with .NET applications.
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Architecture Layers</div>
+                <div class="concept-description">
+                    <strong style="color: #60a5fa;">Instance:</strong> A single installation of SQL Server with its own services<br>
+                    <strong style="color: #60a5fa;">Database:</strong> Container for data objects (tables, views, procedures)<br>
+                    <strong style="color: #60a5fa;">File/Filegroup:</strong> Physical storage organization for performance and management
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Key Point:</strong> SQL Server uses a client-server architecture where the Database Engine handles queries, 
+            while tools like SSMS provide the interface for administration and development.
+        </div>
+        
+        <h3>Instance Types</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Default Instance</strong></td>
+                    <td>Single instance per server, connects without instance name</td>
+                    <td>Simple deployments, development</td>
+                </tr>
+                <tr>
+                    <td><strong>Named Instance</strong></td>
+                    <td>Multiple instances on one server, requires instance name</td>
+                    <td>Multiple environments on same hardware</td>
+                </tr>
+                <tr>
+                    <td><strong>SQL Server Express</strong></td>
+                    <td>Free edition with 10GB database limit</td>
+                    <td>Development, small applications</td>
+                </tr>
+                <tr>
+                    <td><strong>Azure SQL Database</strong></td>
+                    <td>Cloud-managed PaaS offering</td>
+                    <td>Cloud applications, managed service</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>Database Files and Filegroups</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>File Type</th>
+                    <th>Extension</th>
+                    <th>Purpose</th>
+                    <th>Storage</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Primary Data</strong></td>
+                    <td>.mdf</td>
+                    <td>Main data file, contains system tables</td>
+                    <td>Primary filegroup</td>
+                </tr>
+                <tr>
+                    <td><strong>Secondary Data</strong></td>
+                    <td>.ndf</td>
+                    <td>Additional data files for performance</td>
+                    <td>User-defined filegroups</td>
+                </tr>
+                <tr>
+                    <td><strong>Transaction Log</strong></td>
+                    <td>.ldf</td>
+                    <td>Records all transactions for recovery</td>
+                    <td>Separate from data files</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Create database with custom filegroups</span>
+<span class="code-keyword">CREATE DATABASE</span> SalesDB
+<span class="code-keyword">ON PRIMARY</span>
+(
+    NAME = SalesDB_Primary,
+    FILENAME = 'C:\Data\SalesDB.mdf',
+    SIZE = 100MB,
+    MAXSIZE = 500MB,
+    FILEGROWTH = 50MB
+),
+<span class="code-keyword">FILEGROUP</span> SalesData
+(
+    NAME = SalesDB_Data,
+    FILENAME = 'D:\Data\SalesDB.ndf',
+    SIZE = 200MB,
+    MAXSIZE = UNLIMITED,
+    FILEGROWTH = 100MB
+)
+<span class="code-keyword">LOG ON</span>
+(
+    NAME = SalesDB_Log,
+    FILENAME = 'E:\Logs\SalesDB.ldf',
+    SIZE = 50MB,
+    MAXSIZE = 200MB,
+    FILEGROWTH = 25MB
+);</code>
+        </div>
+        
+        <h2>🛠️ Development Tools</h2>
+        
+        <h3>SQL Server Management Studio (SSMS)</h3>
+        <div class="concept-box">
+            <div class="concept-title">SSMS Features</div>
+            <div class="concept-description">
+                <strong>Object Explorer:</strong> Browse databases, tables, and objects<br>
+                <strong>Query Editor:</strong> Write and execute T-SQL with IntelliSense<br>
+                <strong>Activity Monitor:</strong> Monitor performance and active sessions<br>
+                <strong>Import/Export Wizard:</strong> Migrate data between sources
+            </div>
+        </div>
+        
+        <h3>Azure Data Studio</h3>
+        <div class="concept-box">
+            <div class="concept-title">Modern Cross-Platform Tool</div>
+            <div class="concept-description">
+                <strong>Extensions:</strong> Add Git integration, notebooks, and custom features<br>
+                <strong>Notebooks:</strong> Combine SQL with Markdown for documentation<br>
+                <strong>Source Control:</strong> Git integration for version control<br>
+                <strong>Cross-platform:</strong> Runs on Windows, macOS, Linux
+            </div>
+        </div>
+        
+        <h3>Command-Line Tools</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tool</th>
+                    <th>Purpose</th>
+                    <th>Example</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>sqlcmd</strong></td>
+                    <td>Execute T-SQL from command line</td>
+                <td><code>sqlcmd -S server -U user -P pass -Q "SELECT @@VERSION"</code></td>
+                </tr>
+                <tr>
+                    <td><strong>bcp</strong></td>
+                    <td>Bulk copy data in/out</td>
+                    <td><code>bcp TableName out data.csv -S server -T -c</code></td>
+                </tr>
+                <tr>
+                    <td><strong>sqlpackage</strong></td>
+                    <td>Deploy database projects</td>
+                    <td><code>sqlpackage /Action:Publish /SourceFile:db.dacpac</code></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h2>🌍 Environment Organization</h2>
+        
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Development Environment</div>
+                <div class="concept-description">
+                    <strong>Local SQL Server:</strong> Developer Edition or Express<br>
+                    <strong>Source Control:</strong> Git with database projects<br>
+                    <strong>Testing:</strong> Unit tests with tSQLt framework<br>
+                    <strong>Tools:</strong> SSMS + Azure Data Studio
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Test Environment</div>
+                <div class="concept-description">
+                    <strong>Staging Server:</strong> Mirrors production hardware<br>
+                    <strong>Data Refresh:</strong> Anonymized production data<br>
+                    <strong>Load Testing:</strong> Simulate user load<br>
+                    <strong>Integration Tests:</strong> End-to-end validation
+                </div>
+            </div>
+        </div>
+        
+        <div class="concept-box">
+            <div class="concept-title">Production Environment</div>
+            <div class="concept-description">
+                <strong>High Availability:</strong> Always On Availability Groups or Failover Clustering<br>
+                <strong>Security:</strong> Least privilege access, encrypted connections<br>
+                <strong>Monitoring:</strong> Extended Events, Performance Monitor<br>
+                <strong>Backup Strategy:</strong> Full + differential + transaction log backups
+            </div>
+        </div>
+        
+        <h3>Best Practices for Environment Management</h3>
+        <ul style="color: #cbd5e1;">
+            <li><strong>Version Control:</strong> Use SSDT (SQL Server Data Tools) for database projects</li>
+            <li><strong>Configuration Management:</strong> Store connection strings securely</li>
+            <li><strong>Automation:</strong> Use PowerShell for deployment scripts</li>
+            <li><strong>Documentation:</strong> Maintain runbooks for each environment</li>
+            <li><strong>Access Control:</strong> Implement role-based access with Active Directory groups</li>
+        </ul>
+        
+        <div class="info-box">
+            <strong>⚠️ Production Notes:</strong> Never develop directly against production databases. Always use separate environments for development, testing, and production to prevent accidental data loss or corruption.
+        </div>
+        
+        <h2>📊 Comparison: SQL Server vs PostgreSQL</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Aspect</th>
+                    <th>SQL Server</th>
+                    <th>PostgreSQL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Architecture</strong></td>
+                    <td>Instance-based with multiple databases</td>
+                    <td>Instance = Database cluster</td>
+                </tr>
+                <tr>
+                    <td><strong>Primary Tool</strong></td>
+                    <td>SSMS (Windows-centric)</td>
+                    <td>pgAdmin/psql (cross-platform)</td>
+                </tr>
+                <tr>
+                    <td><strong>License</strong></td>
+                    <td>Proprietary (with free Express edition)</td>
+                    <td>Open source</td>
+                </tr>
+                <tr>
+                    <td><strong>Cloud Integration</strong></td>
+                    <td>Azure SQL Database, Managed Instance</td>
+                    <td>Azure Database for PostgreSQL</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Understand SQL Server instance vs database concepts</li>
+                <li>Explain the purpose of primary/secondary data files and transaction logs</li>
+                <li>Install and configure SQL Server Developer Edition locally</li>
+                <li>Set up SSMS and connect to a SQL Server instance</li>
+                <li>Install Azure Data Studio and explore its features</li>
+                <li>Use sqlcmd to execute basic queries from command line</li>
+                <li>Understand the differences between development, test, and production environments</li>
+                <li>Create a database with custom filegroups and files</li>
+                <li>Configure basic security settings for a development environment</li>
+                <li>Explore Object Explorer in SSMS to navigate database objects</li>
+                <li>Use Activity Monitor to view current database activity</li>
+                <li>Set up a basic backup strategy for development databases</li>
+                <li>Understand the role of filegroups in performance optimization</li>
+                <li>Configure SQL Server for remote connections</li>
+                <li>Use bcp utility for basic data import/export operations</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Environment Setup:</strong> Install SQL Server Developer Edition and SSMS on your local machine. Create a test database with custom file locations.</li>
+                <li><strong>Tool Exploration:</strong> Connect to your local SQL Server using both SSMS and Azure Data Studio. Compare their interfaces and features.</li>
+                <li><strong>Command Line Operations:</strong> Use sqlcmd to create a simple table, insert data, and query it. Practice connecting with different authentication methods.</li>
+                <li><strong>Architecture Analysis:</strong> Examine the file structure of your test database using system views like sys.database_files. Document the file locations and sizes.</li>
+                <li><strong>Multi-Environment Planning:</strong> Design a basic environment layout for a small application with development, test, and production SQL Server instances.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="index.html" class="nav-btn">← Back to Index</a>
+            <a href="modules/02-data-types-schema-ddl.html" class="nav-btn">Next: Data Types, Schema & DDL →</a>
+        </div>
+    </div>
+</body>
+</html>

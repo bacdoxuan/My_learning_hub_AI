@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Cheat Sheet #5 - Real-time Listeners</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .hero {
+            background: linear-gradient(135deg, #ee0979 0%, #ff6a00 100%);
+            padding: 40px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .concept-section {
+            background: #1a2844;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .concept-title {
+            color: #ff6a00;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .concept-text {
+            color: #a0aec0;
+            margin-bottom: 15px;
+        }
+        .code-block {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #ff6a00;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.85rem;
+        }
+        .code-block code {
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Courier New', monospace;
+        }
+        .code-keyword { color: #667eea; }
+        .code-string { color: #38ef7d; }
+        .code-method { color: #fbbf24; }
+        .code-number { color: #f87171; }
+        .code-comment { color: #6b7280; font-style: italic; }
+        .info-box {
+            background: rgba(255, 106, 0, 0.1);
+            border-left: 3px solid #ff6a00;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid #ef4444;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .tip-box {
+            background: rgba(34, 197, 94, 0.1);
+            border-left: 3px solid #22c55e;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a2844;
+            margin: 20px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            background: #334155;
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        .checklist {
+            background: #1a2844;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .checkbox-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            align-items: flex-start;
+        }
+        @media (max-width: 768px) {
+            .content { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="hero-badge">Module 5 of 7</div>
+            <h1>Real-time Listeners</h1>
+            <p style="color: rgba(255,255,255,0.8); margin-top: 10px;">Keep your data in sync across devices</p>
+        </div>
+
+        <div class="content">
+            <div class="concept-section">
+                <div class="concept-title">👂 Collection Listeners</div>
+                <div class="concept-text">
+                    Watch entire collections for changes:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">const</span> unsubscribe = <span class="code-method">onSnapshot</span>(
+  <span class="code-method">collection</span>(db, <span class="code-string">"users"</span>),
+  (snapshot) => {
+    snapshot.<span class="code-method">docChanges</span>().<span class="code-method">forEach</span>((change) => {
+      <span class="code-keyword">if</span> (change.type === <span class="code-string">"added"</span>) {
+        console.<span class="code-method">log</span>(<span class="code-string">"New:"</span>, change.doc.<span class="code-method">data</span>());
+      } <span class="code-keyword">else if</span> (change.type === <span class="code-string">"modified"</span>) {
+        console.<span class="code-method">log</span>(<span class="code-string">"Modified:"</span>, change.doc.<span class="code-method">data</span>());
+      } <span class="code-keyword">else if</span> (change.type === <span class="code-string">"removed"</span>) {
+        console.<span class="code-method">log</span>(<span class="code-string">"Removed:"</span>, change.doc.<span class="code-method">data</span>());
+      }
+    });
+  }
+);
+<span class="code-comment">// Stop listening</span>
+unsubscribe();
+                </code></div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">📄 Document Listeners</div>
+                <div class="concept-text">
+                    Listen to a single document for updates:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">const</span> unsubscribe = <span class="code-method">onSnapshot</span>(
+  <span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, <span class="code-string">"user123"</span>),
+  (docSnapshot) => {
+    <span class="code-keyword">if</span> (docSnapshot.<span class="code-method">exists</span>()) {
+      console.<span class="code-method">log</span>(<span class="code-string">"User data:"</span>, docSnapshot.<span class="code-method">data</span>());
+    } <span class="code-keyword">else</span> {
+      console.<span class="code-method">log</span>(<span class="code-string">"Document deleted"</span>);
+    }
+  }
+);
+                </code></div>
+                <div class="tip-box">
+                    💡 Attach error handler as second callback
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🔄 Query Listeners</div>
+                <div class="concept-text">
+                    Listen to filtered queries with real-time updates:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">const</span> q = <span class="code-method">query</span>(
+  <span class="code-method">collection</span>(db, <span class="code-string">"users"</span>),
+  <span class="code-method">where</span>(<span class="code-string">"status"</span>, <span class="code-string">"=="</span>, <span class="code-string">"active"</span>)
+);
+
+<span class="code-keyword">const</span> unsubscribe = <span class="code-method">onSnapshot</span>(q, (snapshot) => {
+  console.<span class="code-method">log</span>(<span class="code-string">"Active users:"</span>, snapshot.docs);
+});
+                </code></div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🚫 Cleanup & Unsubscribe</div>
+                <div class="concept-text">
+                    Always stop listening when done:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">useEffect</span>(() => {
+  <span class="code-keyword">const</span> unsubscribe = <span class="code-method">onSnapshot</span>(
+    <span class="code-method">doc</span>(db, <span class="code-string">"users"</span>, userId),
+    (doc) => {
+      setUser(doc.<span class="code-method">data</span>());
+    }
+  );
+
+  <span class="code-comment">// Cleanup: stop listening on unmount</span>
+  <span class="code-keyword">return</span> () => unsubscribe();
+}, [userId]);
+                </code></div>
+                <div class="warning-box">
+                    ⚠️ Not unsubscribing increases read counts and costs
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">📱 Offline Persistence</div>
+                <div class="concept-text">
+                    Enable offline caching for web/mobile apps:
+                </div>
+                <div class="code-block"><code>
+<span class="code-keyword">import</span> { initializeFirestore, enableIndexedDbPersistence } <span class="code-keyword">from</span> <span class="code-string">"firebase/firestore"</span>;
+
+<span class="code-keyword">const</span> db = <span class="code-method">initializeFirestore</span>(app, {});
+
+<span class="code-method">enableIndexedDbPersistence</span>(db)
+  .<span class="code-method">catch</span>((err) => {
+    <span class="code-keyword">if</span> (err.code === <span class="code-string">"failed-precondition"</span>) {
+      <span class="code-comment">// Multiple tabs open</span>
+    } <span class="code-keyword">else if</span> (err.code === <span class="code-string">"unimplemented"</span>) {
+      <span class="code-comment">// Browser not supported</span>
+    }
+  });
+                </code></div>
+                <div class="info-box">
+                    <strong>Benefits:</strong> App works offline, syncs when reconnected
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">⚡ Performance Tips</div>
+                <div class="info-box">
+                    <strong>Best Practices:</strong><br>
+                    ✓ Only listen to data you need<br>
+                    ✓ Use specific document/query listeners<br>
+                    ✓ Unsubscribe when components unmount<br>
+                    ✓ Limit listeners to prevent memory leaks<br>
+                    ✓ Use pagination for large collections<br>
+                    ✓ Monitor listener count in Firestore console
+                </div>
+            </div>
+        </div>
+
+        <div class="concept-section" style="margin-bottom: 30px;">
+            <div class="concept-title">📋 Listener Lifecycle</div>
+            <table>
+                <tr>
+                    <th>Event</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>Initial call</td>
+                    <td>First callback always called immediately</td>
+                </tr>
+                <tr>
+                    <td>added</td>
+                    <td>New document added to collection</td>
+                </tr>
+                <tr>
+                    <td>modified</td>
+                    <td>Existing document changed</td>
+                </tr>
+                <tr>
+                    <td>removed</td>
+                    <td>Document deleted from collection</td>
+                </tr>
+                <tr>
+                    <td>Unsubscribe</td>
+                    <td>Stop listening, no more callbacks</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="checklist">
+            <div class="concept-title">✅ Learning Checklist</div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c1">
+                <label for="c1">Implement collection listeners</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c2">
+                <label for="c2">Listen to single documents</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c3">
+                <label for="c3">Handle listener lifecycle properly</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c4">
+                <label for="c4">Enable offline persistence</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c5">
+                <label for="c5">Track and cleanup listeners</label>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px;">
+            <a href="index.html" style="color: #667eea; text-decoration: none; font-weight: 600;">← Back to Index</a>
+        </div>
+    </div>
+</body>
+</html>

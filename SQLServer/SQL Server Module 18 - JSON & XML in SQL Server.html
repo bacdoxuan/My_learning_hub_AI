@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #18 - JSON & XML in SQL Server</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #10b981;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #34d399;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #34d399;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #6ee7b7;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #34d399;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #34d399;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #34d399;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #34d399;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #34d399;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #34d399;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #059669;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟢 SQL Server JSON & XML Data Handling</h1>
+        <p>OPENJSON, JSON Functions, XML Processing & Indexing Strategies</p>
+        <div class="badge">Data Integration</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module explores JSON and XML data handling in SQL Server: using OPENJSON for parsing JSON data, 
+            JSON_VALUE/QUERY/MODIFY functions for manipulation, XML processing techniques, and XML indexing strategies 
+            for optimal performance when working with semi-structured data.
+        </p>
+        
+        <h2>📄 JSON Data Processing</h2>
+        
+        <h3>OPENJSON & JSON Functions</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">OPENJSON Function</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Parse JSON arrays:</strong> Converts JSON array to relational format<br>
+                    <strong style="color: #34d399;">Path specification:</strong> Use $.property to navigate JSON structure<br>
+                    <strong style="color: #34d399;">Schema definition:</strong> Define column types and paths explicitly<br>
+                    <strong style="color: #34d399;">Lax/strict modes:</strong> Control error handling for missing properties<br>
+                    <strong style="color: #34d399;">Performance:</strong> Efficient parsing with proper indexing<br>
+                    <strong style="color: #34d399;">Use cases:</strong> Import JSON data, API responses, configuration data
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">JSON Functions</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">JSON_VALUE:</strong> Extract single scalar value from JSON<br>
+                    <strong style="color: #34d399;">JSON_QUERY:</strong> Extract object or array from JSON<br>
+                    <strong style="color: #34d399;">JSON_MODIFY:</strong> Update, insert, or delete JSON properties<br>
+                    <strong style="color: #34d399;">ISJSON:</strong> Validate JSON format<br>
+                    <strong style="color: #34d399;">Path expressions:</strong> Use $ for root, dot notation for properties<br>
+                    <strong style="color: #34d399;">Lax mode:</strong> Return null for missing paths instead of errors
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- OPENJSON with default schema</span>
+<span class="code-keyword">DECLARE</span> @json <span class="code-keyword">NVARCHAR</span>(MAX) = '[
+    {"id": 1, "name": "Product A", "price": 29.99},
+    {"id": 2, "name": "Product B", "price": 49.99}
+]';
+
+<span class="code-keyword">SELECT</span> *
+<span class="code-keyword">FROM</span> <span class="code-function">OPENJSON</span>(@json);
+
+<span class="code-comment">-- OPENJSON with explicit schema</span>
+<span class="code-keyword">SELECT</span> 
+    id,
+    name,
+    price
+<span class="code-keyword">FROM</span> <span class="code-function">OPENJSON</span>(@json)
+<span class="code-keyword">WITH</span> (
+    id <span class="code-keyword">INT</span> '$.id',
+    name <span class="code-keyword">NVARCHAR</span>(50) '$.name',
+    price <span class="code-keyword">DECIMAL</span>(10,2) '$.price'
+);
+
+<span class="code-comment">-- Nested JSON parsing</span>
+<span class="code-keyword">DECLARE</span> @nestedJson <span class="code-keyword">NVARCHAR</span>(MAX) = '{
+    "order": {
+        "id": 123,
+        "customer": {"name": "John", "email": "john@example.com"},
+        "items": [
+            {"product": "Widget", "qty": 2},
+            {"product": "Gadget", "qty": 1}
+        ]
+    }
+}';
+
+<span class="code-keyword">SELECT</span> 
+    <span class="code-function">JSON_VALUE</span>(@nestedJson, '$.order.id') AS OrderID,
+    <span class="code-function">JSON_VALUE</span>(@nestedJson, '$.order.customer.name') AS CustomerName,
+    items.value AS ItemDetails
+<span class="code-keyword">FROM</span> <span class="code-function">OPENJSON</span>(@nestedJson, '$.order.items') AS items;
+
+<span class="code-comment">-- JSON functions usage</span>
+<span class="code-keyword">SELECT</span> 
+    <span class="code-function">JSON_VALUE</span>(ProductData, '$.category') AS Category,
+    <span class="code-function">JSON_QUERY</span>(ProductData, '$.specifications') AS Specs,
+    <span class="code-function">ISJSON</span>(ProductData) AS IsValidJson
+<span class="code-keyword">FROM</span> Products
+<span class="code-keyword">WHERE</span> <span class="code-function">ISJSON</span>(ProductData) = 1;
+
+<span class="code-comment">-- JSON_MODIFY examples</span>
+<span class="code-keyword">DECLARE</span> @product <span class="code-keyword">NVARCHAR</span>(MAX) = '{"name": "Widget", "price": 29.99}';
+
+<span class="code-comment">-- Update existing property</span>
+<span class="code-keyword">SET</span> @product = <span class="code-function">JSON_MODIFY</span>(@product, '$.price', 34.99);
+
+<span class="code-comment">-- Add new property</span>
+<span class="code-keyword">SET</span> @product = <span class="code-function">JSON_MODIFY</span>(@product, '$.category', 'Electronics');
+
+<span class="code-comment">-- Delete property</span>
+<span class="code-keyword">SET</span> @product = <span class="code-function">JSON_MODIFY</span>(@product, '$.obsolete', NULL);
+
+<span class="code-keyword">SELECT</span> @product AS UpdatedProduct;</code>
+        </div>
+        
+        <h2>📑 XML Data Processing</h2>
+        
+        <h3>XML Handling in SQL Server</h3>
+        <div class="concept-box">
+            <div class="concept-title">XML Data Type & Methods</div>
+            <div class="concept-description">
+                <strong style="color: #34d399;">XML data type:</strong> Native support for XML storage and querying<br>
+                <strong style="color: #34d399;">XQuery support:</strong> query(), value(), exist(), nodes() methods<br>
+                <strong style="color: #34d399;">FOR XML clause:</strong> Generate XML from relational data<br>
+                <strong style="color: #34d399;">OPENXML:</strong> Parse XML into relational format (legacy)<br>
+                <strong style="color: #34d399;">Typed XML:</strong> Schema validation with XML Schema Collections<br>
+                <strong style="color: #34d399;">Performance considerations:</strong> XML operations can be expensive
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- XML variable and column</span>
+<span class="code-keyword">DECLARE</span> @xml <span class="code-keyword">XML</span> = '<products>
+    <product id="1">
+        <name>Widget</name>
+        <price>29.99</price>
+    </product>
+    <product id="2">
+        <name>Gadget</name>
+        <price>49.99</price>
+    </product>
+</products>';
+
+<span class="code-comment">-- XML methods: query() - extract XML fragment</span>
+<span class="code-keyword">SELECT</span> @xml.query('/products/product[@id="1"]') AS ProductXML;
+
+<span class="code-comment">-- XML methods: value() - extract scalar value</span>
+<span class="code-keyword">SELECT</span> 
+    @xml.value('(/products/product/name)[1]', 'NVARCHAR(50)') AS FirstProductName,
+    @xml.value('count(/products/product)', 'INT') AS ProductCount;
+
+<span class="code-comment">-- XML methods: exist() - check existence</span>
+<span class="code-keyword">SELECT</span> 
+    <span class="code-keyword">CASE</span> <span class="code-keyword">WHEN</span> @xml.exist('/products/product[@id="1"]') = 1 
+         <span class="code-keyword">THEN</span> 'Product exists' 
+         <span class="code-keyword">ELSE</span> 'Product not found' 
+    <span class="code-keyword">END</span> AS ExistenceCheck;
+
+<span class="code-comment">-- XML methods: nodes() - shred XML to relational</span>
+<span class="code-keyword">SELECT</span> 
+    T.c.value('@id', 'INT') AS ProductID,
+    T.c.value('name[1]', 'NVARCHAR(50)') AS ProductName,
+    T.c.value('price[1]', 'DECIMAL(10,2)') AS Price
+<span class="code-keyword">FROM</span> @xml.nodes('/products/product') AS T(c);
+
+<span class="code-comment">-- FOR XML: Generate XML from relational data</span>
+<span class="code-keyword">SELECT</span> 
+    CustomerID,
+    CompanyName,
+    ContactName
+<span class="code-keyword">FROM</span> Customers
+<span class="code-keyword">WHERE</span> Country = 'USA'
+<span class="code-keyword">FOR XML RAW</span>('Customer'), ROOT('Customers'), ELEMENTS;
+
+<span class="code-comment">-- FOR XML AUTO (nested structure)</span>
+<span class="code-keyword">SELECT</span> 
+    c.CustomerID,
+    c.CompanyName,
+    o.OrderID,
+    o.OrderDate
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">INNER JOIN</span> Orders o <span class="code-keyword">ON</span> c.CustomerID = o.CustomerID
+<span class="code-keyword">FOR XML AUTO</span>, ROOT('CustomerOrders');
+
+<span class="code-comment">-- Typed XML with schema collection</span>
+<span class="code-keyword">CREATE XML SCHEMA COLLECTION</span> ProductSchema <span class="code-keyword">AS</span> '
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:element name="product">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="name" type="xsd:string"/>
+                <xsd:element name="price" type="xsd:decimal"/>
+            </xsd:sequence>
+            <xsd:attribute name="id" type="xsd:int"/>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>';
+
+<span class="code-keyword">DECLARE</span> @typedXml <span class="code-keyword">XML</span>(ProductSchema);
+<span class="code-keyword">SET</span> @typedXml = '<product id="1"><name>Widget</name><price>29.99</price></product>';</code>
+        </div>
+        
+        <h2>🔍 XML Indexes</h2>
+        
+        <h3>Indexing Strategies for XML Data</h3>
+        <div class="concept-box">
+            <div class="concept-title">XML Index Types</div>
+            <div class="concept-description">
+                <strong style="color: #34d399;">Primary XML index:</strong> Shreds XML into relational format for querying<br>
+                <strong style="color: #34d399;">Secondary XML indexes:</strong> Optimize specific query patterns<br>
+                <strong style="color: #34d399;">PATH secondary:</strong> Optimizes path expressions (//, /)<br>
+                <strong style="color: #34d399;">VALUE secondary:</strong> Optimizes value-based queries<br>
+                <strong style="color: #34d399;">PROPERTY secondary:</strong> Optimizes property bag scenarios<br>
+                <strong style="color: #34d399;">Storage cost:</strong> Primary index ~ size of XML data, secondary indexes smaller
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Create primary XML index</span>
+<span class="code-keyword">CREATE PRIMARY XML INDEX</span> idx_ProductData_XML
+<span class="code-keyword">ON</span> Products (ProductData);
+
+<span class="code-comment">-- Create secondary XML indexes</span>
+<span class="code-keyword">CREATE XML INDEX</span> idx_ProductData_PATH
+<span class="code-keyword">ON</span> Products (ProductData)
+<span class="code-keyword">USING XML INDEX</span> idx_ProductData_XML <span class="code-keyword">FOR PATH</span>;
+
+<span class="code-keyword">CREATE XML INDEX</span> idx_ProductData_VALUE
+<span class="code-keyword">ON</span> Products (ProductData)
+<span class="code-keyword">USING XML INDEX</span> idx_ProductData_XML <span class="code-keyword">FOR VALUE</span>;
+
+<span class="code-keyword">CREATE XML INDEX</span> idx_ProductData_PROPERTY
+<span class="code-keyword">ON</span> Products (ProductData)
+<span class="code-keyword">USING XML INDEX</span> idx_ProductData_XML <span class="code-keyword">FOR PROPERTY</span>;
+
+<span class="code-comment">-- Query with XML index utilization</span>
+<span class="code-keyword">SELECT</span> ProductID, ProductName
+<span class="code-keyword">FROM</span> Products
+<span class="code-keyword">WHERE</span> ProductData.exist('/product[@category="Electronics"]') = 1;
+
+<span class="code-comment">-- Check index usage</span>
+<span class="code-keyword">SELECT</span> 
+    index_name,
+    avg_fragmentation_in_percent
+<span class="code-keyword">FROM</span> sys.dm_db_index_physical_stats(DB_ID(), OBJECT_ID('Products'), NULL, NULL, NULL) ips
+<span class="code-keyword">INNER JOIN</span> sys.indexes i <span class="code-keyword">ON</span> ips.object_id = i.object_id <span class="code-keyword">AND</span> ips.index_id = i.index_id
+<span class="code-keyword">WHERE</span> i.type_desc <span class="code-keyword">LIKE</span> '%XML%';</code>
+        </div>
+        
+        <h2>⚖️ When to Use XML vs JSON</h2>
+        
+        <h3>Choosing the Right Format</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Use JSON When</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Web APIs:</strong> Modern REST APIs typically use JSON<br>
+                    <strong style="color: #34d399;">JavaScript integration:</strong> Native JavaScript object format<br>
+                    <strong style="color: #34d399;">Simple structures:</strong> Less verbose than XML<br>
+                    <strong style="color: #34d399;">NoSQL databases:</strong> Common format for document databases<br>
+                    <strong style="color: #34d399;">Configuration data:</strong> Easy to read and modify<br>
+                    <strong style="color: #34d399;">Mobile apps:</strong> Lightweight for network transmission
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Use XML When</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Schema validation:</strong> XSD schemas for data integrity<br>
+                    <strong style="color: #34d399;">Enterprise systems:</strong> SOAP web services, legacy integrations<br>
+                    <strong style="color: #34d399;">Complex hierarchies:</strong> Namespaces, mixed content<br>
+                    <strong style="color: #34d399;">XSLT transformations:</strong> Powerful document processing<br>
+                    <strong style="color: #34d399;">Industry standards:</strong> Many B2B protocols use XML<br>
+                    <strong style="color: #34d399;">Rich metadata:</strong> Attributes, processing instructions
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Performance Tips:</strong> Use JSON for new applications and web integrations. Index XML columns when querying frequently. 
+            Consider computed columns for commonly accessed JSON/XML values.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Common Issues:</strong> Large XML documents can cause memory issues. JSON parsing is generally faster than XML. 
+            Always validate input data to prevent injection attacks.
+        </div>
+        
+        <h2>📊 JSON vs XML Comparison</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Aspect</th>
+                <th>JSON</th>
+                <th>XML</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Parsing Speed</strong></td>
+                <td>Faster</td>
+                <td>Slower</td>
+                </tr>
+                <tr>
+                    <td><strong>Verbosity</strong></td>
+                <td>Less verbose</td>
+                <td>More verbose</td>
+                </tr>
+                <tr>
+                    <td><strong>Schema Support</strong></td>
+                <td>Limited</td>
+                <td>Strong (XSD)</td>
+                </tr>
+                <tr>
+                    <td><strong>Query Language</strong></td>
+                <td>JSON functions</td>
+                <td>XQuery/XPath</td>
+                </tr>
+                <tr>
+                    <td><strong>Indexing</strong></td>
+                <td>Computed columns</td>
+                <td>Dedicated XML indexes</td>
+                </tr>
+                <tr>
+                    <td><strong>Use Case</strong></td>
+                <td>Web APIs, NoSQL</td>
+                <td>Enterprise, B2B</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Use OPENJSON to parse JSON arrays into relational format</li>
+                <li>Specify explicit schemas with OPENJSON WITH clause</li>
+                <li>Extract values using JSON_VALUE function</li>
+                <li>Extract objects/arrays using JSON_QUERY</li>
+                <li>Modify JSON data with JSON_MODIFY</li>
+                <li>Validate JSON format with ISJSON</li>
+                <li>Use XML data type for structured document storage</li>
+                <li>Query XML with XQuery methods (query, value, exist, nodes)</li>
+                <li>Generate XML from relational data using FOR XML</li>
+                <li>Create typed XML with schema collections</li>
+                <li>Implement primary XML indexes for query performance</li>
+                <li>Add secondary XML indexes (PATH, VALUE, PROPERTY) as needed</li>
+                <li>Choose between JSON and XML based on use case requirements</li>
+                <li>Handle large XML documents efficiently</li>
+                <li>Use computed columns for frequently accessed JSON/XML values</li>
+                <li>Implement proper error handling for malformed data</li>
+                <li>Monitor performance of JSON/XML operations</li>
+                <li>Consider storage implications of semi-structured data</li>
+                <li>Use appropriate indexing strategies for query patterns</li>
+                <li>Test parsing performance with realistic data volumes</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>JSON Parsing:</strong> Use OPENJSON to import JSON API response data into relational tables.</li>
+                <li><strong>JSON Manipulation:</strong> Create stored procedures that modify JSON data using JSON_MODIFY functions.</li>
+                <li><strong>XML Processing:</strong> Parse XML documents using nodes() method and store in relational format.</li>
+                <li><strong>FOR XML:</strong> Generate XML reports from multiple related tables using different FOR XML modes.</li>
+                <li><strong>Indexing:</strong> Create and test XML indexes on a table with XML columns, measuring query performance improvements.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/17-triggers-temporal.html" class="nav-btn">← Previous: Triggers, Auditing Patterns & Temporal Tables</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/19-partitioning.html" class="nav-btn">Next: Partitioning & Large Data Management →</a>
+        </div>
+    </div>
+</body>
+</html>

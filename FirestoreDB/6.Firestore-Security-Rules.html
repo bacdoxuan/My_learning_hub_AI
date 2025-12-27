@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Cheat Sheet #6 - Security & Rules</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .hero {
+            background: linear-gradient(135deg, #feac5e 0%, #c779d0 100%);
+            padding: 40px 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        .hero-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 14px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .concept-section {
+            background: #1a2844;
+            padding: 25px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .concept-title {
+            color: #feac5e;
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .concept-text {
+            color: #a0aec0;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        .code-block {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #feac5e;
+            overflow-x: auto;
+            margin: 15px 0;
+            font-size: 0.8rem;
+        }
+        .code-block code {
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Courier New', monospace;
+            line-height: 1.5;
+        }
+        .code-keyword { color: #667eea; }
+        .code-string { color: #38ef7d; }
+        .code-method { color: #fbbf24; }
+        .info-box {
+            background: rgba(254, 172, 94, 0.1);
+            border-left: 3px solid #feac5e;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 0.95rem;
+        }
+        .warning-box {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 3px solid #ef4444;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1a2844;
+            margin: 20px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            font-size: 0.85rem;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            background: #334155;
+            color: #e2e8f0;
+            font-weight: 600;
+        }
+        .checklist {
+            background: #1a2844;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .checkbox-item {
+            display: flex;
+            gap: 12px;
+            padding: 10px 0;
+            align-items: flex-start;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 768px) {
+            .content { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 1.8rem; }
+            .code-block { font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="hero-badge">Module 6 of 7</div>
+            <h1>Security & Rules</h1>
+            <p style="color: rgba(255,255,255,0.8); margin-top: 10px;">Secure your database with Firestore Security Rules</p>
+        </div>
+
+        <div class="content">
+            <div class="concept-section">
+                <div class="concept-title">🔐 Basic Rules Structure</div>
+                <div class="concept-text">
+                    Firestore Security Rules follow a hierarchical match structure:
+                </div>
+                <div class="code-block"><code>
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: 
+        if request.auth.uid == userId;
+    }
+  }
+}
+                </code></div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🔓 Authentication Checks</div>
+                <div class="concept-text">
+                    Use request.auth to verify user identity:
+                </div>
+                <div class="code-block"><code>
+<span class="code-comment">// Only authenticated users</span>
+allow read: if request.auth != null;
+
+<span class="code-comment">// Specific user</span>
+allow write: if request.auth.uid == userId;
+
+<span class="code-comment">// Email verification</span>
+allow read: if request.auth.token.email_verified;
+                </code></div>
+                <div class="info-box">
+                    <strong>Available auth fields:</strong> uid, token (claims), email, email_verified, etc.
+                </div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">👥 Role-Based Access Control</div>
+                <div class="concept-text">
+                    Use custom claims for fine-grained permissions:
+                </div>
+                <div class="code-block"><code>
+<span class="code-comment">// Admin-only access</span>
+allow write: if get(/databases/$(database)
+  /documents/users/$(request.auth.uid))
+  .data.role == <span class="code-string">"admin"</span>;
+
+<span class="code-comment">// Custom claim check</span>
+allow read: if request.auth.token.role == <span class="code-string">"editor"</span>;
+                </code></div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">📝 Data Validation</div>
+                <div class="concept-text">
+                    Validate data format before writes:
+                </div>
+                <div class="code-block"><code>
+allow create: if request.resource.data.keys()
+  .hasOnly([<span class="code-string">"name"</span>, <span class="code-string">"email"</span>, <span class="code-string">"age"</span>])
+  && request.resource.data.name is string
+  && request.resource.data.email is string
+  && request.resource.data.age is number;
+                </code></div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">🛡️ Common Security Patterns</div>
+                <div class="code-block"><code>
+<span class="code-comment">// Public read, authenticated write</span>
+match /posts/{postId} {
+  allow read;
+  allow write: if request.auth != null;
+}
+
+<span class="code-comment">// User owns their data</span>
+match /users/{userId} {
+  allow read, write: 
+    if request.auth.uid == userId;
+}
+
+<span class="code-comment">// Batch of rules</span>
+function isSignedIn() {
+  return request.auth != null;
+}
+                </code></div>
+            </div>
+
+            <div class="concept-section">
+                <div class="concept-title">⚠️ Common Security Mistakes</div>
+                <div class="warning-box">
+                    ❌ <strong>Don't:</strong> allow read, write; (public access)<br>
+                    ❌ <strong>Don't:</strong> Skip validation on write operations<br>
+                    ❌ <strong>Don't:</strong> Assume client-side filtering is secure<br>
+                    ❌ <strong>Don't:</strong> Store sensitive data without encryption
+                </div>
+            </div>
+        </div>
+
+        <div class="concept-section" style="margin-bottom: 30px;">
+            <div class="concept-title">📋 Request & Resource Objects</div>
+            <table>
+                <tr>
+                    <th>Variable</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                </tr>
+                <tr>
+                    <td>request.auth</td>
+                    <td>Auth</td>
+                    <td>Authentication info of requester</td>
+                </tr>
+                <tr>
+                    <td>request.auth.uid</td>
+                    <td>String</td>
+                    <td>User's unique ID</td>
+                </tr>
+                <tr>
+                    <td>request.resource</td>
+                    <td>Resource</td>
+                    <td>Data being written</td>
+                </tr>
+                <tr>
+                    <td>request.resource.data</td>
+                    <td>Map</td>
+                    <td>Fields of document</td>
+                </tr>
+                <tr>
+                    <td>resource</td>
+                    <td>Resource</td>
+                    <td>Existing document data</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="concept-section" style="margin-bottom: 30px;">
+            <div class="concept-title">🔄 CRUD Operation Rules</div>
+            <table>
+                <tr>
+                    <th>Operation</th>
+                    <th>Triggered By</th>
+                    <th>Available Variables</th>
+                </tr>
+                <tr>
+                    <td>create</td>
+                    <td>setDoc, addDoc</td>
+                    <td>request.auth, request.resource</td>
+                </tr>
+                <tr>
+                    <td>read</td>
+                    <td>getDoc, getDocs</td>
+                    <td>request.auth, resource</td>
+                </tr>
+                <tr>
+                    <td>update</td>
+                    <td>updateDoc</td>
+                    <td>request.auth, request.resource, resource</td>
+                </tr>
+                <tr>
+                    <td>delete</td>
+                    <td>deleteDoc</td>
+                    <td>request.auth, resource</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="checklist">
+            <div class="concept-title">✅ Learning Checklist</div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c1">
+                <label for="c1">Understand basic rule structure</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c2">
+                <label for="c2">Implement authentication checks</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c3">
+                <label for="c3">Use role-based access control</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c4">
+                <label for="c4">Validate data on write</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="c5">
+                <label for="c5">Test rules with Firestore emulator</label>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px;">
+            <a href="index.html" style="color: #667eea; text-decoration: none; font-weight: 600;">← Back to Index</a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MongoDB Cheat Sheet #6 - Update Operators</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #4a148c 0%, #6a1b9a 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #7b1fa2 0%, #9c27b0 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #fff;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(156,39,176,0.3);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #9c27b0;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #ce93d8;
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #9c27b0;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-bool {
+      color: #ff7b72;
+    }
+    .code-prop {
+      color: #7ee787;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(123,31,162,0.2), rgba(156,39,176,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #ce93d8;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(156,39,176,0.2);
+      color: #ce93d8;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-blue {
+      background: rgba(33,150,243,0.2);
+      color: #64b5f6;
+    }
+    .tag-green {
+      background: rgba(76,175,80,0.2);
+      color: #81c784;
+    }
+    .tag-orange {
+      background: rgba(255,152,0,0.2);
+      color: #ffb74d;
+    }
+    .tag-red {
+      background: rgba(244,67,54,0.2);
+      color: #e57373;
+    }
+    .tag-cyan {
+      background: rgba(0,188,212,0.2);
+      color: #4dd0e1;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(33,150,243,0.1);
+      border-left: 3px solid #2196f3;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(244,67,54,0.1);
+      border-left: 3px solid #f44336;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(76,175,80,0.1);
+      border-left: 3px solid #4caf50;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .section-title {
+      color: #ce93d8;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(206,147,216,0.3);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .comparison-table th {
+      background: rgba(156,39,176,0.2);
+      color: #ce93d8;
+    }
+    .comparison-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .example-box {
+      background: rgba(0,0,0,0.2);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+    }
+    .example-title {
+      color: #ce93d8;
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    .before-box, .after-box {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .before-box {
+      border-left: 3px solid #f44336;
+    }
+    .after-box {
+      border-left: 3px solid #4caf50;
+    }
+    .box-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+      font-size: 0.85em;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+    @media (max-width: 768px) {
+      .before-after {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🍃 MongoDB Cheat Sheet #6</h1>
+      <div class="subtitle">Update Operators</div>
+      <div class="badge">✏️ Field Operators • Array Operators • Modifiers</div>
+    </div>
+
+    <!-- Update Operators Overview -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">📊</span>
+          <span class="card-title">Update Operators Overview</span>
+        </div>
+        <table class="comparison-table">
+          <tr>
+            <th>Category</th>
+            <th>Operators</th>
+            <th>Mô tả</th>
+          </tr>
+          <tr>
+            <td><strong>Field</strong></td>
+            <td><code>$set, $unset, $inc, $mul, $rename, $min, $max, $currentDate</code></td>
+            <td>Cập nhật field values</td>
+          </tr>
+          <tr>
+            <td><strong>Array</strong></td>
+            <td><code>$push, $pop, $pull, $pullAll, $addToSet</code></td>
+            <td>Thao tác với arrays</td>
+          </tr>
+          <tr>
+            <td><strong>Array Modifiers</strong></td>
+            <td><code>$each, $slice, $sort, $position</code></td>
+            <td>Modifiers cho array operators</td>
+          </tr>
+          <tr>
+            <td><strong>Array Update</strong></td>
+            <td><code>$ (positional), $[] (all), $[&lt;identifier&gt;] (filtered)</code></td>
+            <td>Update array elements</td>
+          </tr>
+          <tr>
+            <td><strong>Bitwise</strong></td>
+            <td><code>$bit</code></td>
+            <td>Bitwise operations</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Field Operators - $set & $unset -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">✏️</span>
+          <span class="card-title">Field - $set</span>
+        </div>
+        <div class="highlight">
+          Set giá trị cho field - tạo mới nếu chưa tồn tại
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Set một field</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$set</span>: { <span class="code-prop">status</span>: <span class="code-string">"active"</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Set nhiều fields</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$set</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"John Doe"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">age</span>: <span class="code-number">30</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">updatedAt</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>()<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Set nested field (dot notation)</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$set</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"address.city"</span>: <span class="code-string">"Hà Nội"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"address.zip"</span>: <span class="code-string">"100000"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Set array element</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$set</span>: { <span class="code-string">"scores.0"</span>: <span class="code-number">95</span> } }<br>
+          )
+        </div>
+
+        <div class="tip-box">
+          ✅ Nếu field chưa tồn tại, <strong>$set</strong> sẽ tạo mới<br>
+          ✅ Nếu field đã tồn tại, <strong>$set</strong> sẽ ghi đè giá trị cũ
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🗑️</span>
+          <span class="card-title">Field - $unset</span>
+        </div>
+        <div class="highlight">
+          Xóa field khỏi document
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Xóa một field</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$unset</span>: { <span class="code-prop">tempField</span>: <span class="code-string">""</span> } }<br>
+          )<br>
+          <span class="code-comment">// Giá trị "" không quan trọng, chỉ cần key</span>
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Xóa nhiều fields</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$unset</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">field1</span>: <span class="code-string">""</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">field2</span>: <span class="code-number">1</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">field3</span>: <span class="code-bool">true</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Xóa nested field</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$unset</span>: { <span class="code-string">"address.phone"</span>: <span class="code-string">""</span> } }<br>
+          )
+        </div>
+
+        <div class="before-after">
+          <div class="before-box">
+            <div class="box-title" style="color: #e57373;">Before:</div>
+            <div class="code-block" style="margin: 0; font-size: 0.8em;">
+              {<br>
+              &nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"John"</span>,<br>
+              &nbsp;&nbsp;<span class="code-prop">age</span>: <span class="code-number">30</span>,<br>
+              &nbsp;&nbsp;<span class="code-prop">temp</span>: <span class="code-string">"delete me"</span><br>
+              }
+            </div>
+          </div>
+          <div class="after-box">
+            <div class="box-title" style="color: #81c784;">After $unset:</div>
+            <div class="code-block" style="margin: 0; font-size: 0.8em;">
+              {<br>
+              &nbsp;&nbsp;<span class="code-prop">name</span>: <span class="code-string">"John"</span>,<br>
+              &nbsp;&nbsp;<span class="code-prop">age</span>: <span class="code-number">30</span><br>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- $inc & $mul -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">➕</span>
+          <span class="card-title">Field - $inc (Increment)</span>
+        </div>
+        <div class="highlight">
+          Tăng/giảm giá trị số (atomic operation)
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Tăng age lên 1</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$inc</span>: { <span class="code-prop">age</span>: <span class="code-number">1</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Giảm stock đi 5</span><br>
+          db.products.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$inc</span>: { <span class="code-prop">stock</span>: <span class="code-number">-5</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Increment nhiều fields</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$inc</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">views</span>: <span class="code-number">1</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">likes</span>: <span class="code-number">1</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">shares</span>: <span class="code-number">1</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Nếu field không tồn tại, khởi tạo = increment value</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$inc</span>: { <span class="code-prop">loginCount</span>: <span class="code-number">1</span> } }<br>
+          )<br>
+          <span class="code-comment">// loginCount chưa tồn tại → tạo mới = 1</span>
+        </div>
+
+        <div class="tip-box">
+          ✅ <strong>Atomic operation</strong> - thread-safe<br>
+          ✅ Hoạt động với Int32, Int64, Double, Decimal128<br>
+          ✅ Dùng số âm để giảm giá trị
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">✖️</span>
+          <span class="card-title">Field - $mul (Multiply)</span>
+        </div>
+        <div class="highlight">
+          Nhân giá trị số với một số
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Nhân price với 1.1 (tăng 10%)</span><br>
+          db.products.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$mul</span>: { <span class="code-prop">price</span>: <span class="code-number">1.1</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Giảm 20% (nhân với 0.8)</span><br>
+          db.products.<span class="code-method">updateMany</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">category</span>: <span class="code-string">"sale"</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$mul</span>: { <span class="code-prop">price</span>: <span class="code-number">0.8</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Nhân với 0 để reset về 0</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$mul</span>: { <span class="code-prop">score</span>: <span class="code-number">0</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Nếu field không tồn tại, khởi tạo = 0</span><br>
+          db.products.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$mul</span>: { <span class="code-prop">discount</span>: <span class="code-number">0.9</span> } }<br>
+          )<br>
+          <span class="code-comment">// discount chưa tồn tại → tạo mới = 0</span>
+        </div>
+
+        <div class="before-after">
+          <div class="before-box">
+            <div class="box-title" style="color: #e57373;">Before:</div>
+            <div class="code-block" style="margin: 0; font-size: 0.8em;">
+              { <span class="code-prop">price</span>: <span class="code-number">100</span> }
+            </div>
+          </div>
+          <div class="after-box">
+            <div class="box-title" style="color: #81c784;">After $mul: {price: 1.1}:</div>
+            <div class="code-block" style="margin: 0; font-size: 0.8em;">
+              { <span class="code-prop">price</span>: <span class="code-number">110</span> }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- $min, $max, $rename -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⬇️⬆️</span>
+          <span class="card-title">Field - $min & $max</span>
+        </div>
+        
+        <div class="section-title">$min (Minimum)</div>
+        <div class="code-block">
+          <span class="code-comment">// Chỉ update nếu giá trị mới < giá trị hiện tại</span><br>
+          db.products.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$min</span>: { <span class="code-prop">price</span>: <span class="code-number">50</span> } }<br>
+          )<br>
+          <span class="code-comment">// Nếu price hiện tại > 50 → update = 50</span><br>
+          <span class="code-comment">// Nếu price hiện tại <= 50 → không thay đổi</span>
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Với Date</span><br>
+          db.logs.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$min</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">firstSeen</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>()<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="section-title">$max (Maximum)</div>
+        <div class="code-block">
+          <span class="code-comment">// Chỉ update nếu giá trị mới > giá trị hiện tại</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$max</span>: { <span class="code-prop">highScore</span>: <span class="code-number">1000</span> } }<br>
+          )<br>
+          <span class="code-comment">// Nếu highScore < 1000 → update = 1000</span><br>
+          <span class="code-comment">// Nếu highScore >= 1000 → không thay đổi</span>
+        </div>
+
+        <div class="example-box">
+          <div class="example-title">Use Case: Tracking min/max values</div>
+          <div class="code-block">
+            db.stats.<span class="code-method">updateOne</span>(<br>
+            &nbsp;&nbsp;{ <span class="code-prop">date</span>: <span class="code-string">"2024-12-24"</span> },<br>
+            &nbsp;&nbsp;{<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$min</span>: { <span class="code-prop">minTemp</span>: <span class="code-number">15</span> },<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$max</span>: { <span class="code-prop">maxTemp</span>: <span class="code-number">28</span> }<br>
+            &nbsp;&nbsp;}<br>
+            )
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔄</span>
+          <span class="card-title">Field - $rename & $currentDate</span>
+        </div>
+        
+        <div class="section-title">$rename</div>
+        <div class="code-block">
+          <span class="code-comment">// Đổi tên field</span><br>
+          db.users.<span class="code-method">updateMany</span>(<br>
+          &nbsp;&nbsp;{},<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$rename</span>: { <span class="code-string">"name"</span>: <span class="code-string">"fullName"</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Đổi tên nhiều fields</span><br>
+          db.products.<span class="code-method">updateMany</span>(<br>
+          &nbsp;&nbsp;{},<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$rename</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"qty"</span>: <span class="code-string">"quantity"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-string">"desc"</span>: <span class="code-string">"description"</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="section-title">$currentDate</div>
+        <div class="code-block">
+          <span class="code-comment">// Set field = current date</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$currentDate</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">lastModified</span>: <span class="code-bool">true</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Chỉ định type: date hoặc timestamp</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$currentDate</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">lastModified</span>: { <span class="code-prop">$type</span>: <span class="code-string">"date"</span> },<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">lastModifiedTS</span>: { <span class="code-prop">$type</span>: <span class="code-string">"timestamp"</span> }<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+      </div>
+    </div>
+
+    <!-- Array Operators - $push -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">➕</span>
+          <span class="card-title">Array - $push</span>
+        </div>
+        <div class="highlight">
+          Thêm element vào cuối array
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Push một element</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$push</span>: { <span class="code-prop">tags</span>: <span class="code-string">"mongodb"</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Push object</span><br>
+          db.users.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$push</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">orders</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">item</span>: <span class="code-string">"Laptop"</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">qty</span>: <span class="code-number">1</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">price</span>: <span class="code-number">999</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="section-title">$push với $each (nhiều elements)</div>
+        <div class="code-block">
+          <span class="code-comment">// Push nhiều elements cùng lúc</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$push</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">tags</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$each</span>: [<span class="code-string">"nosql"</span>, <span class="code-string">"database"</span>, <span class="code-string">"tutorial"</span>]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="section-title">$push với $position</div>
+        <div class="code-block">
+          <span class="code-comment">// Insert tại vị trí cụ thể</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$push</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">tags</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$each</span>: [<span class="code-string">"featured"</span>],<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$position</span>: <span class="code-number">0</span>  <span class="code-comment">// Insert ở đầu</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔽</span>
+          <span class="card-title">Array - $push với $slice & $sort</span>
+        </div>
+        
+        <div class="section-title">$slice (Giới hạn kích thước)</div>
+        <div class="code-block">
+          <span class="code-comment">// Giữ 5 elements cuối cùng</span><br>
+          db.logs.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$push</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">history</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$each</span>: [{ <span class="code-prop">action</span>: <span class="code-string">"login"</span>, <span class="code-prop">time</span>: <span class="code-keyword">new</span> <span class="code-method">Date</span>() }],<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$slice</span>: <span class="code-number">-5</span>  <span class="code-comment">// Giữ 5 items cuối</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Giữ 10 elements đầu tiên</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$push</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">comments</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$each</span>: [{ <span class="code-prop">text</span>: <span class="code-string">"Great!"</span> }],<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$slice</span>: <span class="code-number">10</span>  <span class="code-comment">// Giữ 10 items đầu</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="section-title">$sort (Sắp xếp array)</div>
+        <div class="code-block">
+          <span class="code-comment">// Push và sort</span><br>
+          db.students.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$push</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">scores</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$each</span>: [<span class="code-number">85</span>, <span class="code-number">92</span>, <span class="code-number">78</span>],<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$sort</span>: <span class="code-number">-1</span>  <span class="code-comment">// Sort descending</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="section-title">Kết hợp $each, $sort, $slice</div>
+        <div class="code-block">
+          <span class="code-comment">// Top 3 high scores</span><br>
+          db.games.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$push</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">highScores</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$each</span>: [<span class="code-number">1500</span>],<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$sort</span>: <span class="code-number">-1</span>,<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$slice</span>: <span class="code-number">3</span>  <span class="code-comment">// Chỉ giữ top 3</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+      </div>
+    </div>
+
+    <!-- $pop, $pull, $pullAll -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⬅️➡️</span>
+          <span class="card-title">Array - $pop</span>
+        </div>
+        <div class="highlight">
+          Xóa element đầu hoặc cuối array
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Xóa element cuối cùng (-1)</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$pop</span>: { <span class="code-prop">tags</span>: <span class="code-number">1</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Xóa element đầu tiên (-1)</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$pop</span>: { <span class="code-prop">tags</span>: <span class="code-number">-1</span> } }<br>
+          )
+        </div>
+
+        <div class="before-after">
+          <div class="before-box">
+            <div class="box-title" style="color: #e57373;">Before:</div>
+            <div class="code-block" style="margin: 0; font-size: 0.8em;">
+              { <span class="code-prop">tags</span>: [<span class="code-string">"a"</span>, <span class="code-string">"b"</span>, <span class="code-string">"c"</span>] }
+            </div>
+          </div>
+          <div class="after-box">
+            <div class="box-title" style="color: #81c784;">After $pop: {tags: 1}:</div>
+            <div class="code-block" style="margin: 0; font-size: 0.8em;">
+              { <span class="code-prop">tags</span>: [<span class="code-string">"a"</span>, <span class="code-string">"b"</span>] }
+            </div>
+          </div>
+        </div>
+
+        <div class="info-box">
+          💡 <strong>1</strong> = xóa cuối (last)<br>
+          💡 <strong>-1</strong> = xóa đầu (first)
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🗑️</span>
+          <span class="card-title">Array - $pull & $pullAll</span>
+        </div>
+        
+        <div class="section-title">$pull (Xóa theo điều kiện)</div>
+        <div class="code-block">
+          <span class="code-comment">// Xóa tất cả elements = "mongodb"</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$pull</span>: { <span class="code-prop">tags</span>: <span class="code-string">"mongodb"</span> } }<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Xóa elements thỏa điều kiện</span><br>
+          db.students.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$pull</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">scores</span>: { <span class="code-keyword">$lt</span>: <span class="code-number">50</span> }  <span class="code-comment">// Xóa điểm < 50</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Xóa objects thỏa điều kiện</span><br>
+          db.orders.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$pull</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">items</span>: { <span class="code-prop">qty</span>: <span class="code-number">0</span> }  <span class="code-comment">// Xóa items hết hàng</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+
+        <div class="section-title">$pullAll (Xóa nhiều giá trị)</div>
+        <div class="code-block">
+          <span class="code-comment">// Xóa nhiều giá trị cụ thể</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$pullAll</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">tags</span>: [<span class="code-string">"mongodb"</span>, <span class="code-string">"nosql"</span>, <span class="code-string">"database"</span>]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )
+        </div>
+      </div>
+    </div>
+
+    <!-- $addToSet -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🎯</span>
+          <span class="card-title">Array - $addToSet</span>
+        </div>
+        <div class="highlight">
+          Thêm element vào array nếu chưa tồn tại (unique)
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">// Thêm nếu chưa có</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$addToSet</span>: { <span class="code-prop">tags</span>: <span class="code-string">"mongodb"</span> } }<br>
+          )<br>
+          <span class="code-comment">// Nếu "mongodb" đã tồn tại → không thêm</span><br>
+          <span class="code-comment">// Nếu chưa tồn tại → thêm vào</span>
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Thêm nhiều elements unique</span><br>
+          db.posts.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$addToSet</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">tags</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$each</span>: [<span class="code-string">"nosql"</span>, <span class="code-string">"database"</span>, <span class="code-string">"tutorial"</span>]<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;}<br>
+          &nbsp;&nbsp;}<br>
+          )<br>
+          <span class="code-comment">// Chỉ thêm các values chưa tồn tại</span>
+        </div>
+
+        <div class="example-box">
+          <div class="example-title">So sánh: $push vs $addToSet</div>
+          <div class="code-block">
+            <span class="code-comment">// $push - luôn thêm (có thể duplicate)</span><br>
+            tags: [<span class="code-string">"a"</span>, <span class="code-string">"b"</span>] → <span class="code-keyword">$push</span> <span class="code-string">"a"</span> → [<span class="code-string">"a"</span>, <span class="code-string">"b"</span>, <span class="code-string">"a"</span>]<br><br>
+            
+            <span class="code-comment">// $addToSet - chỉ thêm nếu unique</span><br>
+            tags: [<span class="code-string">"a"</span>, <span class="code-string">"b"</span>] → <span class="code-keyword">$addToSet</span> <span class="code-string">"a"</span> → [<span class="code-string">"a"</span>, <span class="code-string">"b"</span>]
+          </div>
+        </div>
+
+        <div class="tip-box">
+          ✅ Dùng <strong>$addToSet</strong> khi cần array không trùng lặp<br>
+          ✅ Dùng <strong>$push</strong> khi cho phép duplicate
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🎯</span>
+          <span class="card-title">Array - Positional Operators</span>
+        </div>
+        
+        <div class="section-title">$ (Positional - first match)</div>
+        <div class="code-block">
+          <span class="code-comment">// Update element đầu tiên match query</span><br>
+          db.students.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span>, <span class="code-prop">scores</span>: <span class="code-number">85</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$set</span>: { <span class="code-string">"scores.$"</span>: <span class="code-number">90</span> } }<br>
+          )<br>
+          <span class="code-comment">// Update điểm 85 đầu tiên thành 90</span>
+        </div>
+
+        <div class="section-title">$[] (All Positional - all elements)</div>
+        <div class="code-block">
+          <span class="code-comment">// Update TẤT CẢ elements</span><br>
+          db.students.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$inc</span>: { <span class="code-string">"scores.$[]"</span>: <span class="code-number">5</span> } }<br>
+          )<br>
+          <span class="code-comment">// Tăng tất cả điểm lên 5</span>
+        </div>
+
+        <div class="section-title">$[identifier] (Filtered Positional)</div>
+        <div class="code-block">
+          <span class="code-comment">// Update elements thỏa điều kiện</span><br>
+          db.students.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{ <span class="code-keyword">$inc</span>: { <span class="code-string">"scores.$[elem]"</span>: <span class="code-number">10</span> } },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-prop">arrayFilters</span>: [{ <span class="code-string">"elem"</span>: { <span class="code-keyword">$gte</span>: <span class="code-number">80</span> } }]<br>
+          &nbsp;&nbsp;}<br>
+          )<br>
+          <span class="code-comment">// Tăng 10 điểm cho các điểm >= 80</span>
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">// Update nested array objects</span><br>
+          db.orders.<span class="code-method">updateOne</span>(<br>
+          &nbsp;&nbsp;{ <span class="code-prop">_id</span>: <span class="code-number">1</span> },<br>
+          &nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">$set</span>: {<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span

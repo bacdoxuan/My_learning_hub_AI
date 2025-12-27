@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #7 - Advanced Grouping: ROLLUP/CUBE/GROUPING SETS</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #10b981;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #34d399;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #34d399;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #6ee7b7;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #10b981;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #34d399;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #34d399;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #34d399;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #34d399;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #34d399;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #34d399;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #059669;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🟢 SQL Server Advanced Grouping: ROLLUP/CUBE/GROUPING SETS</h1>
+        <p>Master Multi-Level Aggregation and Reporting Techniques</p>
+        <div class="badge">Advanced</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module explores advanced GROUP BY extensions: ROLLUP for hierarchical subtotals, CUBE for cross-tabulation, 
+            and GROUPING SETS for custom aggregations. Learn to create sophisticated reports with multiple aggregation levels 
+            and basic PIVOT/UNPIVOT transformations for data reshaping.
+        </p>
+        
+        <h2>📊 ROLLUP: Hierarchical Subtotals</h2>
+        
+        <h3>ROLLUP Syntax & Behavior</h3>
+        <div class="concept-box">
+            <div class="concept-title">ROLLUP Functionality</div>
+            <div class="concept-description">
+                <strong style="color: #34d399;">Hierarchical aggregation:</strong> Creates subtotals at each level<br>
+                <strong style="color: #34d399;">Right-to-left processing:</strong> (A, B, C) → (A, B) → (A) → ()<br>
+                <strong style="color: #34d399;">NULL indicators:</strong> Subtotal rows have NULL in aggregated columns<br>
+                <strong style="color: #34d399;">Performance:</strong> Single pass aggregation, efficient for reports
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- ROLLUP example: Sales by region, country, city</span>
+<span class="code-keyword">SELECT</span> 
+    Region,
+    Country,
+    City,
+    <span class="code-function">SUM</span>(SalesAmount) AS TotalSales,
+    <span class="code-function">COUNT</span>(*) AS OrderCount
+<span class="code-keyword">FROM</span> Sales
+<span class="code-keyword">GROUP BY</span> <span class="code-keyword">ROLLUP</span>(Region, Country, City)
+<span class="code-keyword">ORDER BY</span> Region, Country, City;
+
+<span class="code-comment">-- Result includes:</span>
+<span class="code-comment">-- Detail rows: Region, Country, City, sum</span>
+<span class="code-comment">-- Subtotal: Region, Country, NULL, sum (city subtotal)</span>
+<span class="code-comment">-- Subtotal: Region, NULL, NULL, sum (country subtotal)</span>
+<span class="code-comment">-- Grand total: NULL, NULL, NULL, sum (overall total)</span></code>
+        </div>
+        
+        <h2>📈 CUBE: Cross-Tabulation</h2>
+        
+        <h3>CUBE Syntax & Power Set</h3>
+        <div class="concept-box">
+            <div class="concept-title">CUBE Functionality</div>
+            <div class="concept-description">
+                <strong style="color: #34d399;">All combinations:</strong> Power set of grouping columns<br>
+                <strong style="color: #34d399;">Cross-tabulation:</strong> Every possible subtotal combination<br>
+                <strong style="color: #34d399;">Exponential growth:</strong> 2^n combinations for n columns<br>
+                <strong style="color: #34d399;">OLAP-style analysis:</strong> Multi-dimensional reporting
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- CUBE example: All combinations of product and time dimensions</span>
+<span class="code-keyword">SELECT</span> 
+    ProductCategory,
+    SalesYear,
+    SalesQuarter,
+    <span class="code-function">SUM</span>(SalesAmount) AS TotalSales
+<span class="code-keyword">FROM</span> Sales
+<span class="code-keyword">GROUP BY</span> <span class="code-keyword">CUBE</span>(ProductCategory, SalesYear, SalesQuarter);
+
+<span class="code-comment">-- Generates all 8 combinations:</span>
+<span class="code-comment">-- (Category, Year, Quarter) - detail</span>
+<span class="code-comment">-- (Category, Year, NULL) - quarterly totals by category</span>
+<span class="code-comment">-- (Category, NULL, Quarter) - category totals by quarter</span>
+<span class="code-comment">-- (Category, NULL, NULL) - category totals</span>
+<span class="code-comment">-- (NULL, Year, Quarter) - quarterly totals by year</span>
+<span class="code-comment">-- (NULL, Year, NULL) - yearly totals</span>
+<span class="code-comment">-- (NULL, NULL, Quarter) - quarterly totals across all</span>
+<span class="code-comment">-- (NULL, NULL, NULL) - grand total</span></code>
+        </div>
+        
+        <h2>🎯 GROUPING SETS: Custom Aggregations</h2>
+        
+        <h3>GROUPING SETS Control</h3>
+        <div class="concept-box">
+            <div class="concept-title">GROUPING SETS Flexibility</div>
+            <div class="concept-description">
+                <strong style="color: #34d399;">Explicit control:</strong> Specify exactly which groupings you want<br>
+                <strong style="color: #34d399;">Custom combinations:</strong> Mix different aggregation levels<br>
+                <strong style="color: #34d399;">Performance:</strong> Only compute needed aggregations<br>
+                <strong style="color: #34d399;">UNION ALL equivalent:</strong> But more efficient
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- GROUPING SETS: Specific aggregations only</span>
+<span class="code-keyword">SELECT</span> 
+    Region,
+    ProductCategory,
+    SalesYear,
+    <span class="code-function">SUM</span>(SalesAmount) AS TotalSales
+<span class="code-keyword">FROM</span> Sales
+<span class="code-keyword">GROUP BY</span> <span class="code-keyword">GROUPING SETS</span> (
+    (Region, ProductCategory, SalesYear),  <span class="code-comment">-- Detail level</span>
+    (Region, ProductCategory),            <span class="code-comment">-- By region and category</span>
+    (Region, SalesYear),                  <span class="code-comment">-- By region and year</span>
+    (ProductCategory, SalesYear),         <span class="code-comment">-- By category and year</span>
+    (Region),                             <span class="code-comment">-- By region only</span>
+    (ProductCategory),                    <span class="code-comment">-- By category only</span>
+    (SalesYear),                          <span class="code-comment">-- By year only</span>
+    ()                                    <span class="code-comment">-- Grand total</span>
+);</code>
+        </div>
+        
+        <h2>🔍 GROUPING & GROUPING_ID Functions</h2>
+        
+        <h3>Identifying Subtotal Rows</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">GROUPING Function</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Returns 1 or 0:</strong> 1 for aggregated (NULL) columns<br>
+                    <strong style="color: #34d399;">Per column:</strong> GROUPING(column_name)<br>
+                    <strong style="color: #34d399;">Conditional logic:</strong> Display "Total" instead of NULL<br>
+                    <strong style="color: #34d399;">Reporting:</strong> Format subtotal rows appropriately
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">GROUPING_ID Function</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Bit mask:</strong> Binary representation of grouping levels<br>
+                    <strong style="color: #34d399;">Efficient filtering:</strong> GROUPING_ID() = 0 for detail rows<br>
+                    <strong style="color: #34d399;">Sorting control:</strong> Order by aggregation level<br>
+                    <strong style="color: #34d399;">Advanced reporting:</strong> Hierarchical display logic
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Using GROUPING to format subtotals</span>
+<span class="code-keyword">SELECT</span> 
+    <span class="code-keyword">CASE</span> <span class="code-keyword">WHEN</span> <span class="code-function">GROUPING</span>(Region) = 1 <span class="code-keyword">THEN</span> 'All Regions' <span class="code-keyword">ELSE</span> Region <span class="code-keyword">END</span> AS Region,
+    <span class="code-keyword">CASE</span> <span class="code-keyword">WHEN</span> <span class="code-function">GROUPING</span>(Country) = 1 <span class="code-keyword">THEN</span> 'All Countries' <span class="code-keyword">ELSE</span> Country <span class="code-keyword">END</span> AS Country,
+    <span class="code-keyword">SUM</span>(SalesAmount) AS TotalSales,
+    <span class="code-function">GROUPING_ID</span>(Region, Country) AS GroupingLevel
+<span class="code-keyword">FROM</span> Sales
+<span class="code-keyword">GROUP BY</span> <span class="code-keyword">ROLLUP</span>(Region, Country)
+<span class="code-keyword">ORDER BY</span> <span class="code-function">GROUPING_ID</span>(Region, Country), Region, Country;
+
+<span class="code-comment">-- GROUPING_ID values:</span>
+<span class="code-comment">-- 0: Detail rows (no aggregation)</span>
+<span class="code-comment">-- 1: Aggregated by Country</span>
+<span class="code-comment">-- 2: Aggregated by Region</span>
+<span class="code-comment">-- 3: Grand total</span></code>
+        </div>
+        
+        <h2>🔄 PIVOT & UNPIVOT (Optional)</h2>
+        
+        <h3>Data Reshaping</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">PIVOT: Columns to Rows</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Cross-tab reports:</strong> Transform row values to columns<br>
+                    <strong style="color: #34d399;">Aggregation required:</strong> Must specify aggregate function<br>
+                    <strong style="color: #34d399;">Fixed columns:</strong> Define pivot column values explicitly<br>
+                    <strong style="color: #34d399;">Dynamic PIVOT:</strong> Use dynamic SQL for variable columns
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">UNPIVOT: Columns to Rows</div>
+                <div class="concept-description">
+                    <strong style="color: #34d399;">Normalize data:</strong> Transform columns back to rows<br>
+                    <strong style="color: #34d399;">Flexible structure:</strong> Handle variable column sets<br>
+                    <strong style="color: #34d399;">ETL processing:</strong> Prepare data for analysis<br>
+                    <strong style="color: #34d399;">Data quality:</strong> Identify and clean denormalized data
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- PIVOT: Sales by quarter</span>
+<span class="code-keyword">SELECT</span> *
+<span class="code-keyword">FROM</span> (
+    <span class="code-keyword">SELECT</span> ProductName, SalesQuarter, SalesAmount
+    <span class="code-keyword">FROM</span> Sales
+) src
+<span class="code-keyword">PIVOT</span> (
+    <span class="code-function">SUM</span>(SalesAmount)
+    <span class="code-keyword">FOR</span> SalesQuarter <span class="code-keyword">IN</span> (Q1, Q2, Q3, Q4)
+) piv;
+
+<span class="code-comment">-- UNPIVOT: Quarterly data back to rows</span>
+<span class="code-keyword">SELECT</span> ProductName, SalesQuarter, SalesAmount
+<span class="code-keyword">FROM</span> (
+    <span class="code-keyword">SELECT</span> ProductName, Q1, Q2, Q3, Q4
+    <span class="code-keyword">FROM</span> QuarterlySales
+) src
+<span class="code-keyword">UNPIVOT</span> (
+    SalesAmount <span class="code-keyword">FOR</span> SalesQuarter <span class="code-keyword">IN</span> (Q1, Q2, Q3, Q4)
+) unpiv;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Best Practices:</strong> Use ROLLUP for hierarchical reports, CUBE for complete cross-analysis, GROUPING SETS for custom requirements. 
+            Always use GROUPING/GROUPING_ID to properly format subtotal rows in reports.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Performance Considerations:</strong> CUBE can be expensive with many columns (2^n growth). Use GROUPING SETS to limit aggregations. 
+            Consider indexed views for frequently accessed rollup data.
+        </div>
+        
+        <h2>📊 Comparison: Aggregation Techniques</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Technique</th>
+                <th>Use Case</th>
+                <th>SQL Server Support</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>ROLLUP</strong></td>
+                <td>Hierarchical subtotals</td>
+                <td>Full support</td>
+                </tr>
+                <tr>
+                    <td><strong>CUBE</strong></td>
+                <td>Cross-tabulation analysis</td>
+                <td>Full support</td>
+                </tr>
+                <tr>
+                    <td><strong>GROUPING SETS</strong></td>
+                <td>Custom aggregation combinations</td>
+                <td>Full support</td>
+                </tr>
+                <tr>
+                <td><strong>PIVOT</strong></td>
+                <td>Data transformation (rows to columns)</td>
+                <td>Full support</td>
+                </tr>
+                <tr>
+                <td><strong>UNPIVOT</strong></td>
+                <td>Data normalization (columns to rows)</td>
+                <td>Full support</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Use ROLLUP for hierarchical subtotal generation</li>
+                <li>Understand ROLLUP's right-to-left aggregation pattern</li>
+                <li>Apply CUBE for complete cross-tabulation analysis</li>
+                <li>Recognize performance implications of CUBE (2^n combinations)</li>
+                <li>Use GROUPING SETS for custom aggregation combinations</li>
+                <li>Identify subtotal rows with GROUPING() function</li>
+                <li>Use GROUPING_ID() for advanced subtotal filtering and sorting</li>
+                <li>Format reports with proper subtotal labels</li>
+                <li>Implement basic PIVOT transformations</li>
+                <li>Use UNPIVOT to normalize cross-tab data</li>
+                <li>Combine ROLLUP/CUBE with window functions</li>
+                <li>Optimize aggregation queries with proper indexing</li>
+                <li>Create multi-level management reports</li>
+                <li>Handle NULL values in aggregated results</li>
+                <li>Use dynamic SQL for flexible PIVOT operations</li>
+                <li>Compare UNION ALL vs GROUPING SETS performance</li>
+                <li>Apply aggregation extensions to real-world reporting</li>
+                <li>Debug complex aggregation query results</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>ROLLUP Reports:</strong> Create a sales report with subtotals by region, country, and city using ROLLUP. Format subtotal rows appropriately.</li>
+                <li><strong>CUBE Analysis:</strong> Use CUBE to generate all possible combinations of product category, sales region, and time period aggregations.</li>
+                <li><strong>GROUPING SETS:</strong> Implement custom aggregations showing only specific combinations like (region, category), (year, category), and grand total.</li>
+                <li><strong>PIVOT Transformations:</strong> Transform monthly sales data from rows to columns using PIVOT. Then use UNPIVOT to convert back.</li>
+                <li><strong>Advanced Reporting:</strong> Combine ROLLUP with window functions to create running totals within each aggregation level.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/06-window-functions-analytical.html" class="nav-btn">← Previous: Window Functions & Analytical Patterns</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/08-apply-derived-tables.html" class="nav-btn">Next: APPLY, Derived Tables, Temp Tables & Table Variables →</a>
+        </div>
+    </div>
+</body>
+</html>

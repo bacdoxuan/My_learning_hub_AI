@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #14 - Transactions, Error Handling & Retry Patterns</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #06b6d4;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #22d3ee;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #22d3ee;
+            border-bottom: 2px solid #06b6d4;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #67e8f9;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #06b6d4;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #22d3ee;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #22d3ee;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #22d3ee;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #22d3ee;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #22d3ee;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #22d3ee;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #06b6d4;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #0891b2;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔵 SQL Server Transactions, Error Handling & Retry Patterns</h1>
+        <p>Mastering ACID Properties, TRY/CATCH Blocks, and Reliable Data Operations</p>
+        <div class="badge">Concurrency & Transactions</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers transaction management and error handling in SQL Server: explicit transactions with BEGIN/COMMIT/ROLLBACK, 
+            transaction state checking with XACT_STATE, structured error handling with TRY/CATCH and THROW, and implementing 
+            idempotent operations with retry patterns for resilient applications.
+        </p>
+        
+        <h2>🔄 Transaction Management</h2>
+        
+        <h3>BEGIN/COMMIT/ROLLBACK & XACT_STATE</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Transaction Basics</div>
+                <div class="concept-description">
+                    <strong style="color: #22d3ee;">ACID properties:</strong> Atomicity, Consistency, Isolation, Durability<br>
+                    <strong style="color: #22d3ee;">Explicit transactions:</strong> BEGIN TRANSACTION, COMMIT, ROLLBACK<br>
+                    <strong style="color: #22d3ee;">Auto-commit:</strong> Default mode where each statement is a transaction<br>
+                    <strong style="color: #22d3ee;">Nested transactions:</strong> @@TRANCOUNT tracks nesting level<br>
+                    <strong style="color: #22d3ee;">Savepoints:</strong> Partial rollback with SAVE TRANSACTION
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">XACT_STATE Function</div>
+                <div class="concept-description">
+                    <strong style="color: #22d3ee;">Transaction state:</strong> Returns 1 (active), 0 (committed), -1 (uncommittable)<br>
+                    <strong style="color: #22d3ee;">Error handling:</strong> Check state before COMMIT/ROLLBACK<br>
+                    <strong style="color: #22d3ee;">Doomed transactions:</strong> State -1 means ROLLBACK only<br>
+                    <strong style="color: #22d3ee;">Best practice:</strong> Always check XACT_STATE in error handlers<br>
+                    <strong style="color: #22d3ee;">Connection pooling:</strong> Reset state for connection reuse
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Basic transaction structure</span>
+<span class="code-keyword">BEGIN TRANSACTION</span>;
+<span class="code-keyword">BEGIN TRY</span>
+    <span class="code-keyword">UPDATE</span> Accounts <span class="code-keyword">SET</span> Balance = Balance - 100 <span class="code-keyword">WHERE</span> AccountID = 1;
+    <span class="code-keyword">UPDATE</span> Accounts <span class="code-keyword">SET</span> Balance = Balance + 100 <span class="code-keyword">WHERE</span> AccountID = 2;
+    
+    <span class="code-keyword">IF</span> @@ERROR <> 0
+        <span class="code-keyword">RAISERROR</span>('Transfer failed', 16, 1);
+    
+    <span class="code-keyword">COMMIT TRANSACTION</span>;
+<span class="code-keyword">END TRY</span>
+<span class="code-keyword">BEGIN CATCH</span>
+    <span class="code-keyword">IF</span> <span class="code-function">XACT_STATE</span>() = -1
+        <span class="code-keyword">ROLLBACK TRANSACTION</span>;
+    <span class="code-keyword">ELSE IF</span> <span class="code-function">XACT_STATE</span>() = 1
+        <span class="code-keyword">COMMIT TRANSACTION</span>;
+    
+    <span class="code-keyword">THROW</span>;  <span class="code-comment">-- Re-throw the error</span>
+<span class="code-keyword">END CATCH</span>;
+
+<span class="code-comment">-- Nested transactions</span>
+<span class="code-keyword">BEGIN TRANSACTION</span> OuterTran;
+    <span class="code-keyword">PRINT</span> 'Outer transaction count: ' + <span class="code-function">CAST</span>(@@TRANCOUNT <span class="code-keyword">AS</span> <span class="code-keyword">VARCHAR</span>);
+    
+    <span class="code-keyword">BEGIN TRANSACTION</span> InnerTran;
+        <span class="code-keyword">PRINT</span> 'Inner transaction count: ' + <span class="code-function">CAST</span>(@@TRANCOUNT <span class="code-keyword">AS</span> <span class="code-keyword">VARCHAR</span>);
+        <span class="code-keyword">UPDATE</span> TestTable <span class="code-keyword">SET</span> Value = 1;
+    <span class="code-keyword">COMMIT TRANSACTION</span> InnerTran;
+    
+    <span class="code-keyword">PRINT</span> 'After inner commit: ' + <span class="code-function">CAST</span>(@@TRANCOUNT <span class="code-keyword">AS</span> <span class="code-keyword">VARCHAR</span>);
+<span class="code-keyword">COMMIT TRANSACTION</span> OuterTran;
+
+<span class="code-comment">-- Savepoints for partial rollback</span>
+<span class="code-keyword">BEGIN TRANSACTION</span>;
+    <span class="code-keyword">UPDATE</span> Table1 <span class="code-keyword">SET</span> Col1 = 1;
+    <span class="code-keyword">SAVE TRANSACTION</span> SavePoint1;
+    
+    <span class="code-keyword">UPDATE</span> Table2 <span class="code-keyword">SET</span> Col2 = 2;
+    
+    <span class="code-keyword">IF</span> <span class="code-comment">-- some condition</span>
+        <span class="code-keyword">ROLLBACK TRANSACTION</span> SavePoint1;  <span class="code-comment">-- Rollback to savepoint</span>
+    
+    <span class="code-keyword">COMMIT TRANSACTION</span>;</code>
+        </div>
+        
+        <h2>🚨 Error Handling: TRY/CATCH & THROW</h2>
+        
+        <h3>Structured Error Handling</h3>
+        <div class="concept-box">
+            <div class="concept-title">TRY/CATCH Blocks</div>
+            <div class="concept-description">
+                <strong style="color: #22d3ee;">Structured handling:</strong> TRY block contains code, CATCH handles errors<br>
+                <strong style="color: #22d3ee;">Error functions:</strong> ERROR_NUMBER(), ERROR_MESSAGE(), ERROR_SEVERITY(), ERROR_STATE()<br>
+                <strong style="color: #22d3ee;">Scope:</strong> Catches errors in TRY block and nested procedure calls<br>
+                <strong style="color: #22d3ee;">Transaction state:</strong> Errors may doom transactions (XACT_STATE = -1)<br>
+                <strong style="color: #22d3ee;">Performance:</strong> Minimal overhead when no errors occur<br>
+                <strong style="color: #22d3ee;">Best practice:</strong> Always check XACT_STATE in CATCH blocks
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Comprehensive error handling</span>
+<span class="code-keyword">CREATE PROCEDURE</span> SafeTransfer
+    @FromAccount <span class="code-keyword">INT</span>, @ToAccount <span class="code-keyword">INT</span>, @Amount <span class="code-keyword">DECIMAL</span>(10,2)
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">SET NOCOUNT ON</span>;
+    <span class="code-keyword">SET XACT_ABORT ON</span>;  <span class="code-comment">-- Automatically rollback on error</span>
+    
+    <span class="code-keyword">BEGIN TRY</span>
+        <span class="code-keyword">BEGIN TRANSACTION</span>;
+        
+            <span class="comment">-- Validate input</span>
+            <span class="code-keyword">IF</span> @Amount <= 0
+                <span class="code-keyword">THROW</span> 50001, 'Invalid amount', 1;
+            
+            <span class="code-keyword">UPDATE</span> Accounts <span class="code-keyword">SET</span> Balance = Balance - @Amount 
+            <span class="code-keyword">WHERE</span> AccountID = @FromAccount;
+            
+            <span class="code-keyword">IF</span> @@ROWCOUNT = 0
+                <span class="code-keyword">THROW</span> 50002, 'Source account not found', 1;
+            
+            <span class="code-keyword">UPDATE</span> Accounts <span class="code-keyword">SET</span> Balance = Balance + @Amount 
+            <span class="code-keyword">WHERE</span> AccountID = @ToAccount;
+            
+            <span class="code-keyword">IF</span> @@ROWCOUNT = 0
+                <span class="code-keyword">THROW</span> 50003, 'Destination account not found', 1;
+            
+        <span class="code-keyword">COMMIT TRANSACTION</span>;
+    <span class="code-keyword">END TRY</span>
+    <span class="code-keyword">BEGIN CATCH</span>
+        <span class="code-keyword">IF</span> <span class="code-function">XACT_STATE</span>() <> 0
+            <span class="code-keyword">ROLLBACK TRANSACTION</span>;
+        
+        <span class="code-comment">-- Log error details</span>
+        <span class="code-keyword">INSERT INTO</span> ErrorLog (ErrorNumber, ErrorMessage, ErrorSeverity, ErrorState, ErrorLine)
+        <span class="code-keyword">VALUES</span> (
+            <span class="code-function">ERROR_NUMBER</span>(),
+            <span class="code-function">ERROR_MESSAGE</span>(),
+            <span class="code-function">ERROR_SEVERITY</span>(),
+            <span class="code-function">ERROR_STATE</span>(),
+            <span class="code-function">ERROR_LINE</span>()
+        );
+        
+        <span class="code-comment">-- Re-throw with additional context</span>
+        <span class="code-keyword">THROW</span>;
+    <span class="code-keyword">END CATCH</span>;
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- THROW vs RAISERROR</span>
+<span class="code-comment">-- THROW (SQL Server 2012+): Re-throws original error context</span>
+<span class="code-keyword">THROW</span>;  <span class="code-comment">-- Re-throw caught error</span>
+
+<span class="code-comment">-- THROW with custom message</span>
+<span class="code-keyword">THROW</span> 51000, 'Custom error message', 1;
+
+<span class="code-comment">-- RAISERROR (legacy)</span>
+<span class="code-keyword">RAISERROR</span>('Error message', 16, 1);</code>
+        </div>
+        
+        <h2>🔁 Retry Patterns & Idempotency</h2>
+        
+        <h3>Building Resilient Operations</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Retry-Safe Operations</div>
+                <div class="concept-description">
+                    <strong style="color: #22d3ee;">Transient failures:</strong> Deadlocks, timeouts, connection issues<br>
+                    <strong style="color: #22d3ee;">Retry logic:</strong> Exponential backoff, maximum attempts<br>
+                    <strong style="color: #22d3ee;">Idempotency:</strong> Operations that can be repeated safely<br>
+                    <strong style="color: #22d3ee;">Error classification:</strong> Retryable vs non-retryable errors<br>
+                    <strong style="color: #22d3ee;">Circuit breaker:</strong> Stop retrying after threshold failures
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Idempotent Design</div>
+                <div class="concept-description">
+                    <strong style="color: #22d3ee;">Unique constraints:</strong> Prevent duplicate operations<br>
+                    <strong style="color: #22d3ee;">State checking:</strong> Check before acting (IF NOT EXISTS)<br>
+                    <strong style="color: #22d3ee;">UPSERT patterns:</strong> MERGE or conditional INSERT/UPDATE<br>
+                    <strong style="color: #22d3ee;">Sequence numbers:</strong> Use for ordering and deduplication<br>
+                    <strong style="color: #22d3ee;">Compensation:</strong> Reverse operations for failed retries
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Retry pattern for deadlock-prone operations</span>
+<span class="code-keyword">CREATE PROCEDURE</span> SafeUpdateWithRetry
+    @ID <span class="code-keyword">INT</span>, @NewValue <span class="code-keyword">VARCHAR</span>(100), @MaxRetries <span class="code-keyword">INT</span> = 3
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">DECLARE</span> @RetryCount <span class="code-keyword">INT</span> = 0;
+    <span class="code-keyword">DECLARE</span> @Success <span class="code-keyword">BIT</span> = 0;
+    
+    <span class="code-keyword">WHILE</span> @RetryCount < @MaxRetries <span class="code-keyword">AND</span> @Success = 0
+    <span class="code-keyword">BEGIN</span>
+        <span class="code-keyword">BEGIN TRY</span>
+            <span class="code-keyword">UPDATE</span> MyTable <span class="code-keyword">SET</span> Value = @NewValue 
+            <span class="code-keyword">WHERE</span> ID = @ID;
+            
+            <span class="code-keyword">SET</span> @Success = 1;
+        <span class="code-keyword">END TRY</span>
+        <span class="code-keyword">BEGIN CATCH</span>
+            <span class="code-keyword">IF</span> <span class="code-function">ERROR_NUMBER</span>() = 1205  <span class="code-comment">-- Deadlock</span>
+                <span class="code-keyword">AND</span> @RetryCount < @MaxRetries
+            <span class="code-keyword">BEGIN</span>
+                <span class="code-keyword">SET</span> @RetryCount = @RetryCount + 1;
+                <span class="code-keyword">WAITFOR DELAY</span> '00:00:01';  <span class="code-comment">-- Simple backoff</span>
+                <span class="code-keyword">CONTINUE</span>;
+            <span class="code-keyword">END</span>
+            <span class="code-keyword">ELSE</span>
+                <span class="code-keyword">THROW</span>;  <span class="code-comment">-- Non-retryable error</span>
+        <span class="code-keyword">END CATCH</span>;
+    <span class="code-keyword">END</span>;
+    
+    <span class="code-keyword">IF</span> @Success = 0
+        <span class="code-keyword">THROW</span> 50004, 'Operation failed after retries', 1;
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Idempotent UPSERT pattern</span>
+<span class="code-keyword">CREATE PROCEDURE</span> IdempotentInsert
+    @OrderID <span class="code-keyword">INT</span>, @ProductID <span class="code-keyword">INT</span>, @Quantity <span class="code-keyword">INT</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">SET NOCOUNT ON</span>;
+    
+    <span class="code-keyword">MERGE</span> OrderDetails <span class="code-keyword">AS</span> target
+    <span class="code-keyword">USING</span> (<span class="code-keyword">SELECT</span> @OrderID, @ProductID, @Quantity) <span class="code-keyword">AS</span> source (OrderID, ProductID, Quantity)
+    <span class="code-keyword">ON</span> target.OrderID = source.OrderID <span class="code-keyword">AND</span> target.ProductID = source.ProductID
+    <span class="code-keyword">WHEN MATCHED <span class="code-keyword">THEN</span>
+        <span class="code-keyword">UPDATE SET</span> Quantity = source.Quantity
+    <span class="code-keyword">WHEN NOT MATCHED <span class="code-keyword">THEN</span>
+        <span class="code-keyword">INSERT</span> (OrderID, ProductID, Quantity)
+        <span class="code-keyword">VALUES</span> (source.OrderID, source.ProductID, source.Quantity);
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Exponential backoff retry</span>
+<span class="code-keyword">DECLARE</span> @Delay <span class="code-keyword">VARCHAR</span>(12) = '00:00:00.100';  <span class="code-comment">-- Start with 100ms</span>
+<span class="code-keyword">WAITFOR DELAY</span> @Delay;
+<span class="code-keyword">SET</span> @Delay = '00:00:' + <span class="code-function">RIGHT</span>('0' + <span class="code-function">CAST</span>(<span class="code-function">CAST</span>(<span class="code-function">SUBSTRING</span>(@Delay, 7, 5) <span class="code-keyword">AS</span> <span class="code-keyword">INT</span>) * 2 <span class="code-keyword">AS</span> <span class="code-keyword">VARCHAR</span>), 5);</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Transaction Best Practices:</strong> Keep transactions short and in a single batch. Use XACT_ABORT ON for automatic rollback. 
+            Always handle errors appropriately and check transaction state.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Common Pitfalls:</strong> Nested transactions don't work as expected in SQL Server. Forgetting to check XACT_STATE can leave transactions open. 
+            Not implementing idempotency can cause data corruption on retries.
+        </div>
+        
+        <h2>📊 Error Handling Patterns</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Error Type</th>
+                <th>Handling Strategy</th>
+                <th>Retry Safe</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Deadlock (1205)</strong></td>
+                <td>Retry with backoff</td>
+                <td>Yes (idempotent operations)</td>
+                </tr>
+                <tr>
+                    <td><strong>Timeout</strong></td>
+                <td>Retry or escalate</td>
+                <td>Yes</td>
+                </tr>
+                <tr>
+                    <td><strong>Constraint violation</strong></td>
+                <td>Validate input, no retry</td>
+                <td>No</td>
+                </tr>
+                <tr>
+                    <td><strong>Connection failure</strong></td>
+                <td>Retry with circuit breaker</td>
+                <td>Yes</td>
+                </tr>
+                <tr>
+                    <td><strong>Doomed transaction</strong></td>
+                <td>Rollback, no retry</td>
+                <td>No</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Use explicit transactions with BEGIN/COMMIT/ROLLBACK</li>
+                <li>Check transaction state with XACT_STATE()</li>
+                <li>Implement proper error handling with TRY/CATCH</li>
+                <li>Use THROW for modern error handling</li>
+                <li>Set XACT_ABORT appropriately</li>
+                <li>Implement savepoints for partial rollbacks</li>
+                <li>Handle nested transactions correctly</li>
+                <li>Log errors with full context</li>
+                <li>Implement retry patterns for transient failures</li>
+                <li>Design idempotent operations</li>
+                <li>Use exponential backoff for retries</li>
+                <li>Classify errors as retryable or not</li>
+                <li>Implement circuit breaker patterns</li>
+                <li>Use MERGE for idempotent UPSERTs</li>
+                <li>Handle deadlock victims gracefully</li>
+                <li>Test error scenarios thoroughly</li>
+                <li>Monitor transaction performance</li>
+                <li>Implement proper cleanup in error paths</li>
+                <li>Use SET NOCOUNT ON in procedures</li>
+                <li>Document error handling strategies</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Transaction Management:</strong> Create a stored procedure that transfers money between accounts with proper transaction handling and error management.</li>
+                <li><strong>Error Handling:</strong> Implement TRY/CATCH blocks in a complex procedure with proper error logging and re-throwing.</li>
+                <li><strong>Retry Patterns:</strong> Build a retry mechanism for deadlock-prone operations using exponential backoff.</li>
+                <li><strong>Idempotency:</strong> Design an idempotent order processing procedure that can handle duplicate submissions safely.</li>
+                <li><strong>Advanced Scenarios:</strong> Implement a circuit breaker pattern for handling repeated failures in a data loading process.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/13-locks-blocking.html" class="nav-btn">← Previous: Locks, Blocking & Isolation Levels</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/15-stored-procedures.html" class="nav-btn">Next: Stored Procedures (Design, Parameters, Security) →</a>
+        </div>
+    </div>
+</body>
+</html>

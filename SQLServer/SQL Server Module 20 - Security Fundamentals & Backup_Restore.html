@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #20 - Security Fundamentals & Backup/Restore</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #dc2626;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #f87171;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #f87171;
+            border-bottom: 2px solid #dc2626;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #fca5a5;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #dc2626;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #f87171;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #f87171;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #f87171;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #f87171;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #f87171;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #f87171;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #dc2626;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #b91c1c;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔴 SQL Server Security & Backup/Restore</h1>
+        <p>Authentication, Authorization & Data Protection Strategies</p>
+        <div class="badge">Security & Recovery</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers SQL Server security fundamentals including authentication (logins/users), 
+            authorization (roles, permissions), and the principle of least privilege. It also covers 
+            backup and restore operations including backup types, restore sequences, and verification techniques.
+        </p>
+        
+        <h2>🔐 Security Fundamentals</h2>
+        
+        <h3>Authentication & Authorization</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Logins & Users</div>
+                <div class="concept-description">
+                    <strong style="color: #f87171;">Logins:</strong> Server-level authentication (SQL Server or Windows)<br>
+                    <strong style="color: #f87171;">Users:</strong> Database-level principals mapped to logins<br>
+                    <strong style="color: #f87171;">Contained users:</strong> Users without server logins for portability<br>
+                    <strong style="color: #f87171;">Guest user:</strong> Default user for unauthenticated access<br>
+                    <strong style="color: #f87171;">Orphaned users:</strong> Users without corresponding logins<br>
+                    <strong style="color: #f87171;">Best practice:</strong> Use Windows authentication when possible
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Roles & Permissions</div>
+                <div class="concept-description">
+                    <strong style="color: #f87171;">Fixed server roles:</strong> sysadmin, serveradmin, etc.<br>
+                    <strong style="color: #f87171;">Fixed database roles:</strong> db_owner, db_datareader, etc.<br>
+                    <strong style="color: #f87171;">User-defined roles:</strong> Custom roles for specific permissions<br>
+                    <strong style="color: #f87171;">Permissions:</strong> GRANT, DENY, REVOKE on objects<br>
+                    <strong style="color: #f87171;">Schema permissions:</strong> Control access to schema objects<br>
+                    <strong style="color: #f87171;">Execution permissions:</strong> Required for stored procedures
+                </div>
+            </div>
+        </div>
+        
+        <h3>Least Privilege & Ownership Chaining</h3>
+        <div class="concept-box">
+            <div class="concept-title">Security Principles</div>
+            <div class="concept-description">
+                <strong style="color: #f87171;">Least privilege:</strong> Grant minimum permissions required for tasks<br>
+                <strong style="color: #f87171;">Defense in depth:</strong> Multiple security layers<br>
+                <strong style="color: #f87171;">Ownership chaining:</strong> Object owner permissions flow through chains<br>
+                <strong style="color: #f87171;">Cross-database chaining:</strong> Requires TRUSTWORTHY or certificates<br>
+                <strong style="color: #f87171;">Impersonation:</strong> EXECUTE AS for temporary permission elevation<br>
+                <strong style="color: #f87171;">Auditing:</strong> Track permission usage and changes
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Create SQL Server login</span>
+<span class="code-keyword">CREATE LOGIN</span> AppUser <span class="code-keyword">WITH PASSWORD</span> = 'StrongPassword123!';
+
+<span class="code-comment">-- Create Windows login</span>
+<span class="code-keyword">CREATE LOGIN</span> [DOMAIN\User] <span class="code-keyword">FROM WINDOWS</span>;
+
+<span class="code-comment">-- Create database user</span>
+<span class="code-keyword">USE</span> MyDatabase;
+<span class="code-keyword">CREATE USER</span> AppUser <span class="code-keyword">FOR LOGIN</span> AppUser;
+
+<span class="code-comment">-- Create user-defined database role</span>
+<span class="code-keyword">CREATE ROLE</span> SalesRole;
+<span class="code-keyword">ALTER ROLE</span> SalesRole <span class="code-keyword">ADD MEMBER</span> AppUser;
+
+<span class="code-comment">-- Grant permissions using least privilege</span>
+<span class="code-keyword">GRANT SELECT</span> <span class="code-keyword">ON</span> Sales.Orders <span class="code-keyword">TO</span> SalesRole;
+<span class="code-keyword">GRANT EXECUTE</span> <span class="code-keyword">ON</span> Sales.GetOrderDetails <span class="code-keyword">TO</span> SalesRole;
+
+<span class="code-comment">-- Deny sensitive permissions</span>
+<span class="code-keyword">DENY SELECT</span> <span class="code-keyword">ON</span> Sales.SalaryInfo <span class="code-keyword">TO</span> SalesRole;
+
+<span class="code-comment">-- Ownership chaining example</span>
+<span class="code-keyword">CREATE SCHEMA</span> Sales <span class="code-keyword">AUTHORIZATION</span> dbo;
+<span class="code-keyword">CREATE TABLE</span> Sales.Orders (...);
+<span class="code-keyword">CREATE PROCEDURE</span> Sales.GetOrders <span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Sales.Orders;  <span class="code-comment">-- Inherits dbo permissions</span>
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Grant execute on procedure only</span>
+<span class="code-keyword">GRANT EXECUTE</span> <span class="code-keyword">ON</span> Sales.GetOrders <span class="code-keyword">TO</span> SalesRole;
+
+<span class="code-comment">-- EXECUTE AS for impersonation</span>
+<span class="code-keyword">CREATE PROCEDURE</span> Sales.AdminTask
+<span class="code-keyword">WITH EXECUTE AS OWNER</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-comment">-- Runs with procedure owner's permissions</span>
+    <span class="code-keyword">UPDATE</span> Sales.Orders <span class="code-keyword">SET</span> Status = 'Approved';
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Check effective permissions</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> fn_my_permissions('Sales.Orders', 'OBJECT');
+
+<span class="code-comment">-- Audit login events</span>
+<span class="code-keyword">SELECT</span> 
+    login_name,
+    login_time,
+    session_id
+<span class="code-keyword">FROM</span> sys.dm_exec_sessions
+<span class="code-keyword">WHERE</span> login_name <span class="code-keyword">IS NOT NULL</span>
+<span class="code-keyword">ORDER BY</span> login_time <span class="code-keyword">DESC</span>;</code>
+        </div>
+        
+        <h2>💾 Backup & Restore Operations</h2>
+        
+        <h3>Backup Types & Strategies</h3>
+        <div class="concept-box">
+            <div class="concept-title">Backup Types</div>
+            <div class="concept-description">
+                <strong style="color: #f87171;">Full backup:</strong> Complete database backup, foundation for differentials<br>
+                <strong style="color: #f87171;">Differential backup:</strong> Only changes since last full backup<br>
+                <strong style="color: #f87171;">Transaction log backup:</strong> Captures transaction log changes<br>
+                <strong style="color: #f87171;">File/filegroup backup:</strong> Backup specific files or filegroups<br>
+                <strong style="color: #f87171;">Partial backup:</strong> Primary filegroup + read-write secondary filegroups<br>
+                <strong style="color: #f87171;">Copy-only backup:</strong> Doesn't affect backup sequence
+            </div>
+        </div>
+        
+        <h3>Restore Sequences & Verification</h3>
+        <div class="concept-box">
+            <div class="concept-title">Restore Process</div>
+            <div class="concept-description">
+                <strong style="color: #f87171;">Point-in-time recovery:</strong> Restore to specific transaction<br>
+                <strong style="color: #f87171;">Recovery models:</strong> Simple, Full, Bulk-logged affect restore options<br>
+                <strong style="color: #f87171;">Tail-log backup:</strong> Capture active transactions before restore<br>
+                <strong style="color: #f87171;">Verification:</strong> RESTORE VERIFYONLY and CHECKSUM<br>
+                <strong style="color: #f87171;">NORECOVERY/RECOVERY:</strong> Control transaction rollback<br>
+                <strong style="color: #f87171;">Testing restores:</strong> Regularly test restore procedures
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Full database backup</span>
+<span class="code-keyword">BACKUP DATABASE</span> MyDatabase
+<span class="code-keyword">TO DISK</span> = 'D:\Backups\MyDatabase_Full.bak'
+<span class="code-keyword">WITH</span> 
+    NAME = 'Full Backup',
+    DESCRIPTION = 'Complete database backup',
+    STATS = 10;
+
+<span class="code-comment">-- Differential backup</span>
+<span class="code-keyword">BACKUP DATABASE</span> MyDatabase
+<span class="code-keyword">TO DISK</span> = 'D:\Backups\MyDatabase_Diff.bak'
+<span class="code-keyword">WITH</span> 
+    DIFFERENTIAL,
+    NAME = 'Differential Backup';
+
+<span class="code-comment">-- Transaction log backup</span>
+<span class="code-keyword">BACKUP LOG</span> MyDatabase
+<span class="code-keyword">TO DISK</span> = 'D:\Backups\MyDatabase_Log.trn'
+<span class="code-keyword">WITH</span> 
+    NAME = 'Log Backup';
+
+<span class="code-comment">-- Copy-only backup (doesn't break chain)</span>
+<span class="code-keyword">BACKUP DATABASE</span> MyDatabase
+<span class="code-keyword">TO DISK</span> = 'D:\Backups\MyDatabase_Copy.bak'
+<span class="code-keyword">WITH</span> COPY_ONLY;
+
+<span class="code-comment">-- Restore sequence example</span>
+<span class="code-comment">-- 1. Restore full backup with NORECOVERY</span>
+<span class="code-keyword">RESTORE DATABASE</span> MyDatabase
+<span class="code-keyword">FROM DISK</span> = 'D:\Backups\MyDatabase_Full.bak'
+<span class="code-keyword">WITH</span> 
+    NORECOVERY,
+    REPLACE;
+
+<span class="code-comment">-- 2. Restore differential if available</span>
+<span class="code-keyword">RESTORE DATABASE</span> MyDatabase
+<span class="code-keyword">FROM DISK</span> = 'D:\Backups\MyDatabase_Diff.bak'
+<span class="code-keyword">WITH</span> NORECOVERY;
+
+<span class="code-comment">-- 3. Restore transaction logs in sequence</span>
+<span class="code-keyword">RESTORE LOG</span> MyDatabase
+<span class="code-keyword">FROM DISK</span> = 'D:\Backups\MyDatabase_Log1.trn'
+<span class="code-keyword">WITH</span> NORECOVERY;
+
+<span class="code-keyword">RESTORE LOG</span> MyDatabase
+<span class="code-keyword">FROM DISK</span> = 'D:\Backups\MyDatabase_Log2.trn'
+<span class="code-keyword">WITH</span> NORECOVERY;
+
+<span class="code-comment">-- 4. Final restore with RECOVERY</span>
+<span class="code-keyword">RESTORE DATABASE</span> MyDatabase
+<span class="code-keyword">WITH</span> RECOVERY;
+
+<span class="code-comment">-- Point-in-time restore</span>
+<span class="code-keyword">RESTORE LOG</span> MyDatabase
+<span class="code-keyword">FROM DISK</span> = 'D:\Backups\MyDatabase_Log.trn'
+<span class="code-keyword">WITH</span> 
+    RECOVERY,
+    STOPAT = '2024-01-15 10:00:00';
+
+<span class="code-comment">-- Verify backup integrity</span>
+<span class="code-keyword">RESTORE VERIFYONLY</span>
+<span class="code-keyword">FROM DISK</span> = 'D:\Backups\MyDatabase_Full.bak';
+
+<span class="code-comment">-- Backup with checksum</span>
+<span class="code-keyword">BACKUP DATABASE</span> MyDatabase
+<span class="code-keyword">TO DISK</span> = 'D:\Backups\MyDatabase_Checksum.bak'
+<span class="code-keyword">WITH</span> CHECKSUM;
+
+<span class="code-comment">-- Monitor backup status</span>
+<span class="code-keyword">SELECT</span> 
+    database_name,
+    backup_start_date,
+    backup_finish_date,
+    type,
+    <span class="code-function">CAST</span>(backup_size / 1024 / 1024 <span class="code-keyword">AS</span> <span class="code-keyword">DECIMAL</span>(10,2)) AS BackupMB
+<span class="code-keyword">FROM</span> msdb.dbo.backupset
+<span class="code-keyword">WHERE</span> database_name = 'MyDatabase'
+<span class="code-keyword">ORDER BY</span> backup_start_date <span class="code-keyword">DESC</span>;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Security Best Practices:</strong> Use Windows authentication. Implement least privilege. Regularly audit permissions. 
+            Use ownership chaining carefully to avoid permission escalation.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Backup Considerations:</strong> Test restores regularly. Use CHECKSUM for data integrity. 
+            Understand recovery models and their impact on backup strategies.
+        </div>
+        
+        <h2>📊 Recovery Models & Backup Strategies</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Recovery Model</th>
+                <th>Full Backup</th>
+                <th>Log Backup</th>
+                <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                <td><strong>Simple</strong></td>
+                <td>Required</td>
+                <td>Not supported</td>
+                <td>Development, read-only data</td>
+                </tr>
+                <tr>
+                <td><strong>Full</strong></td>
+                <td>Required</td>
+                <td>Supported</td>
+                <td>Production with point-in-time recovery</td>
+                </tr>
+                <tr>
+                <td><strong>Bulk-logged</strong></td>
+                <td>Required</td>
+                <td>Supported</td>
+                <td>Bulk operations with some log protection</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Security & Backup Checklist</h3>
+            <ul>
+                <li>Implement Windows authentication for better security</li>
+                <li>Create appropriate server and database roles</li>
+                <li>Apply principle of least privilege to all users</li>
+                <li>Use ownership chaining for stored procedure security</li>
+                <li>Audit login and permission changes</li>
+                <li>Choose appropriate recovery model for each database</li>
+                <li>Implement regular full backup schedules</li>
+                <li>Configure differential backups between full backups</li>
+                <li>Set up transaction log backups for Full recovery</li>
+                <li>Test backup integrity with RESTORE VERIFYONLY</li>
+                <li>Use CHECKSUM for backup verification</li>
+                <li>Document restore sequences and procedures</li>
+                <li>Test complete restore scenarios regularly</li>
+                <li>Monitor backup success and duration</li>
+                <li>Implement backup compression to save space</li>
+                <li>Use encryption for sensitive backup files</li>
+                <li>Store backups on separate media from data files</li>
+                <li>Implement backup retention policies</li>
+                <li>Monitor for orphaned users after restores</li>
+                <li>Document security policies and procedures</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Security Setup:</strong> Create logins, users, and roles with appropriate permissions following least privilege.</li>
+                <li><strong>Ownership Chaining:</strong> Implement a stored procedure that accesses tables through ownership chaining.</li>
+                <li><strong>Backup Strategy:</strong> Design and implement a backup strategy for a database with different recovery models.</li>
+                <li><strong>Restore Testing:</strong> Perform a complete backup and restore sequence, including point-in-time recovery.</li>
+                <li><strong>Security Audit:</strong> Audit current permissions and identify potential security vulnerabilities.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/19-partitioning.html" class="nav-btn">← Previous: Partitioning & Large Data Management</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/21-ha-monitoring.html" class="nav-btn">Next: Always On & Monitoring →</a>
+        </div>
+    </div>
+</body>
+</html>

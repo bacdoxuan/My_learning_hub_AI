@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #17 - Triggers, Auditing Patterns & Temporal Tables (System-Versioned)</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #ef4444;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #f87171;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #f87171;
+            border-bottom: 2px solid #ef4444;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #fca5a5;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #ef4444;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #f87171;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #f87171;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #f87171;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #f87171;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #f87171;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #f87171;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #ef4444;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #dc2626;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔴 SQL Server Triggers & Temporal Tables</h1>
+        <p>Auditing Patterns, Performance Pitfalls & System-Versioned History</p>
+        <div class="badge">Data Integrity & History</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers triggers for auditing and data integrity, including performance pitfalls like recursion and overhead. 
+            Learn temporal tables (system-versioned) as a modern alternative for automatic history tracking, and when each approach is appropriate for audit requirements.
+        </p>
+        
+        <h2>🎯 Triggers Overview</h2>
+        
+        <h3>DML Triggers: AFTER vs INSTEAD OF</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">AFTER Triggers</div>
+                <div class="concept-description">
+                    <strong style="color: #f87171;">Fire after action:</strong> Execute after DML operation completes<br>
+                    <strong style="color: #f87171;">Access modified data:</strong> Can access inserted/deleted tables<br>
+                    <strong style="color: #f87171;">Multiple triggers:</strong> Can have multiple AFTER triggers per table<br>
+                    <strong style="color: #f87171;">Recursive firing:</strong> Can cause trigger chains<br>
+                    <strong style="color: #f87171;">Use cases:</strong> Auditing, data validation, cascading updates
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">INSTEAD OF Triggers</div>
+                <div class="concept-description">
+                    <strong style="color: #f87171;">Replace action:</strong> Execute instead of the original DML<br>
+                    <strong style="color: #f87171;">Full control:</strong> Must implement the desired behavior<br>
+                    <strong style="color: #f87171;">Views support:</strong> Required for updating views with multiple tables<br>
+                    <strong style="color: #f87171;">One per table/view:</strong> Only one INSTEAD OF trigger per action<br>
+                    <strong style="color: #f87171;">Use cases:</strong> Complex business rules, view updates, custom logic
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- AFTER trigger for auditing</span>
+<span class="code-keyword">CREATE TRIGGER</span> trg_AuditOrders
+<span class="code-keyword">ON</span> Orders
+<span class="code-keyword">AFTER INSERT, UPDATE, DELETE</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">SET NOCOUNT ON</span>;
+    
+    <span class="code-keyword">INSERT INTO</span> AuditLog (TableName, ActionType, RecordID, ChangedBy, ChangeDate)
+    <span class="code-keyword">SELECT</span> 
+        'Orders',
+        <span class="code-keyword">CASE</span> 
+            <span class="code-keyword">WHEN</span> i.OrderID <span class="code-keyword">IS NOT NULL</span> <span class="code-keyword">AND</span> d.OrderID <span class="code-keyword">IS NULL</span> <span class="code-keyword">THEN</span> 'INSERT'
+            <span class="code-keyword">WHEN</span> i.OrderID <span class="code-keyword">IS NOT NULL</span> <span class="code-keyword">AND</span> d.OrderID <span class="code-keyword">IS NOT NULL</span> <span class="code-keyword">THEN</span> 'UPDATE'
+            <span class="code-keyword">WHEN</span> i.OrderID <span class="code-keyword">IS NULL</span> <span class="code-keyword">AND</span> d.OrderID <span class="code-keyword">IS NOT NULL</span> <span class="code-keyword">THEN</span> 'DELETE'
+        <span class="code-keyword">END</span>,
+        <span class="code-function">COALESCE</span>(i.OrderID, d.OrderID),
+        <span class="code-function">SUSER_NAME</span>(),
+        GETDATE()
+    <span class="code-keyword">FROM</span> inserted i
+    <span class="code-keyword">FULL OUTER JOIN</span> deleted d <span class="code-keyword">ON</span> i.OrderID = d.OrderID;
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- INSTEAD OF trigger for view updates</span>
+<span class="code-keyword">CREATE TRIGGER</span> trg_UpdateOrderView
+<span class="code-keyword">ON</span> OrderSummaryView
+<span class="code-keyword">INSTEAD OF UPDATE</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">SET NOCOUNT ON</span>;
+    
+    <span class="code-comment">-- Update underlying tables</span>
+    <span class="code-keyword">UPDATE</span> Orders
+    <span class="code-keyword">SET</span> Status = i.Status
+    <span class="code-keyword">FROM</span> Orders o
+    <span class="code-keyword">INNER JOIN</span> inserted i <span class="code-keyword">ON</span> o.OrderID = i.OrderID;
+    
+    <span class="code-keyword">UPDATE</span> OrderDetails
+    <span class="code-keyword">SET</span> Quantity = i.TotalQuantity
+    <span class="code-keyword">FROM</span> OrderDetails od
+    <span class="code-keyword">INNER JOIN</span> inserted i <span class="code-keyword">ON</span> od.OrderID = i.OrderID;
+<span class="code-keyword">END</span>;</code>
+        </div>
+        
+        <h2>⚠️ Trigger Pitfalls</h2>
+        
+        <h3>Performance & Recursion Issues</h3>
+        <div class="concept-box">
+            <div class="concept-title">Performance Problems</div>
+            <div class="concept-description">
+                <strong style="color: #f87171;">Hidden overhead:</strong> Triggers execute for every row affected<br>
+                <strong style="color: #f87171;">Transaction impact:</strong> Trigger code adds to transaction duration<br>
+                <strong style="color: #f87171;">Lock escalation:</strong> Triggers can cause unexpected locking<br>
+                <strong style="color: #f87171;">Bulk operation slowdown:</strong> Triggers fire for each row in bulk inserts<br>
+                <strong style="color: #f87171;">Index maintenance:</strong> Audit tables require additional indexes<br>
+                <strong style="color: #f87171;">I/O overhead:</strong> Writing to audit tables increases disk activity
+            </div>
+        </div>
+        
+        <div class="concept-box">
+            <div class="concept-title">Recursion Issues</div>
+            <div class="concept-description">
+                <strong style="color: #f87171;">Direct recursion:</strong> Trigger modifies same table, fires itself<br>
+                <strong style="color: #f87171;">Indirect recursion:</strong> Trigger chain across multiple tables<br>
+                <strong style="color: #f87171;">Nesting level:</strong> SQL Server limits to 32 levels<br>
+                <strong style="color: #f87171;">Infinite loops:</strong> Poorly designed triggers can loop forever<br>
+                <strong style="color: #f87171;">Database settings:</strong> RECURSIVE_TRIGGERS option controls behavior<br>
+                <strong style="color: #f87171;">Prevention:</strong> Use TRIGGER_NESTLEVEL(), careful design
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Dangerous: Direct recursion example</span>
+<span class="code-keyword">CREATE TRIGGER</span> trg_BadRecursion
+<span class="code-keyword">ON</span> Products
+<span class="code-keyword">AFTER UPDATE</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">UPDATE</span> Products
+    <span class="code-keyword">SET</span> LastModified = GETDATE()
+    <span class="code-keyword">WHERE</span> ProductID <span class="code-keyword">IN</span> (<span class="code-keyword">SELECT</span> ProductID <span class="code-keyword">FROM</span> inserted);
+    <span class="code-comment">-- This fires the trigger again! Infinite recursion</span>
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Better: Prevent recursion</span>
+<span class="code-keyword">CREATE TRIGGER</span> trg_SafeUpdate
+<span class="code-keyword">ON</span> Products
+<span class="code-keyword">AFTER UPDATE</span>
+<span class="code-keyword">AS</span>
+<span class="code-keyword">BEGIN</span>
+    <span class="code-keyword">IF</span> <span class="code-function">TRIGGER_NESTLEVEL</span>() > 1 <span class="code-keyword">RETURN</span>;  <span class="code-comment">-- Prevent recursion</span>
+    
+    <span class="code-keyword">UPDATE</span> Products
+    <span class="code-keyword">SET</span> LastModified = GETDATE()
+    <span class="code-keyword">WHERE</span> ProductID <span class="code-keyword">IN</span> (<span class="code-keyword">SELECT</span> ProductID <span class="code-keyword">FROM</span> inserted)
+        <span class="code-keyword">AND</span> LastModified <> GETDATE();  <span class="code-comment">-- Prevent infinite updates</span>
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Control recursion at database level</span>
+<span class="code-keyword">ALTER DATABASE</span> YourDatabase <span class="code-keyword">SET</span> RECURSIVE_TRIGGERS OFF;
+
+<span class="code-comment">-- Disable triggers for bulk operations</span>
+<span class="code-keyword">ALTER TABLE</span> Orders <span class="code-keyword">DISABLE TRIGGER</span> trg_AuditOrders;
+<span class="code-comment">-- Perform bulk operation</span>
+<span class="code-keyword">BULK INSERT</span> Orders <span class="code-keyword">FROM</span> 'orders.csv' <span class="code-keyword">WITH</span> (...);
+<span class="code-keyword">ALTER TABLE</span> Orders <span class="code-keyword">ENABLE TRIGGER</span> trg_AuditOrders;</code>
+        </div>
+        
+        <h2>📅 Temporal Tables (System-Versioned)</h2>
+        
+        <h3>Automatic History Tracking</h3>
+        <div class="concept-box">
+            <div class="concept-title">Temporal Table Benefits</div>
+            <div class="concept-description">
+                <strong style="color: #f87171;">Automatic history:</strong> System maintains historical versions automatically<br>
+                <strong style="color: #f87171;">No application changes:</strong> Regular DML works, history is transparent<br>
+                <strong style="color: #f87171;">Time travel queries:</strong> Query data as of any point in time<br>
+                <strong style="color: #f87171;">Performance:</strong> Better than triggers for history tracking<br>
+                <strong style="color: #f87171;">Storage efficient:</strong> Only changed rows stored in history<br>
+                <strong style="color: #f87171;">Data integrity:</strong> System ensures history accuracy
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Create temporal table (system-versioned)</span>
+<span class="code-keyword">CREATE TABLE</span> Employees (
+    EmployeeID <span class="code-keyword">INT</span> <span class="code-keyword">PRIMARY KEY</span>,
+    Name <span class="code-keyword">VARCHAR</span>(100),
+    Department <span class="code-keyword">VARCHAR</span>(50),
+    Salary <span class="code-keyword">DECIMAL</span>(10,2),
+    ValidFrom <span class="code-keyword">DATETIME2</span> GENERATED ALWAYS AS ROW START,
+    ValidTo <span class="code-keyword">DATETIME2</span> GENERATED ALWAYS AS ROW END,
+    PERIOD FOR SYSTEM_TIME (ValidFrom, ValidTo)
+)
+<span class="code-keyword">WITH</span> (SYSTEM_VERSIONING = ON);
+
+<span class="code-comment">-- Regular DML works normally</span>
+<span class="code-keyword">INSERT INTO</span> Employees (EmployeeID, Name, Department, Salary)
+<span class="code-keyword">VALUES</span> (1, 'John Doe', 'IT', 50000);
+
+<span class="code-keyword">UPDATE</span> Employees
+<span class="code-keyword">SET</span> Salary = 55000
+<span class="code-keyword">WHERE</span> EmployeeID = 1;
+
+<span class="code-comment">-- Query current data</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Employees;
+
+<span class="code-comment">-- Query historical data (point-in-time)</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Employees
+<span class="code-keyword">FOR SYSTEM_TIME AS OF</span> '2023-06-01 00:00:00';
+
+<span class="code-comment">-- Query data between dates</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Employees
+<span class="code-keyword">FOR SYSTEM_TIME BETWEEN</span> '2023-01-01 00:00:00' <span class="code-keyword">AND</span> '2023-12-31 23:59:59';
+
+<span class="code-comment">-- Query all historical changes</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> Employees
+<span class="code-keyword">FOR SYSTEM_TIME ALL</span>
+<span class="code-keyword">ORDER BY</span> EmployeeID, ValidFrom;
+
+<span class="code-comment">-- Disable system versioning (to modify schema)</span>
+<span class="code-keyword">ALTER TABLE</span> Employees <span class="code-keyword">SET</span> (SYSTEM_VERSIONING = OFF);
+<span class="code-comment">-- Make schema changes</span>
+<span class="code-keyword">ALTER TABLE</span> Employees <span class="code-keyword">ADD</span> Email <span class="code-keyword">VARCHAR</span>(100);
+<span class="code-comment">-- Re-enable</span>
+<span class="code-keyword">ALTER TABLE</span> Employees <span class="code-keyword">SET</span> (SYSTEM_VERSIONING = ON);</code>
+        </div>
+        
+        <h2>⚖️ Triggers vs Temporal Tables</h2>
+        
+        <h3>When to Use Each for Auditing</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Use Triggers When</div>
+                <div class="concept-description">
+                    <strong style="color: #f87171;">Complex auditing:</strong> Need custom logic, notifications, or external systems<br>
+                    <strong style="color: #f87171;">Selective auditing:</strong> Only audit certain conditions or columns<br>
+                    <strong style="color: #f87171;">Cross-table auditing:</strong> Track changes across multiple tables<br>
+                    <strong style="color: #f87171;">Legacy systems:</strong> Need to integrate with existing audit infrastructure<br>
+                    <strong style="color: #f87171;">Custom actions:</strong> Send emails, call web services, etc.<br>
+                    <strong style="color: #f87171;">Data transformation:</strong> Store audit data in different format
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Use Temporal Tables When</div>
+                <div class="concept-description">
+                    <strong style="color: #f87171;">Complete history:</strong> Need full historical versions of all data<br>
+                    <strong style="color: #f87171;">Time travel queries:</strong> Query "as of" specific points in time<br>
+                    <strong style="color: #f87171;">Simplicity:</strong> No application code changes required<br>
+                    <strong style="color: #f87171;">Performance:</strong> Better than triggers for full history tracking<br>
+                    <strong style="color: #f87171;">Compliance:</strong> Regulatory requirements for data history<br>
+                    <strong style="color: #f87171;">Analytical needs:</strong> Track how data changed over time
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Best Practices:</strong> Use temporal tables for automatic history when you need complete version tracking. Use triggers for complex auditing logic or integration with other systems. 
+            Always test trigger performance and disable them for bulk operations.
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Common Issues:</strong> Triggers can cause performance problems and recursion. Temporal tables require schema changes to be done carefully. 
+            Both approaches increase storage requirements.
+        </div>
+        
+        <h2>📊 Auditing Approach Comparison</h2>
+        <table>
+            <thead>
+                <tr>
+                <th>Aspect</th>
+                <th>Triggers</th>
+                <th>Temporal Tables</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Performance Impact</strong></td>
+                <td>High (executes per row)</td>
+                <td>Low (system managed)</td>
+                </tr>
+                <tr>
+                    <td><strong>Storage Overhead</strong></td>
+                <td>Customizable</td>
+                <td>Full row versions</td>
+                </tr>
+                <tr>
+                    <td><strong>Query Complexity</strong></td>
+                <td>Complex audit queries</td>
+                <td>Simple time travel syntax</td>
+                </tr>
+                <tr>
+                    <td><strong>Maintainability</strong></td>
+                <td>Requires trigger code</td>
+                <td>Automatic</td>
+                </tr>
+                <tr>
+                    <td><strong>Flexibility</strong></td>
+                <td>Highly customizable</td>
+                <td>Limited to row history</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Understand AFTER vs INSTEAD OF triggers</li>
+                <li>Create audit triggers for INSERT/UPDATE/DELETE</li>
+                <li>Handle inserted and deleted tables properly</li>
+                <li>Recognize trigger performance pitfalls</li>
+                <li>Prevent trigger recursion with TRIGGER_NESTLEVEL</li>
+                <li>Control recursive triggers at database level</li>
+                <li>Disable triggers for bulk operations</li>
+                <li>Create system-versioned temporal tables</li>
+                <li>Use FOR SYSTEM_TIME clauses for time travel queries</li>
+                <li>Manage temporal table schema changes</li>
+                <li>Choose between triggers and temporal tables</li>
+                <li>Implement proper audit logging patterns</li>
+                <li>Monitor trigger performance impact</li>
+                <li>Use temporal tables for compliance requirements</li>
+                <li>Handle trigger nesting and execution order</li>
+                <li>Test auditing with realistic workloads</li>
+                <li>Document audit requirements and implementation</li>
+                <li>Implement cleanup strategies for audit data</li>
+                <li>Use triggers for complex business rules</li>
+                <li>Monitor temporal table storage usage</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>Trigger Creation:</strong> Create AFTER triggers for auditing changes to a customer table, including old and new values.</li>
+                <li><strong>Recursion Prevention:</strong> Implement a trigger that updates a timestamp column without causing infinite recursion.</li>
+                <li><strong>Temporal Tables:</strong> Convert an existing table to system-versioned and demonstrate time travel queries.</li>
+                <li><strong>Performance Comparison:</strong> Compare the performance impact of triggers vs temporal tables for history tracking.</li>
+                <li><strong>Advanced Auditing:</strong> Implement a comprehensive audit solution using both triggers and temporal tables for different scenarios.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/16-functions-modular-sql.html" class="nav-btn">← Previous: Functions & Modular SQL</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/18-json-xml.html" class="nav-btn">Next: JSON & XML in SQL Server →</a>
+        </div>
+    </div>
+</body>
+</html>

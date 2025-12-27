@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MySQL Cheat Sheet #1 - Foundations</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #fff;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(56,239,125,0.3);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #38ef7d;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #38ef7d;
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #38ef7d;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-prop {
+      color: #7ee787;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(17,153,142,0.2), rgba(56,239,125,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #38ef7d;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(56,239,125,0.2);
+      color: #38ef7d;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-blue {
+      background: rgba(52,152,219,0.2);
+      color: #3498db;
+    }
+    .tag-orange {
+      background: rgba(243,156,18,0.2);
+      color: #f39c12;
+    }
+    .tag-red {
+      background: rgba(231,76,60,0.2);
+      color: #e74c3c;
+    }
+    .tag-purple {
+      background: rgba(155,89,182,0.2);
+      color: #9b59b6;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(52,152,219,0.1);
+      border-left: 3px solid #3498db;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(231,76,60,0.1);
+      border-left: 3px solid #e74c3c;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(46,204,113,0.1);
+      border-left: 3px solid #2ecc71;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .section-title {
+      color: #38ef7d;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(56,239,125,0.3);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .comparison-table th {
+      background: rgba(56,239,125,0.2);
+      color: #38ef7d;
+    }
+    .comparison-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .crud-icon {
+      font-size: 3em;
+      text-align: center;
+      margin: 10px 0;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    @media (max-width: 768px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🗄️ MySQL Cheat Sheet #1</h1>
+      <div class="subtitle">Foundations — RDBMS Concepts & Basic CRUD</div>
+      <div class="badge">📊 Create • Read • Update • Delete</div>
+    </div>
+
+    <!-- RDBMS Fundamentals -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🏗️</span>
+          <span class="card-title">RDBMS Fundamentals</span>
+        </div>
+        <div class="highlight">
+          <strong>Relational Database Management System (RDBMS)</strong> — A system that stores data in structured tables with predefined relationships
+        </div>
+        
+        <div class="flex-row">
+          <div style="flex: 1;">
+            <div class="section-title">Core Concepts</div>
+            <div class="list-item"><strong>Tables:</strong> Structured data containers with rows and columns</div>
+            <div class="list-item"><strong>Rows:</strong> Individual records (tuples) containing data</div>
+            <div class="list-item"><strong>Columns:</strong> Attributes defining the structure</div>
+            <div class="list-item"><strong>Primary Keys:</strong> Unique identifiers for each record</div>
+            <div class="list-item"><strong>Foreign Keys:</strong> Establish relationships between tables</div>
+          </div>
+          <div style="flex: 1;">
+            <div class="section-title">ACID Properties</div>
+            <div class="list-item"><strong>Atomicity:</strong> All operations succeed or fail together</div>
+            <div class="list-item"><strong>Consistency:</strong> Database remains in valid state</div>
+            <div class="list-item"><strong>Isolation:</strong> Concurrent transactions don't interfere</div>
+            <div class="list-item"><strong>Durability:</strong> Committed changes persist</div>
+          </div>
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">-- Check MySQL version and configuration</span>
+          <span class="code-keyword">SHOW VARIABLES</span> <span class="code-keyword">LIKE</span> <span class="code-string">'%version%'</span>;
+          <span class="code-keyword">SELECT</span> <span class="code-prop">@@version</span>;
+          
+          <span class="code-comment">-- Common configuration file locations:</span>
+          <span class="code-comment">-- /etc/my.cnf (Linux)</span>
+          <span class="code-comment">-- /etc/mysql/my.cnf (Linux)</span>
+          <span class="code-comment">-- C:\ProgramData\MySQL\MySQL Server X.X\my.ini (Windows)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Types -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔢</span>
+          <span class="card-title">Numeric Data Types</span>
+        </div>
+        
+        <table class="comparison-table">
+          <tr>
+            <th>Type</th>
+            <th>Size</th>
+            <th>Range</th>
+            <th>Use Case</th>
+          </tr>
+          <tr>
+            <td><code>TINYINT</code></td>
+            <td>1 byte</td>
+            <td>-128 to 127</td>
+            <td>Boolean flags, status codes</td>
+          </tr>
+          <tr>
+            <td><code>INT</code></td>
+            <td>4 bytes</td>
+            <td>-2.1B to 2.1B</td>
+            <td>Standard integers, IDs</td>
+          </tr>
+          <tr>
+            <td><code>BIGINT</code></td>
+            <td>8 bytes</td>
+            <td>-2^63 to 2^63-1</td>
+            <td>Large integers, counters</td>
+          </tr>
+          <tr>
+            <td><code>DECIMAL(p,s)</code></td>
+            <td>Variable</td>
+            <td>Exact precision</td>
+            <td>Financial data, currency</td>
+          </tr>
+          <tr>
+            <td><code>FLOAT/DOUBLE</code></td>
+            <td>4-8 bytes</td>
+            <td>Approximate</td>
+            <td>Scientific calculations</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📝</span>
+          <span class="card-title">String Data Types</span>
+        </div>
+        
+        <table class="comparison-table">
+          <tr>
+            <th>Type</th>
+            <th>Max Length</th>
+            <th>Characteristics</th>
+          </tr>
+          <tr>
+            <td><code>VARCHAR(n)</code></td>
+            <td>65,535</td>
+            <td>Variable length, efficient</td>
+          </tr>
+          <tr>
+            <td><code>CHAR(n)</code></td>
+            <td>255</td>
+            <td>Fixed length, padded</td>
+          </tr>
+          <tr>
+            <td><code>TEXT</code></td>
+            <td>65,535</td>
+            <td>Large text, no length limit</td>
+          </tr>
+          <tr>
+            <td><code>ENUM</code></td>
+            <td>Variable</td>
+            <td>Predefined values</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Date/Time Types -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📅</span>
+          <span class="card-title">Date/Time Data Types</span>
+        </div>
+        
+        <table class="comparison-table">
+          <tr>
+            <th>Type</th>
+            <th>Format</th>
+            <th>Description</th>
+          </tr>
+          <tr>
+            <td><code>DATE</code></td>
+            <td>YYYY-MM-DD</td>
+            <td>Date only</td>
+          </tr>
+          <tr>
+            <td><code>DATETIME</code></td>
+            <td>YYYY-MM-DD HH:MM:SS</td>
+            <td>Date and time</td>
+          </tr>
+          <tr>
+            <td><code>TIMESTAMP</code></td>
+            <td>YYYY-MM-DD HH:MM:SS</td>
+            <td>Date/time with timezone</td>
+          </tr>
+          <tr>
+            <td><code>TIME</code></td>
+            <td>HH:MM:SS</td>
+            <td>Time values</td>
+          </tr>
+          <tr>
+            <td><code>YEAR</code></td>
+            <td>YYYY</td>
+            <td>Year values</td>
+          </tr>
+        </table>
+
+        <div class="code-block">
+          <span class="code-comment">-- Example: Creating a table with proper data types</span>
+          <span class="code-keyword">CREATE TABLE</span> products (
+            product_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            product_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">NOT NULL</span>,
+            price <span class="code-keyword">DECIMAL</span>(<span class="code-number">10</span>, <span class="code-number">2</span>),           <span class="code-comment">-- For financial data</span>
+            quantity_in_stock <span class="code-keyword">INT</span>,
+            created_date <span class="code-keyword">DATETIME DEFAULT CURRENT_TIMESTAMP</span>,
+            is_active <span class="code-keyword">TINYINT DEFAULT 1</span>     <span class="code-comment">-- Boolean-like (0 or 1)</span>
+          );
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">⚙️</span>
+          <span class="card-title">DDL Commands</span>
+        </div>
+        
+        <div class="section-title">CREATE TABLE</div>
+        <div class="code-block">
+          <span class="code-keyword">CREATE TABLE</span> employees (
+            employee_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            first_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>) <span class="code-keyword">NOT NULL</span>,
+            last_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>) <span class="code-keyword">NOT NULL</span>,
+            email <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">UNIQUE</span>,
+            department_id <span class="code-keyword">INT</span>,
+            salary <span class="code-keyword">DECIMAL</span>(<span class="code-number">10</span>, <span class="code-number">2</span>),</span>
+            hire_date <span class="code-keyword">DATE</span>,
+            is_active <span class="code-keyword">BOOLEAN DEFAULT TRUE</span>,
+            created_at <span class="code-keyword">TIMESTAMP DEFAULT CURRENT_TIMESTAMP</span>
+          );
+        </div>
+
+        <div class="section-title">ALTER TABLE</div>
+        <div class="code-block">
+          <span class="code-comment">-- Add new column</span>
+          <span class="code-keyword">ALTER TABLE</span> employees <span class="code-keyword">ADD COLUMN</span> phone <span class="code-keyword">VARCHAR</span>(<span class="code-number">20</span>);
+          
+          <span class="code-comment">-- Modify existing column</span>
+          <span class="code-keyword">ALTER TABLE</span> employees <span class="code-keyword">MODIFY COLUMN</span> salary <span class="code-keyword">DECIMAL</span>(<span class="code-number">12</span>, <span class="code-number">2</span>);
+          
+          <span class="code-comment">-- Add foreign key constraint</span>
+          <span class="code-keyword">ALTER TABLE</span> employees 
+            <span class="code-keyword">ADD CONSTRAINT</span> fk_dept 
+            <span class="code-keyword">FOREIGN KEY</span> (department_id) <span class="code-keyword">REFERENCES</span> departments(dept_id);
+        </div>
+      </div>
+    </div>
+
+    <!-- CRUD Operations -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">🔄</span>
+          <span class="card-title">CRUD Operations Overview</span>
+        </div>
+        
+        <table class="comparison-table">
+          <tr>
+            <th>Operation</th>
+            <th>SQL Command</th>
+            <th>Description</th>
+            <th>Example</th>
+          </tr>
+          <tr>
+            <td><strong>CREATE</strong></td>
+            <td><code>INSERT INTO</code></td>
+            <td>Add new records</td>
+            <td><code>INSERT INTO table VALUES (...)</code></td>
+          </tr>
+          <tr>
+            <td><strong>READ</strong></td>
+            <td><code>SELECT</code></td>
+            <td>Query data</td>
+            <td><code>SELECT * FROM table WHERE ...</code></td>
+          </tr>
+          <tr>
+            <td><strong>UPDATE</strong></td>
+            <td><code>UPDATE</code></td>
+            <td>Modify existing records</td>
+            <td><code>UPDATE table SET col = val WHERE ...</code></td>
+          </tr>
+          <tr>
+            <td><strong>DELETE</strong></td>
+            <td><code>DELETE FROM</code></td>
+            <td>Remove records</td>
+            <td><code>DELETE FROM table WHERE ...</code></td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- INSERT Operations -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">➕</span>
+          <span class="card-title">INSERT - Create Data</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Single row insert</span>
+          <span class="code-keyword">INSERT INTO</span> employees (employee_id, first_name, last_name, salary, hire_date)
+          <span class="code-keyword">VALUES</span> (<span class="code-number">1</span>, <span class="code-string">'John'</span>, <span class="code-string">'Doe'</span>, <span class="code-number">75000</span>, <span class="code-string">'2024-01-15'</span>);
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">-- Multiple rows insert</span>
+          <span class="code-keyword">INSERT INTO</span> employees (employee_id, first_name, last_name, salary, hire_date)
+          <span class="code-keyword">VALUES</span> 
+            (<span class="code-number">2</span>, <span class="code-string">'Jane'</span>, <span class="code-string">'Smith'</span>, <span class="code-number">82000</span>, <span class="code-string">'2024-02-01'</span>),
+            (<span class="code-number">3</span>, <span class="code-string">'Bob'</span>, <span class="code-string">'Johnson'</span>, <span class="code-number">68000</span>, <span class="code-string">'2024-02-15'</span>);
+        </div>
+
+        <div class="code-block">
+          <span class="code-comment">-- Insert from SELECT</span>
+          <span class="code-keyword">INSERT INTO</span> employees_backup
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> employees <span class="code-keyword">WHERE</span> hire_date > <span class="code-string">'2024-01-01'</span>;
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔍</span>
+          <span class="card-title">SELECT - Read Data</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Basic selection</span>
+          <span class="code-keyword">SELECT</span> employee_id, first_name, last_name, salary
+          <span class="code-keyword">FROM</span> employees;
+          
+          <span class="code-comment">-- With WHERE condition</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> employees
+          <span class="code-keyword">WHERE</span> salary > <span class="code-number">70000</span> <span class="code-keyword">AND</span> department_id = <span class="code-number">1</span>;
+          
+          <span class="code-comment">-- With sorting and limit</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> employees
+          <span class="code-keyword">WHERE</span> is_active = <span class="code-number">1</span>
+          <span class="code-keyword">ORDER BY</span> salary <span class="code-keyword">DESC</span>
+          <span class="code-keyword">LIMIT</span> <span class="code-number">10</span>;
+        </div>
+
+        <div class="tip-box">
+          ✅ Use <strong>LIMIT</strong> for pagination: <code>LIMIT 20 OFFSET 40</code> (page 3, 20 items per page)
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATE and DELETE -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">✏️</span>
+          <span class="card-title">UPDATE - Modify Data</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Update specific records</span>
+          <span class="code-keyword">UPDATE</span> employees
+          <span class="code-keyword">SET</span> salary = salary * <span class="code-number">1.1</span>
+          <span class="code-keyword">WHERE</span> hire_date < <span class="code-string">'2023-01-01'</span>;
+          
+          <span class="code-comment">-- Update with multiple conditions</span>
+          <span class="code-keyword">UPDATE</span> employees
+          <span class="code-keyword">SET</span> department_id = <span class="code-number">2</span>
+          <span class="code-keyword">WHERE</span> last_name = <span class="code-string">'Smith'</span>;
+        </div>
+
+        <div class="warning-box">
+          ⚠️ Always use <strong>WHERE</strong> clause with UPDATE! Without it, ALL rows will be modified.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🗑️</span>
+          <span class="card-title">DELETE - Remove Data</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Delete specific records</span>
+          <span class="code-keyword">DELETE FROM</span> employees
+          <span class="code-keyword">WHERE</span> employee_id = <span class="code-number">5</span>;
+          
+          <span class="code-comment">-- Delete with WHERE clause</span>
+          <span class="code-keyword">DELETE FROM</span> employees
+          <span class="code-keyword">WHERE</span> hire_date < <span class="code-string">'2020-01-01'</span> <span class="code-keyword">AND</span> is_active = <span class="code-number">0</span>;
+          
+          <span class="code-comment">-- Safer alternative - TRUNCATE (faster for large tables)</span>
+          <span class="code-keyword">TRUNCATE TABLE</span> employees;
+        </div>
+
+        <div class="info-box">
+          💡 <strong>DELETE vs TRUNCATE:</strong><br>
+          • DELETE logs each row deletion (slower, can be rolled back)<br>
+          • TRUNCATE deallocates all pages (faster, cannot be rolled back in MySQL)
+        </div>
+      </div>
+    </div>
+
+    <!-- Practical Examples -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">👥</span>
+          <span class="card-title">Data Analyst: Customer Database</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Create customer tracking system</span>
+          <span class="code-keyword">CREATE TABLE</span> customers (
+            customer_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            customer_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">NOT NULL</span>,
+            email <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>) <span class="code-keyword">UNIQUE</span>,
+            registration_date <span class="code-keyword">DATE</span>,
+            total_purchases <span class="code-keyword">DECIMAL</span>(<span class="code-number">12</span>, <span class="code-number">2</span>) <span class="code-keyword">DEFAULT 0</span>,
+            is_premium <span class="code-keyword">BOOLEAN DEFAULT FALSE</span>
+          );
+          
+          <span class="code-comment">-- Add sample data</span>
+          <span class="code-keyword">INSERT INTO</span> customers (customer_name, email, registration_date, total_purchases)
+          <span class="code-keyword">VALUES</span> 
+            (<span class="code-string">'Alice Johnson'</span>, <span class="code-string">'alice@example.com'</span>, <span class="code-string">'2024-01-10'</span>, <span class="code-number">5000</span>),
+            (<span class="code-string">'Bob Smith'</span>, <span class="code-string">'bob@example.com'</span>, <span class="code-string">'2024-01-15'</span>, <span class="code-number">3200</span>);
+          
+          <span class="code-comment">-- Query active customers</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> customers
+          <span class="code-keyword">WHERE</span> registration_date >= <span class="code-keyword">DATE_SUB</span>(<span class="code-keyword">NOW</span>(), <span class="code-keyword">INTERVAL</span> <span class="code-number">30</span> <span class="code-keyword">DAY</span>);
+          
+          <span class="code-comment">-- Update customer status</span>
+          <span class="code-keyword">UPDATE</span> customers
+          <span class="code-keyword">SET</span> is_premium = <span class="code-keyword">TRUE</span>
+          <span class="code-keyword">WHERE</span> total_purchases > <span class="code-number">5000</span>;
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🖥️</span>
+          <span class="card-title">Systems Engineer: Server Monitoring</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Create server metrics table</span>
+          <span class="code-keyword">CREATE TABLE</span> server_metrics (
+            metric_id <span class="code-keyword">INT PRIMARY KEY AUTO_INCREMENT</span>,
+            server_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>) <span class="code-keyword">NOT NULL</span>,
+            cpu_usage <span class="code-keyword">DECIMAL</span>(<span class="code-number">5</span>, <span class="code-number">2</span>),
+            memory_usage <span class="code-keyword">DECIMAL</span>(<span class="code-number">5</span>, <span class="code-number">2</span>),
+            disk_usage <span class="code-keyword">DECIMAL</span>(<span class="code-number">5</span>, <span class="code-number">2</span>),
+            recorded_at <span class="code-keyword">DATETIME DEFAULT CURRENT_TIMESTAMP</span>,
+            status <span class="code-keyword">VARCHAR</span>(<span class="code-number">20</span>) <span class="code-comment">-- 'healthy', 'warning', 'critical'</span>
+          );
+          
+          <span class="code-comment">-- Insert monitoring data</span>
+          <span class="code-keyword">INSERT INTO</span> server_metrics (server_name, cpu_usage, memory_usage, disk_usage, status)
+          <span class="code-keyword">VALUES</span> 
+            (<span class="code-string">'web-server-01'</span>, <span class="code-number">45.2</span>, <span class="code-number">72.1</span>, <span class="code-number">85.3</span>, <span class="code-string">'warning'</span>),
+            (<span class="code-string">'db-server-01'</span>, <span class="code-number">28.5</span>, <span class="code-number">88.9</span>, <span class="code-number">92.1</span>, <span class="code-string">'critical'</span>);
+          
+          <span class="code-comment">-- Query problematic servers</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> server_metrics
+          <span class="code-keyword">WHERE</span> status <span class="code-keyword">IN</span> (<span class="code-string">'warning'</span>, <span class="code-string">'critical'</span>)
+          <span class="code-keyword">ORDER BY</span> recorded_at <span class="code-keyword">DESC LIMIT</span> <span class="code-number">10</span>;
+        </div>
+      </div>
+    </div>
+
+    <!-- Learning Checklist -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">✅</span>
+          <span class="card-title">Learning Checklist</span>
+        </div>
+        
+        <div class="two-col">
+          <div>
+            <div class="list-item">Install MySQL and verify installation</div>
+            <div class="list-item">Understand RDBMS concepts and normalization basics</div>
+            <div class="list-item">Create tables with appropriate data types</div>
+            <div class="list-item">Execute all CRUD operations (INSERT, SELECT, UPDATE, DELETE)</div>
+          </div>
+          <div>
+            <div class="list-item">Practice with sample datasets</div>
+            <div class="list-item">Create basic indexes on frequently queried columns</div>
+            <div class="list-item">Understand ACID properties</div>
+            <div class="list-item">Master WHERE clauses and basic filtering</div>
+          </div>
+        </div>
+
+        <div class="tag">foundations</div>
+        <div class="tag">crud</div>
+        <div class="tag">ddl</div>
+        <div class="tag">dml</div>
+        <div class="tag">datatypes</div>
+        <div class="tag">rdbms</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>MySQL Cheat Sheet #1 - Foundations • Complete MySQL Knowledge Base</p>
+    </div>
+  </div>
+</body>
+</html>

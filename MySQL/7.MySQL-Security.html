@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MySQL Cheat Sheet #7 - Security</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #8e0e00 0%, #1f1c18 100%);
+      color: #fff;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: linear-gradient(135deg, #e52d27 0%, #b31217 100%);
+      border-radius: 15px;
+    }
+    .header h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .header .subtitle {
+      color: #fff;
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 0.85em;
+      margin-top: 10px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 15px;
+      padding: 20px;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(179,18,23,0.3);
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #b31217;
+    }
+    .card-icon {
+      font-size: 1.8em;
+      margin-right: 12px;
+    }
+    .card-title {
+      font-size: 1.3em;
+      color: #e74c3c;
+    }
+    .code-block {
+      background: #0d1117;
+      border-radius: 8px;
+      padding: 15px;
+      margin: 10px 0;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.85em;
+      overflow-x: auto;
+      border-left: 3px solid #b31217;
+    }
+    .code-comment {
+      color: #6a737d;
+    }
+    .code-keyword {
+      color: #ff7b72;
+    }
+    .code-string {
+      color: #a5d6ff;
+    }
+    .code-method {
+      color: #d2a8ff;
+    }
+    .code-number {
+      color: #79c0ff;
+    }
+    .code-prop {
+      color: #7ee787;
+    }
+    .highlight {
+      background: linear-gradient(135deg, rgba(229,45,39,0.2), rgba(179,18,23,0.2));
+      padding: 15px;
+      border-radius: 10px;
+      margin: 10px 0;
+    }
+    .list-item {
+      padding: 8px 0;
+      padding-left: 20px;
+      position: relative;
+    }
+    .list-item::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #e74c3c;
+    }
+    .tag {
+      display: inline-block;
+      background: rgba(231,76,60,0.2);
+      color: #e74c3c;
+      padding: 3px 10px;
+      border-radius: 5px;
+      font-size: 0.8em;
+      margin: 2px;
+    }
+    .tag-blue {
+      background: rgba(52,152,219,0.2);
+      color: #3498db;
+    }
+    .tag-green {
+      background: rgba(46,204,113,0.2);
+      color: #2ecc71;
+    }
+    .tag-purple {
+      background: rgba(155,89,182,0.2);
+      color: #9b59b6;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .info-box {
+      background: rgba(52,152,219,0.1);
+      border-left: 3px solid #3498db;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .warning-box {
+      background: rgba(231,76,60,0.1);
+      border-left: 3px solid #e74c3c;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .tip-box {
+      background: rgba(46,204,113,0.1);
+      border-left: 3px solid #2ecc71;
+      padding: 12px;
+      border-radius: 0 8px 8px 0;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .section-title {
+      color: #e74c3c;
+      font-size: 1.1em;
+      margin: 15px 0 10px 0;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed rgba(231,76,60,0.3);
+    }
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 0.9em;
+    }
+    .comparison-table th, .comparison-table td {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .comparison-table th {
+      background: rgba(231,76,60,0.2);
+      color: #e74c3c;
+    }
+    .comparison-table tr:hover {
+      background: rgba(255,255,255,0.05);
+    }
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: rgba(255,255,255,0.5);
+      font-size: 0.9em;
+    }
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+    @media (max-width: 768px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>🔐 MySQL Cheat Sheet #7</h1>
+      <div class="subtitle">Security — RBAC, Encryption, SQL Injection Prevention, Auditing</div>
+      <div class="badge">🔑 RBAC • Encryption • Auditing • SQL Injection</div>
+    </div>
+
+    <!-- User Management -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">👤</span>
+          <span class="card-title">User Management</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Create user with strong password</span>
+          <span class="code-keyword">CREATE USER</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span> 
+          <span class="code-keyword">IDENTIFIED BY</span> <span class="code-string">'SecureP@ssw0rd123!'</span>;
+          
+          <span class="code-comment">-- Create user with SSL requirement</span>
+          <span class="code-keyword">CREATE USER</span> <span class="code-string">'admin_user'</span>@<span class="code-string">'%'</span> 
+          <span class="code-keyword">REQUIRE SSL</span>;
+          
+          <span class="code-comment">-- Create user with IP restriction</span>
+          <span class="code-keyword">CREATE USER</span> <span class="code-string">'readonly_user'</span>@<span class="code-string">'10.0.0.0/255.0.0.0'</span> 
+          <span class="code-keyword">IDENTIFIED BY</span> <span class="code-string">'readonly_pass'</span>;
+          
+          <span class="code-comment">-- Modify user</span>
+          <span class="code-keyword">ALTER USER</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span> 
+          <span class="code-keyword">IDENTIFIED BY</span> <span class="code-string">'NewSecureP@ssw0rd456!'</span>;
+          
+          <span class="code-comment">-- Lock/unlock user</span>
+          <span class="code-keyword">ALTER USER</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span> <span class="code-keyword">ACCOUNT LOCK</span>;
+          <span class="code-keyword">ALTER USER</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span> <span class="code-keyword">ACCOUNT UNLOCK</span>;
+          
+          <span class="code-comment">-- Drop user</span>
+          <span class="code-keyword">DROP USER</span> <span class="code-string">'old_user'</span>@<span class="code-string">'%'</span>;
+        </div>
+
+        <div class="tip-box">
+          ✅ Best Practices:<br>
+          • Use strong passwords (12+ characters, mixed case, numbers, symbols)<br>
+          • Restrict host access (avoid '%' if possible)<br>
+          • Use SSL/TLS for remote connections<br>
+          • Regular password rotation
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔐</span>
+          <span class="card-title">Role-Based Access Control (RBAC)</span>
+        </div>
+        
+        <div class="section-title">Create Roles</div>
+        <div class="code-block">
+          <span class="code-comment">-- Create roles</span>
+          <span class="code-keyword">CREATE ROLE</span> <span class="code-string">'analyst'</span>;
+          <span class="code-keyword">CREATE ROLE</span> <span class="code-string">'data_engineer'</span>;
+          <span class="code-keyword">CREATE ROLE</span> <span class="code-string">'admin'</span>;
+          
+          <span class="code-comment">-- Grant permissions to roles</span>
+          <span class="code-keyword">GRANT SELECT</span> <span class="code-keyword">ON</span> database_name.* <span class="code-keyword">TO</span> <span class="code-string">'analyst'</span>;
+          
+          <span class="code-keyword">GRANT SELECT</span>, <span class="code-keyword">INSERT</span>, <span class="code-keyword">UPDATE</span>, <span class="code-keyword">DELETE</span> <span class="code-keyword">ON</span> database_name.* <span class="code-keyword">TO</span> <span class="code-string">'data_engineer'</span>;
+          
+          <span class="code-keyword">GRANT ALL PRIVILEGES</span> <span class="code-keyword">ON</span> database_name.* <span class="code-keyword">TO</span> <span class="code-string">'admin'</span>;
+          
+          <span class="code-comment">-- Grant roles to users</span>
+          <span class="code-keyword">GRANT</span> <span class="code-string">'analyst'</span> <span class="code-keyword">TO</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span>;
+          <span class="code-keyword">GRANT</span> <span class="code-string">'data_engineer'</span> <span class="code-keyword">TO</span> <span class="code-string">'engineer_user'</span>@<span class="code-string">'192.168.1.101'</span>;
+          
+          <span class="code-comment">-- Activate roles</span>
+          <span class="code-keyword">SET DEFAULT ROLE</span> <span class="code-string">'analyst'</span> <span class="code-keyword">TO</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span>;
+          
+          <span class="code-comment">-- View current roles</span>
+          <span class="code-keyword">SELECT</span> CURRENT_ROLE();
+          <span class="code-keyword">SHOW GRANTS FOR</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span>;
+        </div>
+
+        <div class="section-title">Granular Permissions</div>
+        <div class="code-block">
+          <span class="code-comment">-- Read-only on specific tables</span>
+          <span class="code-keyword">GRANT SELECT</span> <span class="code-keyword">ON</span> database_name.customers <span class="code-keyword">TO</span> <span class="code-string">'analyst'</span>;
+          <span class="code-keyword">GRANT SELECT</span> <span class="code-keyword">ON</span> database_name.orders <span class="code-keyword">TO</span> <span class="code-string">'analyst'</span>;
+          
+          <span class="code-comment">-- No access to sensitive tables</span>
+          <span class="code-comment">-- analyst role cannot access: payments, user_passwords</span>
+          
+          <span class="code-comment">-- Specific permissions for data engineers</span>
+          <span class="code-keyword">GRANT CREATE VIEW</span> <span class="code-keyword">ON</span> database_name.* <span class="code-keyword">TO</span> <span class="code-string">'data_engineer'</span>;
+          <span class="code-keyword">GRANT ALTER</span> <span class="code-keyword">ON</span> database_name.* <span class="code-keyword">TO</span> <span class="code-string">'data_engineer'</span>;
+          
+          <span class="code-comment">-- Revoke specific permissions</span>
+          <span class="code-keyword">REVOKE DELETE</span> <span class="code-keyword">ON</span> database_name.* <span class="code-keyword">FROM</span> <span class="code-string">'analyst'</span>;
+          
+          <span class="code-comment">-- Drop role</span>
+          <span class="code-keyword">DROP ROLE</span> <span class="code-string">'old_role'</span>;
+        </div>
+
+        <div class="info-box">
+          💡 <strong>RBAC Benefits:</strong><br>
+          • Centralized permission management<br>
+          • Easier auditing and compliance<br>
+          • Simplified user onboarding/offboarding<br>
+          • Principle of least privilege enforcement
+        </div>
+      </div>
+    </div>
+
+    <!-- Password Policies -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔑</span>
+          <span class="card-title">Password Policies & Validation</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Install password validation plugin</span>
+          <span class="code-keyword">INSTALL PLUGIN</span> validate_password <span class="code-keyword">SONAME</span> <span class="code-string">'validate_password.so'</span>;
+          
+          <span class="code-comment">-- Configure password policy</span>
+          <span class="code-keyword">SET GLOBAL</span> validate_password.policy = <span class="code-keyword">STRONG</span>;  <span class="code-comment">-- LOW, MEDIUM, STRONG</span>
+          <span class="code-keyword">SET GLOBAL</span> validate_password.length = <span class="code-number">12</span>;
+          <span class="code-keyword">SET GLOBAL</span> validate_password.mixed_case_count = <span class="code-number">1</span>;
+          <span class="code-keyword">SET GLOBAL</span> validate_password.number_count = <span class="code-number">1</span>;
+          <span class="code-keyword">SET GLOBAL</span> validate_password.special_char_count = <span class="code-number">1</span>;
+          
+          <span class="code-comment">-- View current settings</span>
+          <span class="code-keyword">SHOW VARIABLES</span> <span class="code-keyword">LIKE</span> <span class="code-string">'validate_password%'</span>;
+          
+          <span class="code-comment">-- Set password expiration policy</span>
+          <span class="code-keyword">ALTER USER</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span> 
+          <span class="code-keyword">PASSWORD EXPIRE INTERVAL</span> <span class="code-number">90</span> <span class="code-keyword">DAY</span>;
+          
+          <span class="code-comment">-- Force password change</span>
+          <span class="code-keyword">ALTER USER</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span> <span class="code-keyword">PASSWORD EXPIRE</span>;
+          
+          <span class="code-comment">-- Account locking after failed attempts</span>
+          <span class="code-keyword">ALTER USER</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span> 
+          <span class="code-keyword">FAILED_LOGIN_ATTEMPTS</span> <span class="code-number">5</span> <span class="code-keyword">PASSWORD_LOCK_TIME</span> <span class="code-number">1</span> <span class="code-keyword">DAY</span>;
+        </div>
+
+        <div class="section-title">Password History</div>
+        <div class="code-block">
+          <span class="code-comment">-- Prevent password reuse</span>
+          <span class="code-keyword">SET GLOBAL</span> password_history = <span class="code-number">6</span>;  <span class="code-comment">-- Cannot reuse last 6 passwords</span>
+          <span class="code-keyword">SET GLOBAL</span> password_reuse_interval = <span class="code-number">365</span>;  <span class="code-comment">-- Days before reuse</span>
+          
+          <span class="code-comment">-- MySQL 8.0: Password history per user</span>
+          <span class="code-keyword">ALTER USER</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span> 
+          <span class="code-keyword">PASSWORD HISTORY</span> <span class="code-number">5</span>;
+        </div>
+
+        <div class="tip-box">
+          ✅ <strong>Password Security Best Practices:</strong><br>
+          • Minimum 12 characters<br>
+          • Include uppercase, lowercase, numbers, symbols<br>
+          • No dictionary words or personal information<br>
+          • Rotate passwords every 90 days<br>
+          • Use password managers for storage
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🌐</span>
+          <span class="card-title">SSL/TLS Configuration</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Generate SSL certificates (command line)</span>
+          <span class="code-comment"># openssl req -x509 -newkey rsa:4096 -keyout server-key.pem \</span>
+          <span class="code-comment">#  -out server-cert.pem -days 365</span>
+          
+          <span class="code-comment">-- Configure MySQL for SSL in my.cnf</span>
+          <span class="code-comment">-- [mysqld]</span>
+          <span class="code-comment">-- ssl-ca=/etc/mysql/ca.pem</span>
+          <span class="code-comment">-- ssl-cert=/etc/mysql/server-cert.pem</span>
+          <span class="code-comment">-- ssl-key=/etc/mysql/server-key.pem</span>
+          <span class="code-comment">-- require-secure-transport=ON</span>
+          
+          <span class="code-comment">-- Verify SSL status</span>
+          <span class="code-keyword">SHOW VARIABLES</span> <span class="code-keyword">LIKE</span> <span class="code-string">'%ssl%'</span>;
+          <span class="code-keyword">SHOW STATUS</span> <span class="code-keyword">LIKE</span> <span class="code-string">'Ssl_cipher'</span>;
+          
+          <span class="code-comment">-- Force SSL for specific user</span>
+          <span class="code-keyword">ALTER USER</span> <span class="code-string">'analyst_user'</span>@<span class="code-string">'192.168.1.100'</span> <span class="code-keyword">REQUIRE SSL</span>;
+          
+          <span class="code-comment">-- Require X.509 certificate</span>
+          <span class="code-keyword">ALTER USER</span> <span class="code-string">'admin_user'</span>@<span class="code-string">'192.168.1.100'</span> 
+          <span class="code-keyword">REQUIRE X509</span>;
+          
+          <span class="code-comment">-- Connect with SSL from client</span>
+          <span class="code-comment">mysql -u analyst_user -p --ssl-mode=REQUIRED</span>
+        </div>
+
+        <div class="warning-box">
+          ⚠️ Always use SSL/TLS for remote connections. Unencrypted connections expose credentials and data to network sniffing.
+        </div>
+      </div>
+    </div>
+
+    <!-- SQL Injection Prevention -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🛡️</span>
+          <span class="card-title">SQL Injection Prevention</span>
+        </div>
+        
+        <div class="highlight">
+          <strong>SQL Injection</strong> occurs when user input is concatenated directly into SQL queries, allowing malicious code execution.
+        </div>
+
+        <div class="section-title">❌ VULNERABLE - String Concatenation</div>
+        <div class="code-block">
+          <span class="code-comment">-- BAD: Direct string concatenation</span>
+          <span class="code-keyword">SET</span> @query = <span class="code-keyword">CONCAT</span>(<span class="code-string">'SELECT * FROM users WHERE id = '</span>, <span class="code-string">'1 OR 1=1'</span>);
+          <span class="code-keyword">PREPARE</span> stmt <span class="code-keyword">FROM</span> @query;
+          <span class="code-keyword">EXECUTE</span> stmt;
+          <span class="code-comment">-- Returns ALL users instead of just user 1!</span>
+        </div>
+
+        <div class="section-title">✅ SECURE - Prepared Statements</div>
+        <div class="code-block">
+          <span class="code-comment">-- GOOD: Use prepared statements with parameters</span>
+          <span class="code-keyword">PREPARE</span> stmt <span class="code-keyword">FROM</span> <span class="code-string">'SELECT * FROM users WHERE id = ?'</span>;
+          <span class="code-keyword">SET</span> @user_id = <span class="code-number">1</span>;
+          <span class="code-keyword">EXECUTE</span> stmt <span class="code-keyword">USING</span> @user_id;
+          <span class="code-keyword">DEALLOCATE PREPARE</span> stmt;
+          
+          <span class="code-comment">-- Stored procedure approach</span>
+          <span class="code-keyword">DELIMITER</span> //
+          <span class="code-keyword">CREATE PROCEDURE</span> get_user_by_id(<span class="code-keyword">IN</span> user_id <span class="code-keyword">INT</span>)
+          <span class="code-keyword">BEGIN</span>
+            <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> id = user_id;
+          <span class="code-keyword">END</span> //
+          <span class="code-keyword">DELIMITER</span> ;
+          
+          <span class="code-keyword">CALL</span> get_user_by_id(<span class="code-number">1</span>);
+        </div>
+
+        <div class="section-title">Input Validation Examples</div>
+        <div class="code-block">
+          <span class="code-comment">-- Validate numeric input</span>
+          <span class="code-keyword">CREATE FUNCTION</span> validate_user_id(input_id <span class="code-keyword">VARCHAR</span>(<span class="code-number">255</span>))
+          <span class="code-keyword">RETURNS INT</span> <span class="code-keyword">DETERMINISTIC</span>
+          <span class="code-keyword">BEGIN</span>
+            <span class="code-keyword">DECLARE</span> result <span class="code-keyword">INT</span>;
+            
+            <span class="code-keyword">IF</span> input_id <span class="code-keyword">REGEXP</span> <span class="code-string">'^[0-9]+$'</span> <span class="code-keyword">THEN</span>
+              <span class="code-keyword">SET</span> result = <span class="code-keyword">CAST</span>(input_id <span class="code-keyword">AS UNSIGNED</span>);
+            <span class="code-keyword">ELSE</span>
+              <span class="code-keyword">SIGNAL SQLSTATE</span> <span class="code-string">'45000'</span> <span class="code-keyword">SET MESSAGE_TEXT</span> = <span class="code-string">'Invalid user ID'</span>;
+            <span class="code-keyword">END IF</span>;
+            
+            <span class="code-keyword">RETURN</span> result;
+          <span class="code-keyword">END</span>;
+          
+          <span class="code-comment">-- Use in queries</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> id = validate_user_id(<span class="code-string">'1'</span>);
+        </div>
+
+        <div class="warning-box">
+          ⚠️ Never concatenate user input directly into SQL queries. Always use parameterized queries or stored procedures.
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📝</span>
+          <span class="card-title">Common Injection Patterns</span>
+        </div>
+        
+        <table class="comparison-table">
+          <tr>
+            <th>Attack Vector</th>
+            <th>Example Input</th>
+            <th>Impact</th>
+          </tr>
+          <tr>
+            <td>Union Injection</td>
+            <td><code>' UNION SELECT * FROM passwords--</code></td>
+            <td>Data extraction</td>
+          </tr>
+          <tr>
+            <td>Boolean Injection</td>
+            <td><code>' OR 1=1--</code></td>
+            <td>Bypass authentication</td>
+          </tr>
+          <tr>
+            <td>Time-based Injection</td>
+            <td><code>'; WAITFOR DELAY '0:0:5'--</code></td>
+            <td>Blind extraction</td>
+          </tr>
+          <tr>
+            <td>Error-based Injection</td>
+            <td><code>' AND 1=CONVERT(int, 'text')--</code></td>
+            <td>Information disclosure</td>
+          </tr>
+        </table>
+
+        <div class="section-title">Defense Strategies</div>
+        <div class="code-block">
+          <span class="code-comment">-- 1. Use least privilege principle</span>
+          <span class="code-keyword">REVOKE ALL PRIVILEGES</span>, <span class="code-keyword">GRANT OPTION FROM</span> <span class="code-string">'web_app_user'</span>@<span class="code-string">'localhost'</span>;
+          <span class="code-keyword">GRANT SELECT</span>, <span class="code-keyword">INSERT</span>, <span class="code-keyword">UPDATE</span> <span class="code-keyword">ON</span> app_database.* <span class="code-keyword">TO</span> <span class="code-string">'web_app_user'</span>@<span class="code-string">'localhost'</span>;
+          
+          <span class="code-comment">-- 2. Disable dangerous functions</span>
+          <span class="code-keyword">SET GLOBAL</span> secure_file_priv = <span class="code-string">'/var/lib/mysql-files/'</span>;  <span class="code-comment">-- Restrict file operations</span>
+          
+          <span class="code-comment">-- 3. Use stored procedures for all writes</span>
+          <span class="code-keyword">CREATE PROCEDURE</span> add_user(<span class="code-keyword">IN</span> p_email <span class="code-keyword">VARCHAR</span>(<span class="code-number">255</span>), <span class="code-keyword">IN</span> p_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">255</span>))
+          <span class="code-keyword">BEGIN</span>
+            <span class="code-keyword">INSERT INTO</span> users (email, name) <span class="code-keyword">VALUES</span> (p_email, p_name);
+          <span class="code-keyword">END</span>;
+          
+          <span class="code-comment">-- 4. Enable SQL mode for stricter validation</span>
+          <span class="code-keyword">SET GLOBAL</span> sql_mode = <span class="code-string">'STRICT_ALL_TABLES,ERROR_FOR_DIVISION_BY_ZERO,NO_ZERO_DATE'</span>;
+        </div>
+
+        <div class="info-box">
+          💡 <strong>Additional Defenses:</strong><br>
+          • Web Application Firewalls (WAF)<br>
+          • Input validation in application layer<br>
+          • Database activity monitoring<br>
+          • Regular security audits
+        </div>
+      </div>
+    </div>
+
+    <!-- Encryption -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔒</span>
+          <span class="card-title">Encryption at Rest</span>
+        </div>
+        
+        <div class="section-title">InnoDB Tablespace Encryption</div>
+        <div class="code-block">
+          <span class="code-comment">-- Enable encryption in my.cnf</span>
+          <span class="code-comment">-- [mysqld]</span>
+          <span class="code-comment">-- default_table_encryption=ON</span>
+          <span class="code-comment">-- table_encryption_privilege_check=ON</span>
+          
+          <span class="code-comment">-- Install keyring plugin</span>
+          <span class="code-keyword">INSTALL PLUGIN</span> keyring_file <span class="code-keyword">SONAME</span> <span class="code-string">'keyring_file.so'</span>;
+          
+          <span class="code-comment">-- Create encrypted table</span>
+          <span class="code-keyword">CREATE TABLE</span> sensitive_data (
+            id <span class="code-keyword">INT PRIMARY KEY</span>,
+            ssn <span class="code-keyword">VARCHAR</span>(<span class="code-number">20</span>),
+            credit_card <span class="code-keyword">VARCHAR</span>(<span class="code-number">20</span>),
+            email <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>)
+          ) <span class="code-keyword">ENCRYPTION</span> = <span class="code-string">'Y'</span>;
+          
+          <span class="code-comment">-- Convert existing table to encrypted</span>
+          <span class="code-keyword">ALTER TABLE</span> customers <span class="code-keyword">ENCRYPTION</span> = <span class="code-string">'Y'</span>;
+          
+          <span class="code-comment">-- View encryption status</span>
+          <span class="code-keyword">SELECT</span> table_name, create_options
+          <span class="code-keyword">FROM</span> information_schema.tables
+          <span class="code-keyword">WHERE</span> table_schema = <span class="code-string">'your_database'</span>
+            <span class="code-keyword">AND</span> create_options <span class="code-keyword">LIKE</span> <span class="code-string">'%ENCRYPTION="Y"%'</span>;
+          
+          <span class="code-comment">-- Rotate encryption keys</span>
+          <span class="code-keyword">ALTER INSTANCE</span> <span class="code-keyword">ROTATE INNODB MASTER KEY</span>;
+        </div>
+
+        <div class="section-title">Binary Log Encryption</div>
+        <div class="code-block">
+          <span class="code-comment">-- Enable binary log encryption</span>
+          <span class="code-comment">-- [mysqld]</span>
+          <span class="code-comment">-- binlog_encryption=ON</span>
+          
+          <span class="code-comment">-- Verify encryption status</span>
+          <span class="code-keyword">SHOW VARIABLES</span> <span class="code-keyword">LIKE</span> <span class="code-string">'binlog_encryption'</span>;
+          <span class="code-keyword">SHOW BINARY LOGS</span>;
+          <span class="code-comment">-- Encrypted logs show: Encrypted=ON</span>
+        </div>
+
+        <div class="info-box">
+          💡 <strong>Encryption Benefits:</strong><br>
+          • Protects data from unauthorized file access<br>
+          • Complies with data protection regulations<br>
+          • Transparent to applications<br>
+          • Automatic key rotation
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔐</span>
+          <span class="card-title">Column-Level Encryption</span>
+        </div>
+        
+        <div class="section-title">AES_ENCRYPT / AES_DECRYPT</div>
+        <div class="code-block">
+          <span class="code-comment">-- Create table with encrypted columns</span>
+          <span class="code-keyword">CREATE TABLE</span> employee_data (
+            emp_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            ssn_encrypted <span class="code-keyword">VARBINARY</span>(<span class="code-number">255</span>),
+            salary_encrypted <span class="code-keyword">VARBINARY</span>(<span class="code-number">255</span>)
+          );
+          
+          <span class="code-comment">-- Insert encrypted data</span>
+          <span class="code-keyword">INSERT INTO</span> employee_data (emp_id, name, ssn_encrypted, salary_encrypted)
+          <span class="code-keyword">VALUES</span> (
+            <span class="code-number">1</span>,
+            <span class="code-string">'John Doe'</span>,
+            <span class="code-keyword">AES_ENCRYPT</span>(<span class="code-string">'123-45-6789'</span>, <span class="code-string">'encryption_key'</span>),
+            <span class="code-keyword">AES_ENCRYPT</span>(<span class="code-string">'75000'</span>, <span class="code-string">'encryption_key'</span>)
+          );
+          
+          <span class="code-comment">-- Query and decrypt data</span>
+          <span class="code-keyword">SELECT</span> 
+            emp_id,
+            name,
+            <span class="code-keyword">AES_DECRYPT</span>(ssn_encrypted, <span class="code-string">'encryption_key'</span>) <span class="code-keyword">as</span> ssn,
+            <span class="code-keyword">AES_DECRYPT</span>(salary_encrypted, <span class="code-string">'encryption_key'</span>) <span class="code-keyword">as</span> salary
+          <span class="code-keyword">FROM</span> employee_data
+          <span class="code-keyword">WHERE</span> emp_id = <span class="code-number">1</span>;
+          
+          <span class="code-comment">-- Search on encrypted data using hash</span>
+          <span class="code-keyword">CREATE TABLE</span> employee_data_secure (
+            emp_id <span class="code-keyword">INT PRIMARY KEY</span>,
+            name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            ssn_hash <span class="code-keyword">VARCHAR</span>(<span class="code-number">64</span>),  <span class="code-comment">-- Store hash for searching</span>
+            ssn_encrypted <span class="code-keyword">VARBINARY</span>(<span class="code-number">255</span>)
+          );
+          
+          <span class="code-comment">-- Insert with hash</span>
+          <span class="code-keyword">INSERT INTO</span> employee_data_secure
+          <span class="code-keyword">VALUES</span> (
+            <span class="code-number">1</span>,
+            <span class="code-string">'John Doe'</span>,
+            <span class="code-keyword">SHA2</span>(<span class="code-string">'123-45-6789'</span>, <span class="code-number">256</span>),
+            <span class="code-keyword">AES_ENCRYPT</span>(<span class="code-string">'123-45-6789'</span>, <span class="code-string">'key'</span>)
+          );
+          
+          <span class="code-comment">-- Search by hash</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> employee_data_secure
+          <span class="code-keyword">WHERE</span> ssn_hash = <span class="code-keyword">SHA2</span>(<span class="code-string">'123-45-6789'</span>, <span class="code-number">256</span>);
+        </div>
+
+        <div class="warning-box">
+          ⚠️ Column-level encryption requires careful key management. Never store encryption keys in the same database as encrypted data.
+        </div>
+      </div>
+    </div>
+
+    <!-- Auditing -->
+    <div class="grid">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">📋</span>
+          <span class="card-title">Audit Logging</span>
+        </div>
+        
+        <div class="section-title">Enable Audit Plugin</div>
+        <div class="code-block">
+          <span class="code-comment">-- Install audit plugin (MySQL Enterprise or MariaDB)</span>
+          <span class="code-keyword">INSTALL PLUGIN</span> audit_log <span class="code-keyword">SONAME</span> <span class="code-string">'audit_log.so'</span>;
+          
+          <span class="code-comment">-- Configure audit logging</span>
+          <span class="code-keyword">SET GLOBAL</span> audit_log_policy = <span class="code-string">'ALL'</span>;  <span class="code-comment">-- ALL, LOGINS, QUERIES, NONE</span>
+          <span class="code-keyword">SET GLOBAL</span> audit_log_strategy = <span class="code-string">'ASYNCHRONOUS'</span>;  <span class="code-comment">-- PERFORMANCE</span>
+          <span class="code-keyword">SET GLOBAL</span> audit_log_format = <span class="code-string">'JSON'</span>;  <span class="code-comment">-- JSON, CSV, XML</span>
+          
+          <span class="code-comment">-- Configure log file location</span>
+          <span class="code-keyword">SET GLOBAL</span> audit_log_file = <span class="code-string">'/var/log/mysql/audit.log'</span>;
+          
+          <span class="code-comment">-- Filter by user or database</span>
+          <span class="code-keyword">SET GLOBAL</span> audit_log_include_accounts = <span class="code-string">'analyst_user@192.168.1.100'</span>;
+          
+          <span class="code-comment">-- View audit log status</span>
+          <span class="code-keyword">SHOW VARIABLES</span> <span class="code-keyword">LIKE</span> <span class="code-string">'audit_log%'</span>;
+        </div>
+
+        <div class="section-title">Custom Audit Schema</div>
+        <div class="code-block">
+          <span class="code-comment">-- Create audit table</span>
+          <span class="code-keyword">CREATE TABLE</span> security_audit_log (
+            audit_id <span class="code-keyword">BIGINT PRIMARY KEY AUTO_INCREMENT</span>,
+            user_host <span class="code-keyword">VARCHAR</span>(<span class="code-number">255</span>),
+            query_time <span class="code-keyword">DATETIME</span>,
+            query_type <span class="code-keyword">VARCHAR</span>(<span class="code-number">50</span>),
+            database_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            table_name <span class="code-keyword">VARCHAR</span>(<span class="code-number">100</span>),
+            query_text <span class="code-keyword">TEXT</span>,
+            rows_affected <span class="code-keyword">INT</span>,
+            ip_address <span class="code-keyword">VARCHAR</span>(<span class="code-number">45</span>),
+            success <span class="code-keyword">BOOLEAN</span>,
+            error_message <span class="code-keyword">VARCHAR</span>(<span class="code-number">255</span>)
+          );
+          
+          <span class="code-comment">-- Create audit trigger</span>
+          <span class="code-keyword">CREATE TRIGGER</span> audit_sensitive_table
+          <span class="code-keyword">AFTER INSERT ON</span> sensitive_data
+          <span class="code-keyword">FOR EACH ROW</span>
+          <span class="code-keyword">BEGIN</span>
+            <span class="code-keyword">INSERT INTO</span> security_audit_log (
+              user_host, query_time, query_type, database_name, table_name,
+              query_text, rows_affected, ip_address, success
+            ) <span class="code-keyword">VALUES</span> (
+              <span class="code-keyword">USER</span>(),
+              <span class="code-keyword">NOW</span>(),
+              <span class="code-string">'INSERT'</span>,
+              <span class="code-keyword">DATABASE</span>(),
+              <span class="code-string">'sensitive_data'</span>,
+              <span class="code-string">'INSERT INTO sensitive_data'</span>,
+              <span class="code-number">1</span>,
+              <span class="code-keyword">SUBSTRING_INDEX</span>(<span class="code-keyword">USER</span>(), <span class="code-string">'@'</span>, <span class="code-number">-1</span>),
+              <span class="code-keyword">TRUE</span>
+            );
+          <span class="code-keyword">END</span>;
+        </div>
+
+        <div class="info-box">
+          💡 <strong>Audit Log Benefits:</strong><br>
+          • Track who accessed what data<br>
+          • Detect suspicious activity<br>
+          • Compliance with regulations<br>
+          • Forensic investigation support
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-icon">🔍</span>
+          <span class="card-title">Security Monitoring</span>
+        </div>
+        
+        <div class="code-block">
+          <span class="code-comment">-- Monitor failed login attempts</span>
+          <span class="code-keyword">SELECT</span> 
+            <span class="code-keyword">COUNT</span>(*) <span class="code-keyword">as</span> failed_attempts,
+            <span class="code-keyword">SUBSTRING_INDEX</span>(host, <span class="code-string">':'</span>, <span class="code-number">1</span>) <span class="code-keyword">as</span> ip_address,
+            <span class="code-keyword">DATE_FORMAT</span>(first_attempt, <span class="code-string">'%Y-%m-%d %H:00'</span>) <span class="code-keyword">as</span> hour_block
+          <span class="code-keyword">FROM</span> performance_schema.events_waits_summary_by_instance
+          <span class="code-keyword">WHERE</span> event_name <span class="code-keyword">LIKE</span> <span class="code-string">'%login%'</span>
+          <span class="code-keyword">GROUP BY</span> ip_address, hour_block
+          <span class="code-keyword">HAVING</span> failed_attempts > <span class="code-number">5</span>;
+          
+          <span class="code-comment">-- Monitor privilege changes</span>
+          <span class="code-keyword">SELECT</span> 
+            <span class="code-keyword">USER</span>(),
+            <span class="code-keyword">NOW</span>(),
+            <span class="code-string">'GRANT/REVOKE detected'</span> <span class="code-keyword">as</span> alert_type
+          <span class="code-keyword">FROM</span> dual
+          <span class="code-keyword">WHERE</span> <span class="code-keyword">EXISTS</span> (
+            <span class="code-keyword">SELECT</span> <span class="code-number">1</span> <span class="code-keyword">FROM</span> mysql.user <span class="code-keyword">WHERE</span> password_last_changed > <span class="code-keyword">NOW</span>() - <span class="code-keyword">INTERVAL</span> <span class="code-number">1</span> <span class="code-keyword">HOUR</span>
+          );
+          
+          <span class="code-comment">-- Check for suspicious queries</span>
+          <span class="code-keyword">SELECT</span> 
+            query,
+            exec_count,
+            <span class="code-keyword">AVG</span>(timer_wait/<span class="code-number">1000000000</span>) <span class="code-keyword">as</span> avg_seconds
+          <span class="code-keyword">FROM</span> performance_schema.events_statements_summary_by_digest
+          <span class="code-keyword">WHERE</span> query <span class="code-keyword">LIKE</span> <span class="code-string">'%UNION%'</span> <span class="code-keyword">OR</span> query <span class="code-keyword">LIKE</span> <span class="code-string">'%INFORMATION_SCHEMA%'</span>
+          <span class="code-keyword">ORDER BY</span> timer_wait <span class="code-keyword">DESC</span>;
+          
+          <span class="code-comment">-- Monitor SSL connections</span>
+          <span class="code-keyword">SELECT</span> 
+            <span class="code-keyword">COUNT</span>(*) <span class="code-keyword">as</span> total_connections,
+            <span class="code-keyword">SUM</span>(ssl_cipher <span class="code-keyword">IS NOT NULL</span>) <span class="code-keyword">as</span> ssl_connections,
+            <span class="code-keyword">ROUND</span>(<span class="code-keyword">SUM</span>(ssl_cipher <span class="code-keyword">IS NOT NULL</span>) / <span class="code-keyword">COUNT</span>(*), <span class="code-number">2</span>) <span class="code-keyword">as</span> ssl_percentage
+          <span class="code-keyword">FROM</span> performance_schema.accounts;
+        </div>
+
+        <div class="section-title">Security Metrics Dashboard</div>
+        <div class="code-block">
+          <span class="code-comment">-- Create security metrics view</span>
+          <span class="code-keyword">CREATE VIEW</span> security_metrics <span class="code-keyword">AS</span>
+          <span class="code-keyword">SELECT</span> 
+            <span class="code-keyword">NOW</span>() <span class="code-keyword">as</span> reported_at,
+            <span class="code-string">'Total Users'</span> <span class="code-keyword">as</span> metric_type,
+            <span class="code-keyword">COUNT</span>(*) <span class="code-keyword">as</span> metric_value,
+            <span class="code-string">'users'</span> <span class="code-keyword">as</span> unit
+          <span class="code-keyword">FROM</span> mysql.user
+          <span class="code-keyword">UNION ALL</span>
+          <span class="code-keyword">SELECT</span> 
+            <span class="code-keyword">NOW</span>(),
+            <span class="code-string">'Users with SSL Required'</span>,
+            <span class="code-keyword">COUNT</span>(*),
+            <span class="code-string">'users'</span>
+          <span class="code-keyword">FROM</span> mysql.user
+          <span class="code-keyword">WHERE</span> ssl_type != <span class="code-string">''</span>
+          <span class="code-keyword">UNION ALL</span>
+          <span class="code-keyword">SELECT</span> 
+            <span class="code-keyword">NOW</span>(),
+            <span class="code-string">'Tables with Encryption'</span>,
+            <span class="code-keyword">COUNT</span>(*),
+            <span class="code-string">'tables'</span>
+          <span class="code-keyword">FROM</span> information_schema.tables
+          <span class="code-keyword">WHERE</span> create_options <span class="code-keyword">LIKE</span> <span class="code-string">'%ENCRYPTION="Y"%'</span>;
+          
+          <span class="code-comment">-- Query metrics</span>
+          <span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> security_metrics;
+        </div>
+
+        <div class="tag">monitoring</div>
+        <div class="tag">auditing</div>
+        <div class="tag">security</div>
+      </div>
+    </div>
+
+    <!-- Security Best Practices -->
+    <div class="grid">
+      <div class="card full-width">
+        <div class="card-header">
+          <span class="card-icon">✅</span>
+          <span class="card-title">Security Best Practices Checklist</span>
+        </div>
+        
+        <div class="two-col">
+          <div>
+            <div class="section-title">User & Access Management</div>
+            <div class="list-item">Implement Role-Based Access Control (RBAC)</div>
+            <div class="list-item">Use strong passwords with complexity requirements</div>
+            <div class="list-item">Restrict user host access (avoid '%')</div>
+            <div class="list-item">Enable SSL/TLS for all remote connections</div>
+            <div class="list-item">Implement password rotation policies</div>
+            <div class="list-item">Remove default accounts and test databases</div>
+            
+            <div class="section-title">Data Protection</div>
+            <div class="list-item">Encrypt sensitive data at rest and in transit</div>
+            <div class="list-item">Use column-level encryption for PII</div>
+            <div class="list-item">Implement data masking for non-production</div>
+            <div class="list-item">Secure backup files with encryption</div>
+          </div>
+          <div>
+            <div class="section-title">SQL Injection Prevention</div>
+            <div class="list-item">Use prepared statements and parameterized queries</div>
+            <div class="list-item">Validate and sanitize all user inputs</div>
+            <div class="list-item">Apply principle of least privilege</div>
+            <div class="list-item">Use stored procedures for data access</div>
+            
+            <div class="section-title">Monitoring & Auditing</div>
+            <div class="list-item">Enable comprehensive audit logging</div>
+            <div class="list-item">Monitor failed login attempts</div>
+            <div class="list-item">Track privilege changes</div>
+            <div class="list-item">Regular security audits and penetration testing</div>
+            <div class="list-item">Keep MySQL updated with security patches</div>
+          </div>
+        </div>
+
+        <div class="tag">security</div>
+        <div class="tag">rbac</div>
+        <div class="tag">encryption</div>
+        <div class="tag">audit</div>
+        <div class="tag">sql-injection</div>
+        <div class="tag">permissions</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>MySQL Cheat Sheet #7 - Security • Complete MySQL Knowledge Base</p>
+    </div>
+  </div>
+</body>
+</html>

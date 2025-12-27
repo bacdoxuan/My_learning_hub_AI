@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Server Cheat Sheet #4 - Joins, Set Ops & Subqueries</title>
+    <style>
+        /* Dark theme CSS - embedded for offline use */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .hero {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 3px solid #3b82f6;
+        }
+        .hero h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            color: #60a5fa;
+        }
+        .hero p {
+            margin: 0.5rem 0 0;
+            font-size: 1.2rem;
+            color: #cbd5e1;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        h2 {
+            color: #60a5fa;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            color: #93c5fd;
+            margin-top: 1.5rem;
+        }
+        .concept-box {
+            background-color: #1e293b;
+            border-left: 4px solid #3b82f6;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        .concept-title {
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 0.5rem;
+        }
+        .concept-description {
+            color: #cbd5e1;
+        }
+        .info-box {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #d1d5db;
+        }
+        .info-box strong {
+            color: #fbbf24;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background-color: #1e293b;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #374151;
+        }
+        th {
+            background-color: #334155;
+            color: #60a5fa;
+            font-weight: bold;
+        }
+        td {
+            color: #e2e8f0;
+        }
+        .code-block {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        .code-block code {
+            color: #e2e8f0;
+        }
+        .code-keyword {
+            color: #c084fc;
+        }
+        .code-function {
+            color: #60a5fa;
+        }
+        .code-string {
+            color: #34d399;
+        }
+        .code-comment {
+            color: #6b7280;
+        }
+        .code-number {
+            color: #fbbf24;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .checklist {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .checklist h3 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+        .checklist ul {
+            list-style: none;
+            padding: 0;
+        }
+        .checklist li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #374151;
+        }
+        .checklist li:before {
+            content: "☐ ";
+            color: #60a5fa;
+            margin-right: 0.5rem;
+        }
+        .exercises {
+            background-color: #1e293b;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 2rem 0;
+        }
+        .exercises h3 {
+            color: #60a5fa;
+            margin-top: 0;
+        }
+        .navigation {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 2px solid #374151;
+        }
+        .nav-btn {
+            display: inline-block;
+            background-color: #3b82f6;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 0.5rem;
+            transition: background-color 0.3s;
+        }
+        .nav-btn:hover {
+            background-color: #2563eb;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #10b981;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🔵 SQL Server Joins, Set Ops & Subqueries</h1>
+        <p>Master Advanced T-SQL Query Techniques for Complex Data Retrieval</p>
+        <div class="badge">Intermediate</div>
+    </div>
+    
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers advanced T-SQL querying techniques: JOIN operations for combining data across tables, set operations (UNION, INTERSECT, EXCEPT) for combining result sets, 
+            subqueries (correlated and non-correlated), and Common Table Expressions (CTEs) including recursive CTEs. Learn performance best practices and when to use each approach.
+        </p>
+        
+        <h2>🔗 JOIN Operations</h2>
+        
+        <h3>JOIN Types & Syntax</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>JOIN Type</th>
+                    <th>Syntax</th>
+                    <th>Description</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>INNER JOIN</strong></td>
+                    <td><code>FROM A INNER JOIN B ON condition</code></td>
+                    <td>Only matching rows from both tables</td>
+                    <td>Get related data where both sides exist</td>
+                </tr>
+                <tr>
+                    <td><strong>LEFT JOIN</strong></td>
+                    <td><code>FROM A LEFT JOIN B ON condition</code></td>
+                    <td>All rows from left, matching from right (NULLs for no match)</td>
+                    <td>Include all from primary table, optional related data</td>
+                </tr>
+                <tr>
+                    <td><strong>RIGHT JOIN</strong></td>
+                    <td><code>FROM A RIGHT JOIN B ON condition</code></td>
+                    <td>All rows from right, matching from left</td>
+                    <td>Rarely used (prefer LEFT JOIN)</td>
+                </tr>
+                <tr>
+                    <td><strong>FULL OUTER JOIN</strong></td>
+                    <td><code>FROM A FULL OUTER JOIN B ON condition</code></td>
+                    <td>All rows from both tables, NULLs where no match</td>
+                    <td>Find all data and gaps in relationships</td>
+                </tr>
+                <tr>
+                    <td><strong>CROSS JOIN</strong></td>
+                    <td><code>FROM A CROSS JOIN B</code></td>
+                    <td>Cartesian product - all combinations</td>
+                    <td>Generate combinations or test data</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- INNER JOIN: Customers with their orders</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, o.OrderDate, o.Total
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">INNER JOIN</span> Orders o <span class="code-keyword">ON</span> c.CustomerID = o.CustomerID;
+
+<span class="code-comment">-- LEFT JOIN: All customers, with orders if they exist</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, <span class="code-function">COUNT</span>(o.OrderID) AS OrderCount
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">LEFT JOIN</span> Orders o <span class="code-keyword">ON</span> c.CustomerID = o.CustomerID
+<span class="code-keyword">GROUP BY</span> c.CustomerName;
+
+<span class="code-comment">-- FULL OUTER JOIN: Find data gaps</span>
+<span class="code-keyword">SELECT</span> c.CustomerName, p.ProductName
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">FULL OUTER JOIN</span> Products p <span class="code-keyword">ON</span> c.Region = p.OriginRegion
+<span class="code-keyword">WHERE</span> c.CustomerName <span class="code-keyword">IS NULL</span> <span class="code-keyword">OR</span> p.ProductName <span class="code-keyword">IS NULL</span>;
+
+<span class="code-comment">-- CROSS JOIN: All combinations</span>
+<span class="code-keyword">SELECT</span> c.Color, s.Size
+<span class="code-keyword">FROM</span> Colors c
+<span class="code-keyword">CROSS JOIN</span> Sizes s;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 Performance Tip:</strong> INNER JOIN is usually fastest. LEFT JOIN can be slower due to NULL handling. 
+            Always check execution plans for JOIN performance.
+        </div>
+        
+        <h3>Multiple JOINs & Complex Conditions</h3>
+        <div class="concept-box">
+            <div class="concept-title">JOIN Best Practices</div>
+            <div class="concept-description">
+                <strong style="color: #60a5fa;">Order matters:</strong> Start with smallest tables<br>
+                <strong style="color: #60a5fa;">Index foreign keys:</strong> JOIN columns should be indexed<br>
+                <strong style="color: #60a5fa;">Avoid implicit joins:</strong> Use explicit JOIN syntax<br>
+                <strong style="color: #60a5fa;">Test with sample data:</strong> Verify results with small datasets
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Multiple JOINs example</span>
+<span class="code-keyword">SELECT</span> 
+    c.CustomerName,
+    o.OrderDate,
+    p.ProductName,
+    od.Quantity,
+    od.UnitPrice
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">INNER JOIN</span> Orders o <span class="code-keyword">ON</span> c.CustomerID = o.CustomerID
+<span class="code-keyword">INNER JOIN</span> OrderDetails od <span class="code-keyword">ON</span> o.OrderID = od.OrderID
+<span class="code-keyword">INNER JOIN</span> Products p <span class="code-keyword">ON</span> od.ProductID = p.ProductID
+<span class="code-keyword">WHERE</span> o.OrderDate >= '2023-01-01';</code>
+        </div>
+        
+        <h2>➕ Set Operations</h2>
+        
+        <h3>UNION, INTERSECT, EXCEPT</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Operation</th>
+                    <th>Syntax</th>
+                    <th>Description</th>
+                    <th>Duplicate Handling</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>UNION</strong></td>
+                <td><code>SELECT ... UNION SELECT ...</code></td>
+                <td>Combine rows from multiple queries</td>
+                <td>Removes duplicates (use UNION ALL for duplicates)</td>
+                </tr>
+                <tr>
+                    <td><strong>INTERSECT</strong></td>
+                <td><code>SELECT ... INTERSECT SELECT ...</code></td>
+                <td>Rows that appear in both result sets</td>
+                <td>Always removes duplicates</td>
+                </tr>
+                <tr>
+                    <td><strong>EXCEPT</strong></td>
+                <td><code>SELECT ... EXCEPT SELECT ...</code></td>
+                <td>Rows in first query but not second</td>
+                <td>Always removes duplicates</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- UNION: Combine different customer sources</span>
+<span class="code-keyword">SELECT</span> CustomerName, Email, 'Online' AS Source
+<span class="code-keyword">FROM</span> OnlineCustomers
+<span class="code-keyword">UNION</span>
+<span class="code-keyword">SELECT</span> CustomerName, Email, 'Store' AS Source
+<span class="code-keyword">FROM</span> StoreCustomers;
+
+<span class="code-comment">-- INTERSECT: Customers who bought both products</span>
+<span class="code-keyword">SELECT</span> CustomerID <span class="code-keyword">FROM</span> Orders <span class="code-keyword">WHERE</span> ProductID = 1
+<span class="code-keyword">INTERSECT</span>
+<span class="code-keyword">SELECT</span> CustomerID <span class="code-keyword">FROM</span> Orders <span class="code-keyword">WHERE</span> ProductID = 2;
+
+<span class="code-comment">-- EXCEPT: Customers who haven't ordered recently</span>
+<span class="code-keyword">SELECT</span> CustomerID <span class="code-keyword">FROM</span> Customers
+<span class="code-keyword">EXCEPT</span>
+<span class="code-keyword">SELECT</span> CustomerID <span class="code-keyword">FROM</span> Orders
+<span class="code-keyword">WHERE</span> OrderDate >= '2023-01-01';</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Set Operation Rules:</strong> All SELECT statements must have same number of columns with compatible data types. 
+            Column names come from first query. ORDER BY can only be used at the end.
+        </div>
+        
+        <h2>🔍 Subqueries</h2>
+        
+        <h3>Types of Subqueries</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Non-Correlated Subqueries</div>
+                <div class="concept-description">
+                    <strong style="color: #60a5fa;">Independent:</strong> Can run separately<br>
+                    <strong style="color: #60a5fa;">Single value:</strong> Returns scalar (use with =, <, >)<br>
+                    <strong style="color: #60a5fa;">Multiple values:</strong> Returns list (use with IN, EXISTS)<br>
+                    <strong style="color: #60a5fa;">Performance:</strong> Usually executed once
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Correlated Subqueries</div>
+                <div class="concept-description">
+                    <strong style="color: #60a5fa;">Dependent:</strong> References outer query columns<br>
+                    <strong style="color: #60a5fa;">Row-by-row:</strong> Executes for each outer row<br>
+                    <strong style="color: #60a5fa;">EXISTS/NOT EXISTS:</strong> Most common pattern<br>
+                    <strong style="color: #60a5fa;">Performance:</strong> Can be slow on large datasets
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Non-correlated: Products above average price</span>
+<span class="code-keyword">SELECT</span> ProductName, Price
+<span class="code-keyword">FROM</span> Products
+<span class="code-keyword">WHERE</span> Price > (<span class="code-keyword">SELECT</span> <span class="code-function">AVG</span>(Price) <span class="code-keyword">FROM</span> Products);
+
+<span class="code-comment">-- Non-correlated with IN: Customers who ordered specific products</span>
+<span class="code-keyword">SELECT</span> CustomerName
+<span class="code-keyword">FROM</span> Customers
+<span class="code-keyword">WHERE</span> CustomerID <span class="code-keyword">IN</span> (
+    <span class="code-keyword">SELECT</span> CustomerID <span class="code-keyword">FROM</span> Orders 
+    <span class="code-keyword">WHERE</span> ProductID <span class="code-keyword">IN</span> (1, 2, 3)
+);
+
+<span class="code-comment">-- Correlated: Customers with orders this year</span>
+<span class="code-keyword">SELECT</span> CustomerName
+<span class="code-keyword">FROM</span> Customers c
+<span class="code-keyword">WHERE</span> <span class="code-keyword">EXISTS</span> (
+    <span class="code-keyword">SELECT</span> 1 <span class="code-keyword">FROM</span> Orders o
+    <span class="code-keyword">WHERE</span> o.CustomerID = c.CustomerID
+    <span class="code-keyword">AND</span> o.OrderDate >= '2023-01-01'
+);
+
+<span class="code-comment">-- Correlated with aggregation</span>
+<span class="code-keyword">SELECT</span> ProductName,
+       (<span class="code-keyword">SELECT</span> <span class="code-function">AVG</span>(od.UnitPrice) 
+        <span class="code-keyword">FROM</span> OrderDetails od 
+        <span class="code-keyword">WHERE</span> od.ProductID = p.ProductID) AS AvgPrice
+<span class="code-keyword">FROM</span> Products p;</code>
+        </div>
+        
+        <h2>📊 Common Table Expressions (CTEs)</h2>
+        
+        <h3>CTE Syntax & Types</h3>
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Non-Recursive CTEs</div>
+                <div class="concept-description">
+                    <strong style="color: #60a5fa;">WITH clause:</strong> Define temporary named result set<br>
+                    <strong style="color: #60a5fa;">Single use:</strong> Available only to next statement<br>
+                    <strong style="color: #60a5fa;">Multiple CTEs:</strong> Chain with commas<br>
+                    <strong style="color: #60a5fa;">Benefits:</strong> Improve readability, enable recursion
+                </div>
+            </div>
+            
+            <div class="concept-box">
+                <div class="concept-title">Recursive CTEs</div>
+                <div class="concept-description">
+                    <strong style="color: #60a5fa;">Anchor member:</strong> Base case (no recursion)<br>
+                    <strong style="color: #60a5fa;">Recursive member:</strong> References CTE itself<br>
+                    <strong style="color: #60a5fa;">Termination:</strong> Stops when no more rows<br>
+                    <strong style="color: #60a5fa;">Use cases:</strong> Hierarchies, graphs, sequences
+                </div>
+            </div>
+        </div>
+        
+        <div class="code-block">
+<code><span class="code-comment">-- Non-recursive CTE: Monthly sales summary</span>
+<span class="code-keyword">WITH</span> MonthlySales AS (
+    <span class="code-keyword">SELECT</span> 
+        <span class="code-function">YEAR</span>(OrderDate) AS OrderYear,
+        <span class="code-function">MONTH</span>(OrderDate) AS OrderMonth,
+        <span class="code-function">SUM</span>(Total) AS MonthlyTotal
+    <span class="code-keyword">FROM</span> Orders
+    <span class="code-keyword">GROUP BY</span> <span class="code-function">YEAR</span>(OrderDate), <span class="code-function">MONTH</span>(OrderDate)
+)
+<span class="code-keyword">SELECT</span> OrderYear, OrderMonth, MonthlyTotal,
+       <span class="code-function">SUM</span>(MonthlyTotal) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> OrderYear, OrderMonth) AS RunningTotal
+<span class="code-keyword">FROM</span> MonthlySales
+<span class="code-keyword">ORDER BY</span> OrderYear, OrderMonth;
+
+<span class="code-comment">-- Recursive CTE: Employee hierarchy</span>
+<span class="code-keyword">WITH</span> EmployeeHierarchy AS (
+    <span class="code-comment">-- Anchor: Top-level employees</span>
+    <span class="code-keyword">SELECT</span> EmployeeID, ManagerID, EmployeeName, 0 AS Level
+    <span class="code-keyword">FROM</span> Employees
+    <span class="code-keyword">WHERE</span> ManagerID <span class="code-keyword">IS NULL</span>
+    
+    <span class="code-keyword">UNION ALL</span>
+    
+    <span class="code-comment">-- Recursive: Reportees</span>
+    <span class="code-keyword">SELECT</span> e.EmployeeID, e.ManagerID, e.EmployeeName, eh.Level + 1
+    <span class="code-keyword">FROM</span> Employees e
+    <span class="code-keyword">INNER JOIN</span> EmployeeHierarchy eh <span class="code-keyword">ON</span> e.ManagerID = eh.EmployeeID
+)
+<span class="code-keyword">SELECT</span> <span class="code-function">REPLICATE</span>('  ', Level) + EmployeeName AS IndentedName, Level
+<span class="code-keyword">FROM</span> EmployeeHierarchy
+<span class="code-keyword">ORDER BY</span> Level, EmployeeName;</code>
+        </div>
+        
+        <div class="info-box">
+            <strong>💡 CTE Best Practices:</strong> Use for complex queries needing intermediate results. Recursive CTEs require proper termination to avoid infinite loops. 
+            Maximum recursion level defaults to 100 (change with OPTION (MAXRECURSION n)).
+        </div>
+        
+        <div class="info-box">
+            <strong>⚠️ Performance Notes:</strong> Correlated subqueries can be slow - consider JOIN alternatives. CTEs are not materialized (unlike temp tables). 
+            Always check execution plans for optimization opportunities.
+        </div>
+        
+        <h2>📊 Comparison: Query Techniques</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Technique</th>
+                    <th>SQL Server</th>
+                    <th>PostgreSQL</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>FULL OUTER JOIN</strong></td>
+                    <td>FULL OUTER JOIN</td>
+                    <td>FULL OUTER JOIN</td>
+                </tr>
+                <tr>
+                    <td><strong>Set operations</strong></td>
+                    <td>UNION, INTERSECT, EXCEPT</td>
+                    <td>UNION, INTERSECT, EXCEPT</td>
+                </tr>
+                <tr>
+                    <td><strong>Recursive queries</strong></td>
+                    <td>Recursive CTEs</td>
+                    <td>Recursive CTEs or WITH RECURSIVE</td>
+                </tr>
+                <tr>
+                    <td><strong>CTE syntax</strong></td>
+                    <td>WITH cte_name AS (...)</td>
+                    <td>WITH cte_name AS (...)</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="checklist">
+            <h3>✅ Module Checklist</h3>
+            <ul>
+                <li>Write INNER, LEFT, RIGHT, FULL OUTER, and CROSS JOINs</li>
+                <li>Understand when to use different JOIN types</li>
+                <li>Combine multiple JOINs in complex queries</li>
+                <li>Use UNION and UNION ALL to combine result sets</li>
+                <li>Apply INTERSECT and EXCEPT for set operations</li>
+                <li>Write non-correlated subqueries with single/multiple values</li>
+                <li>Use correlated subqueries with EXISTS/NOT EXISTS</li>
+                <li>Implement subqueries in SELECT, FROM, and WHERE clauses</li>
+                <li>Create and use non-recursive CTEs for query readability</li>
+                <li>Write recursive CTEs for hierarchical data</li>
+                <li>Avoid infinite recursion in recursive CTEs</li>
+                <li>Choose between JOINs, subqueries, and CTEs for performance</li>
+                <li>Understand execution plans for complex queries</li>
+                <li>Use set operations with proper column matching</li>
+                <li>Handle NULLs appropriately in JOIN conditions</li>
+                <li>Optimize queries by indexing JOIN columns</li>
+                <li>Test complex queries with sample data first</li>
+                <li>Document complex query logic for maintenance</li>
+            </ul>
+        </div>
+        
+        <div class="exercises">
+            <h3>🧪 Practice Exercises</h3>
+            <ol style="color: #cbd5e1;">
+                <li><strong>JOIN Mastery:</strong> Create a query that shows all customers, their orders (if any), order details, and product information using appropriate JOINs. Include customers who haven't ordered anything.</li>
+                <li><strong>Set Operations:</strong> Use UNION to combine active and inactive customers from separate tables. Use INTERSECT to find customers who bought both electronics and clothing. Use EXCEPT to find products never ordered.</li>
+                <li><strong>Subquery Scenarios:</strong> Write a query to find products with above-average sales using a subquery. Use EXISTS to find customers who have placed orders in the last month. Create a correlated subquery to show each product's rank within its category.</li>
+                <li><strong>CTE Applications:</strong> Use a CTE to calculate running totals of monthly sales. Implement a recursive CTE to display a product category hierarchy. Create multiple CTEs to break down a complex sales analysis query.</li>
+                <li><strong>Performance Comparison:</strong> Rewrite a correlated subquery as a JOIN and compare execution plans. Optimize a recursive CTE by adding proper indexes and termination conditions.</li>
+            </ol>
+        </div>
+        
+        <div class="navigation">
+            <a href="modules/03-crud-filtering-sorting.html" class="nav-btn">← Previous: CRUD + Filtering + Sorting</a>
+            <a href="index.html" class="nav-btn">Back to Index</a>
+            <a href="modules/05-aggregation-window-functions.html" class="nav-btn">Next: Aggregation & Window Functions →</a>
+        </div>
+    </div>
+</body>
+</html>
