@@ -290,29 +290,35 @@
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- Example: Get orders with customer names</span>
-          <span class="code-keyword">SELECT</span> 
-            o.order_id,
-            c.customer_id,
-            c.email,
-            o.order_date,
-            o.total_amount
-          <span class="code-keyword">FROM</span> orders o
-          <span class="code-keyword">INNER JOIN</span> customers c <span class="code-keyword">ON</span> o.customer_id = c.customer_id;
+<span class="code-comment">-- Example: Get orders with customer names</span>
+<span class="code-keyword">SELECT</span> 
+    o.order_id,
+    c.customer_id,
+    c.email,
+    o.order_date,
+    o.total_amount
+<span class="code-keyword">FROM</span> 
+    orders o
+<span class="code-keyword">INNER JOIN</span> 
+    customers c <span class="code-keyword">ON</span> o.customer_id = c.customer_id;
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- Multiple joins</span>
-          <span class="code-keyword">SELECT</span> 
-            o.order_id,
-            c.email,
-            p.product_name,
-            oi.quantity,
-            oi.unit_price
-          <span class="code-keyword">FROM</span> orders o
-          <span class="code-keyword">INNER JOIN</span> customers c <span class="code-keyword">ON</span> o.customer_id = c.customer_id
-          <span class="code-keyword">INNER JOIN</span> order_items oi <span class="code-keyword">ON</span> o.order_id = oi.order_id
-          <span class="code-keyword">INNER JOIN</span> products p <span class="code-keyword">ON</span> oi.product_id = p.product_id;
+<span class="code-comment">-- Multiple joins (formatted for clarity)</span>
+<span class="code-keyword">SELECT</span> 
+    o.order_id,
+    c.email,
+    p.product_name,
+    oi.quantity,
+    oi.unit_price
+<span class="code-keyword">FROM</span> 
+    orders o
+<span class="code-keyword">INNER JOIN</span> 
+    customers c <span class="code-keyword">ON</span> o.customer_id = c.customer_id
+<span class="code-keyword">INNER JOIN</span> 
+    order_items oi <span class="code-keyword">ON</span> o.order_id = oi.order_id
+<span class="code-keyword">INNER JOIN</span> 
+    products p <span class="code-keyword">ON</span> oi.product_id = p.product_id;
         </div>
 
         <div class="tip-box">
@@ -331,27 +337,34 @@
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- Find customers who have never placed an order</span>
-          <span class="code-keyword">SELECT</span> 
-            c.customer_id,
-            c.email,
-            o.order_id,
-            o.order_date
-          <span class="code-keyword">FROM</span> customers c
-          <span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id
-          <span class="code-keyword">WHERE</span> o.order_id <span class="code-keyword">IS NULL</span>;
+<span class="code-comment">-- Find customers who have never placed an order</span>
+<span class="code-keyword">SELECT</span> 
+    c.customer_id,
+    c.email,
+    o.order_id,
+    o.order_date
+<span class="code-keyword">FROM</span> 
+    customers c
+<span class="code-keyword">LEFT JOIN</span> 
+    orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id
+<span class="code-keyword">WHERE</span> 
+    o.order_id <span class="code-keyword">IS NULL</span>;
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- Count orders per customer (including those with no orders)</span>
-          <span class="code-keyword">SELECT</span> 
-            c.customer_id,
-            c.email,
-            <span class="code-keyword">COUNT</span>(o.order_id) <span class="code-keyword">as</span> total_orders
-          <span class="code-keyword">FROM</span> customers c
-          <span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id
-          <span class="code-keyword">GROUP BY</span> c.customer_id, c.email
-          <span class="code-keyword">ORDER BY</span> total_orders <span class="code-keyword">DESC</span>;
+<span class="code-comment">-- Count orders per customer (including those with no orders)</span>
+<span class="code-keyword">SELECT</span> 
+    c.customer_id,
+    c.email,
+    <span class="code-keyword">COUNT</span>(o.order_id) <span class="code-keyword">as</span> total_orders
+<span class="code-keyword">FROM</span> 
+    customers c
+<span class="code-keyword">LEFT JOIN</span> 
+    orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id
+<span class="code-keyword">GROUP BY</span> 
+    c.customer_id, c.email
+<span class="code-keyword">ORDER BY</span> 
+    total_orders <span class="code-keyword">DESC</span>;
         </div>
 
         <div class="info-box">
@@ -369,41 +382,50 @@
         </div>
         
         <div class="code-block">
-          <span class="code-comment">-- Find products that haven't been ordered yet</span>
-          <span class="code-keyword">SELECT</span> 
-            p.product_id,
-            p.product_name,
-            oi.order_item_id
-          <span class="code-keyword">FROM</span> order_items oi
-          <span class="code-keyword">RIGHT JOIN</span> products p <span class="code-keyword">ON</span> oi.product_id = p.product_id
-          <span class="code-keyword">WHERE</span> oi.order_item_id <span class="code-keyword">IS NULL</span>;
+<span class="code-comment">-- Find products that haven't been ordered yet</span>
+<span class="code-keyword">SELECT</span> 
+    p.product_id,
+    p.product_name,
+    oi.order_item_id
+<span class="code-keyword">FROM</span> 
+    order_items oi
+<span class="code-keyword">RIGHT JOIN</span> 
+    products p <span class="code-keyword">ON</span> oi.product_id = p.product_id
+<span class="code-keyword">WHERE</span> 
+    oi.order_item_id <span class="code-keyword">IS NULL</span>;
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- MySQL doesn't support FULL JOIN natively, use UNION instead</span>
-          <span class="code-keyword">SELECT</span> 
-            c.customer_id,
-            c.email,
-            o.order_id
-          <span class="code-keyword">FROM</span> customers c
-          <span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id
-          <span class="code-keyword">UNION</span>
-          <span class="code-keyword">SELECT</span> 
-            c.customer_id,
-            c.email,
-            o.order_id
-          <span class="code-keyword">FROM</span> customers c
-          <span class="code-keyword">RIGHT JOIN</span> orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id;
+<span class="code-comment">-- MySQL doesn't support FULL JOIN natively, use UNION instead</span>
+<span class="code-keyword">SELECT</span> 
+    c.customer_id,
+    c.email,
+    o.order_id
+<span class="code-keyword">FROM</span> 
+    customers c
+<span class="code-keyword">LEFT JOIN</span> 
+    orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id
+<span class="code-keyword">UNION</span>
+<span class="code-keyword">SELECT</span> 
+    c.customer_id,
+    c.email,
+    o.order_id
+<span class="code-keyword">FROM</span> 
+    customers c
+<span class="code-keyword">RIGHT JOIN</span> 
+    orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id;
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- CROSS JOIN: Generate all combinations (use cautiously)</span>
-          <span class="code-keyword">SELECT</span> 
-            p.product_id,
-            c.category_id
-          <span class="code-keyword">FROM</span> products p
-          <span class="code-keyword">CROSS JOIN</span> categories c
-          <span class="code-keyword">LIMIT</span> <span class="code-number">100</span>;
+<span class="code-comment">-- CROSS JOIN: Generate all combinations (use cautiously)</span>
+<span class="code-keyword">SELECT</span> 
+    p.product_id,
+    c.category_id
+<span class="code-keyword">FROM</span> 
+    products p
+<span class="code-keyword">CROSS JOIN</span> 
+    categories c
+<span class="code-keyword">LIMIT</span> <span class="code-number">100</span>;
         </div>
 
         <div class="warning-box">
@@ -422,25 +444,30 @@
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- Find employees and their managers</span>
-          <span class="code-keyword">SELECT</span> 
-            e.employee_id,
-            e.employee_name,
-            m.employee_id <span class="code-keyword">as</span> manager_id,
-            m.employee_name <span class="code-keyword">as</span> manager_name
-          <span class="code-keyword">FROM</span> employees e
-          <span class="code-keyword">LEFT JOIN</span> employees m <span class="code-keyword">ON</span> e.manager_id = m.employee_id;
+<span class="code-comment">-- Find employees and their managers</span>
+<span class="code-keyword">SELECT</span> 
+    e.employee_id,
+    e.employee_name,
+    m.employee_id <span class="code-keyword">as</span> manager_id,
+    m.employee_name <span class="code-keyword">as</span> manager_name
+<span class="code-keyword">FROM</span> 
+    employees e
+<span class="code-keyword">LEFT JOIN</span> 
+    employees m <span class="code-keyword">ON</span> e.manager_id = m.employee_id;
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- Find products with similar names</span>
-          <span class="code-keyword">SELECT</span> 
-            a.product_id <span class="code-keyword">as</span> product_a,
-            b.product_id <span class="code-keyword">as</span> product_b,
-            a.product_name
-          <span class="code-keyword">FROM</span> products a
-          <span class="code-keyword">JOIN</span> products b <span class="code-keyword">ON</span> a.product_name = b.product_name
-          <span class="code-keyword">WHERE</span> a.product_id < b.product_id;
+<span class="code-comment">-- Find products with similar names</span>
+<span class="code-keyword">SELECT</span> 
+    a.product_id <span class="code-keyword">as</span> product_a,
+    b.product_id <span class="code-keyword">as</span> product_b,
+    a.product_name
+<span class="code-keyword">FROM</span> 
+    products a
+<span class="code-keyword">JOIN</span> 
+    products b <span class="code-keyword">ON</span> a.product_name = b.product_name
+<span class="code-keyword">WHERE</span> 
+    a.product_id < b.product_id;
         </div>
 
         <div class="tip-box">
@@ -470,19 +497,22 @@
 
         <div class="section-title">Correlated Subquery (References Outer Query)</div>
         <div class="code-block">
-          <span class="code-comment">-- For each customer, find their most recent order</span>
-          <span class="code-keyword">SELECT</span> 
-            c.customer_id,
-            c.email,
-            o.order_id,
-            o.order_date
-          <span class="code-keyword">FROM</span> customers c
-          <span class="code-keyword">JOIN</span> orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id
-          <span class="code-keyword">WHERE</span> o.order_date = (
-            <span class="code-keyword">SELECT MAX</span>(order_date)
-            <span class="code-keyword">FROM</span> orders o2
-            <span class="code-keyword">WHERE</span> o2.customer_id = c.customer_id
-          );
+<span class="code-comment">-- For each customer, find their most recent order</span>
+<span class="code-keyword">SELECT</span> 
+    c.customer_id,
+    c.email,
+    o.order_id,
+    o.order_date
+<span class="code-keyword">FROM</span> 
+    customers c
+<span class="code-keyword">JOIN</span> 
+    orders o <span class="code-keyword">ON</span> c.customer_id = o.customer_id
+<span class="code-keyword">WHERE</span> 
+    o.order_date = (
+        <span class="code-keyword">SELECT MAX</span>(order_date)
+        <span class="code-keyword">FROM</span> orders o2
+        <span class="code-keyword">WHERE</span> o2.customer_id = c.customer_id
+    );
         </div>
 
         <div class="info-box">
@@ -499,40 +529,45 @@
         </div>
         
         <div class="code-block">
-          <span class="code-comment">-- Find products that have been ordered</span>
-          <span class="code-keyword">SELECT</span> 
-            product_id,
-            product_name
-          <span class="code-keyword">FROM</span> products
-          <span class="code-keyword">WHERE</span> product_id <span class="code-keyword">IN</span> (
-            <span class="code-keyword">SELECT DISTINCT</span> product_id
-            <span class="code-keyword">FROM</span> order_items
-          );
+<span class="code-comment">-- Find products that have been ordered</span>
+<span class="code-keyword">SELECT</span> 
+    product_id,
+    product_name
+<span class="code-keyword">FROM</span> 
+    products
+<span class="code-keyword">WHERE</span> 
+    product_id <span class="code-keyword">IN</span> (
+        <span class="code-keyword">SELECT DISTINCT</span> product_id
+        <span class="code-keyword">FROM</span> order_items
+    );
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- Alternative using EXISTS</span>
-          <span class="code-keyword">SELECT</span> 
-            product_id,
-            product_name
-          <span class="code-keyword">FROM</span> products p
-          <span class="code-keyword">WHERE EXISTS</span> (
-            <span class="code-keyword">SELECT</span> <span class="code-number">1</span>
-            <span class="code-keyword">FROM</span> order_items oi
-            <span class="code-keyword">WHERE</span> oi.product_id = p.product_id
-          );
+<span class="code-comment">-- Alternative using EXISTS</span>
+<span class="code-keyword">SELECT</span> 
+    product_id,
+    product_name
+<span class="code-keyword">FROM</span> 
+    products p
+<span class="code-keyword">WHERE EXISTS</span> (
+    <span class="code-keyword">SELECT</span> <span class="code-number">1</span>
+    <span class="code-keyword">FROM</span> order_items oi
+    <span class="code-keyword">WHERE</span> oi.product_id = p.product_id
+);
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- Find products never ordered</span>
-          <span class="code-keyword">SELECT</span> 
-            product_id,
-            product_name
-          <span class="code-keyword">FROM</span> products
-          <span class="code-keyword">WHERE</span> product_id <span class="code-keyword">NOT IN</span> (
-            <span class="code-keyword">SELECT DISTINCT</span> product_id
-            <span class="code-keyword">FROM</span> order_items
-          );
+<span class="code-comment">-- Find products never ordered</span>
+<span class="code-keyword">SELECT</span> 
+    product_id,
+    product_name
+<span class="code-keyword">FROM</span> 
+    products
+<span class="code-keyword">WHERE</span> 
+    product_id <span class="code-keyword">NOT IN</span> (
+        <span class="code-keyword">SELECT DISTINCT</span> product_id
+        <span class="code-keyword">FROM</span> order_items
+    );
         </div>
 
         <div class="tip-box">
@@ -555,22 +590,22 @@
 
         <div class="section-title">Simple CTE</div>
         <div class="code-block">
-          <span class="code-keyword">WITH</span> high_value_orders <span class="code-keyword">AS</span> (
-            <span class="code-keyword">SELECT</span> 
-              order_id,
-              customer_id,
-              total_amount,
-              order_date
-            <span class="code-keyword">FROM</span> orders
-            <span class="code-keyword">WHERE</span> total_amount > <span class="code-number">1000</span>
-          )
-          <span class="code-keyword">SELECT</span> 
-            hvo.order_id,
-            c.email,
-            hvo.total_amount
-          <span class="code-keyword">FROM</span> high_value_orders hvo
-          <span class="code-keyword">JOIN</span> customers c <span class="code-keyword">ON</span> hvo.customer_id = c.customer_id
-          <span class="code-keyword">ORDER BY</span> hvo.total_amount <span class="code-keyword">DESC</span>;
+<span class="code-keyword">WITH</span> high_value_orders <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> 
+        order_id,
+        customer_id,
+        total_amount,
+        order_date
+    <span class="code-keyword">FROM</span> orders
+    <span class="code-keyword">WHERE</span> total_amount > <span class="code-number">1000</span>
+)
+<span class="code-keyword">SELECT</span> 
+    hvo.order_id,
+    c.email,
+    hvo.total_amount
+<span class="code-keyword">FROM</span> high_value_orders hvo
+<span class="code-keyword">JOIN</span> customers c <span class="code-keyword">ON</span> hvo.customer_id = c.customer_id
+<span class="code-keyword">ORDER BY</span> hvo.total_amount <span class="code-keyword">DESC</span>;
         </div>
 
         <div class="section-title">Multiple CTEs</div>

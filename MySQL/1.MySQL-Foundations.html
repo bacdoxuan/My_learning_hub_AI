@@ -82,13 +82,22 @@
     .code-block {
       background: #0d1117;
       border-radius: 8px;
-      padding: 15px;
-      margin: 10px 0;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 0.85em;
+      padding: 20px;
+      margin: 15px 0;
+      font-family: 'Consolas', 'Monaco', 'Fira Code', monospace;
+      font-size: 0.9em;
+      line-height: 1.6;
       overflow-x: auto;
-      border-left: 3px solid #38ef7d;
+      border-left: 4px solid #38ef7d;
+      white-space: pre;
     }
+    .sql-clause {
+      display: block;
+      margin: 8px 0;
+    }
+    .sql-indent-1 { margin-left: 20px; }
+    .sql-indent-2 { margin-left: 40px; }
+    .sql-indent-3 { margin-left: 60px; }
     .code-comment {
       color: #6a737d;
     }
@@ -514,11 +523,12 @@
         </div>
 
         <div class="code-block">
-          <span class="code-comment">-- Multiple rows insert</span>
-          <span class="code-keyword">INSERT INTO</span> employees (employee_id, first_name, last_name, salary, hire_date)
-          <span class="code-keyword">VALUES</span> 
-            (<span class="code-number">2</span>, <span class="code-string">'Jane'</span>, <span class="code-string">'Smith'</span>, <span class="code-number">82000</span>, <span class="code-string">'2024-02-01'</span>),
-            (<span class="code-number">3</span>, <span class="code-string">'Bob'</span>, <span class="code-string">'Johnson'</span>, <span class="code-number">68000</span>, <span class="code-string">'2024-02-15'</span>);
+<span class="code-comment">-- Multiple rows insert (formatted for readability)</span>
+<span class="code-keyword">INSERT INTO</span> employees 
+    (employee_id, first_name, last_name, salary, hire_date)
+<span class="code-keyword">VALUES</span> 
+    (<span class="code-number">2</span>, <span class="code-string">'Jane'</span>,  <span class="code-string">'Smith'</span>,  <span class="code-number">82000</span>, <span class="code-string">'2024-02-01'</span>),
+    (<span class="code-number">3</span>, <span class="code-string">'Bob'</span>,   <span class="code-string">'Johnson'</span>, <span class="code-number">68000</span>, <span class="code-string">'2024-02-15'</span>);
         </div>
 
         <div class="code-block">

@@ -82,13 +82,22 @@
     .code-block {
       background: #0d1117;
       border-radius: 8px;
-      padding: 15px;
-      margin: 10px 0;
-      font-family: 'Consolas', 'Monaco', monospace;
-      font-size: 0.85em;
+      padding: 20px;
+      margin: 15px 0;
+      font-family: 'Consolas', 'Monaco', 'Fira Code', monospace;
+      font-size: 0.9em;
+      line-height: 1.6;
       overflow-x: auto;
-      border-left: 3px solid #764ba2;
+      border-left: 4px solid #764ba2;
+      white-space: pre;
     }
+    .sql-clause {
+      display: block;
+      margin: 8px 0;
+    }
+    .sql-indent-1 { margin-left: 20px; }
+    .sql-indent-2 { margin-left: 40px; }
+    .sql-indent-3 { margin-left: 60px; }
     .code-comment {
       color: #6a737d;
     }
@@ -606,11 +615,12 @@
             order_id <span class="code-keyword">INT NOT NULL</span>,
             product_id <span class="code-keyword">INT NOT NULL</span>,
             quantity <span class="code-keyword">INT</span>,
+            <span class="code-comment">-- Foreign key constraints with referential actions</span>
             <span class="code-keyword">FOREIGN KEY</span> (order_id) <span class="code-keyword">REFERENCES</span> orders(order_id) 
-              <span class="code-keyword">ON DELETE CASCADE</span>  <span class="code-comment">-- Delete items when order is deleted</span>
-              <span class="code-keyword">ON UPDATE CASCADE</span>,
+                <span class="code-keyword">ON DELETE CASCADE</span>  <span class="code-comment">-- Delete items when order is deleted</span>
+                <span class="code-keyword">ON UPDATE CASCADE</span>,
             <span class="code-keyword">FOREIGN KEY</span> (product_id) <span class="code-keyword">REFERENCES</span> products(product_id)
-              <span class="code-keyword">ON DELETE RESTRICT</span> <span class="code-comment">-- Prevent product deletion if items exist</span>
+                <span class="code-keyword">ON DELETE RESTRICT</span> <span class="code-comment">-- Prevent product deletion if items exist</span>
           );
         </div>
 
