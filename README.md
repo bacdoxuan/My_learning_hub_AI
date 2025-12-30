@@ -2,7 +2,7 @@
 
 Chào mừng đến với **Database Knowledge Hub** - kho tàng kiến thức toàn diện về các công nghệ cơ sở dữ liệu phổ biến nhất hiện nay.
 
-Dự án này tổng hợp các cheat sheets, bài học, và tài liệu tham khảo từ cơ bản đến nâng cao cho Firestore, MongoDB, MySQL, PostgreSQL, SQL Server, và SQLite.
+Dự án này tổng hợp các cheat sheets, bài học, và tài liệu tham khảo từ cơ bản đến nâng cao cho Firestore, MongoDB, MySQL, PostgreSQL, SQL Server, SQLite, và Oracle.
 
 ## 📚 Nội Dung Chính
 
@@ -37,6 +37,11 @@ Dự án được chia thành các thư mục riêng biệt cho từng công ngh
 
 - **Modules**: Foundations, Transactions, FTS5, JSON support.
 - **Đặc điểm**: Serverless, Zero-configuration, Embedded database.
+
+### 🏛️ [Oracle](Oracle/index.html)
+
+- **Modules**: PL/SQL Programming, Advanced Security, High Availability, Partitioning, Multitenant Architecture.
+- **Đặc điểm**: Enterprise-grade RDBMS với advanced security, high availability, và comprehensive toolset for large-scale applications.
 
 ## 🌐 Deployment (Cloudflare Pages)
 
