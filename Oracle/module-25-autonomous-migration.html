@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 25: Autonomous Database & Cloud Migration</title>
+    <style>
+        :root {
+            --primary-color: #00a651;
+            --secondary-color: #008c3a;
+            --accent-color: #007e2f;
+            --bg-light: #f5f7fa;
+            --bg-dark: #1a1a1a;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+            --border-color: #ddd;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 166, 81, 0.2);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.95;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--bg-light);
+            padding: 2rem 1rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .sidebar {
+            background: #2a2a2a;
+            border-right-color: #444;
+        }
+
+        .sidebar h3 {
+            color: var(--primary-color);
+            margin: 1rem 0 0.5rem 0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin: 0.3rem 0;
+        }
+
+        .sidebar a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            display: block;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .sidebar a {
+            color: var(--text-dark);
+        }
+
+        .sidebar a:hover {
+            background: var(--primary-color);
+            color: white;
+            padding-left: 1rem;
+        }
+
+        .theme-toggle {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--secondary-color);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode section {
+            background: #2a2a2a;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.8rem;
+            text-align: left;
+        }
+
+        td {
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        body.dark-mode td {
+            border-bottom-color: #444;
+        }
+
+        tr:nth-child(even) {
+            background: var(--bg-light);
+        }
+
+        body.dark-mode tr:nth-child(even) {
+            background: #333;
+        }
+
+        .code-block {
+            background: #f4f4f4;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .keyword {
+            color: #0078d4;
+            font-weight: bold;
+        }
+
+        .string {
+            color: #d14;
+        }
+
+        .number {
+            color: #098658;
+        }
+
+        .comment {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .property {
+            color: #d14;
+        }
+
+        .function {
+            color: #6f42c1;
+        }
+
+        body.dark-mode .code-block {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .stat-card-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        ul,
+        ol {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        .highlight {
+            background: #d4edda;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
+        body.dark-mode .highlight {
+            background: #1e3a1f;
+            color: #90ee90;
+        }
+
+        .checklist {
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        body.dark-mode .checklist {
+            background: #333;
+        }
+
+        .checklist h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .checklist-item {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .checklist-item input {
+            margin-right: 0.8rem;
+            cursor: pointer;
+        }
+
+        footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid var(--success);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        body.dark-mode .tip {
+            background: #1e3a1f;
+            border-left-color: #28a745;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        body.dark-mode .warning {
+            background: #332701;
+            border-left-color: #ffc107;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th,
+            td {
+                padding: 0.6rem;
+            }
+        }
+
+        .module-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .module-link {
+            display: block;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .module-link:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .module-link.active {
+            background: white;
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer Grid */
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            text-align: left;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-section h4 {
+            color: white;
+            margin-bottom: 1.2rem;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            display: inline-block;
+        }
+
+        .footer-section a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .module-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .footer-section h4 {
+                border-bottom: none;
+                margin-top: 1rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .module-links {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🔄 Module 25: Autonomous Database & Cloud Migration</h1>
+        <p>Master Autonomous Operations and Zero-Downtime Migration Strategies</p>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+            <h3>Topics</h3>
+            <ul>
+                <li><a href="#autonomous-overview">Autonomous DB</a></li>
+                <li><a href="#auto-operations">Auto Operations</a></li>
+                <li><a href="#migration-planning">Migration Planning</a></li>
+                <li><a href="#data-pump">Data Pump</a></li>
+                <li><a href="#goldengate">GoldenGate</a></li>
+                <li><a href="#validation">Validation & Tuning</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+            </ul>
+        </aside>
+
+        <main>
+            <section id="autonomous-overview">
+                <h2>🤖 Autonomous Database Overview</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Auto Patching</div>
+                        <div class="stat-card-number">100%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Downtime</div>
+                        <div class="stat-card-number">~0s</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Backup</div>
+                        <div class="stat-card-number">Auto</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Recovery</div>
+                        <div class="stat-card-number">35 days</div>
+                    </div>
+                </div>
+
+                <h3>Autonomous Database Services</h3>
+                <table>
+                    <tr>
+                        <th>Service</th>
+                        <th>Use Case</th>
+                        <th>Workload Type</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Autonomous Transaction Processing (ATP)</strong></td>
+                        <td>OLTP applications, real-time processing</td>
+                        <td>Mixed workload (TP + Analytics)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Autonomous Data Warehouse (ADW)</strong></td>
+                        <td>Analytics, reporting, data science</td>
+                        <td>Analytical (BI, Data Mining)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Autonomous JSON Database</strong></td>
+                        <td>Document storage, flexible schema</td>
+                        <td>NoSQL (JSON, key-value)</td>
+                    </tr>
+                </table>
+
+                <h3>Key Features</h3>
+                <ul>
+                    <li><span class="highlight">Self-Driving</span>: Auto-indexing, auto-tuning, auto-maintenance</li>
+                    <li><span class="highlight">Self-Securing</span>: Encryption, patching, compliance</li>
+                    <li><span class="highlight">Self-Repairing</span>: High availability, fault tolerance</li>
+                    <li><span class="highlight">Always Available</span>: 99.995% uptime SLA</li>
+                </ul>
+            </section>
+
+            <section id="auto-operations">
+                <h2>⚡ Autonomous Operations & Features</h2>
+
+                <h3>Auto-Scaling</h3>
+                <div class="code-block">
+                    <pre><code><span class="property">CPU Auto-Scaling:</span>
+-- <span class="comment">Monitor CPU consumption</span>
+-- <span class="comment">Automatically scale up/down</span>
+-- <span class="comment">No manual intervention needed</span>
+-- <span class="comment">Scaling within subscription limits</span>
+
+<span class="property">Example:</span> <span class="number">4</span> OCPUs → Auto-scales to <span class="number">16</span> OCPUs during peak
+<span class="property">During off-peak</span> → Scales back to <span class="number">4</span> OCPUs</code></pre>
+                </div>
+
+                <h3>Auto-Indexing</h3>
+                <ul>
+                    <li>Machine learning analyzes query patterns</li>
+                    <li>Automatically creates beneficial indexes</li>
+                    <li>Removes unused indexes</li>
+                    <li>Maintenance happens during low-traffic periods</li>
+                </ul>
+
+                <h3>Auto-Tuning</h3>
+                <table>
+                    <tr>
+                        <th>Component</th>
+                        <th>Action</th>
+                        <th>Benefit</th>
+                    </tr>
+                    <tr>
+                        <td>SQL Statements</td>
+                        <td>Automatic SQL tuning</td>
+                        <td>5-20% performance improvement</td>
+                    </tr>
+                    <tr>
+                        <td>Memory</td>
+                        <td>PGA/SGA auto-sizing</td>
+                        <td>Optimal resource utilization</td>
+                    </tr>
+                    <tr>
+                        <td>Execution Plans</td>
+                        <td>Plan management</td>
+                        <td>Consistent query performance</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="migration-planning">
+                <h2>📋 Cloud Migration Planning</h2>
+
+                <h3>Migration Phases</h3>
+                <div class="code-block">
+                    <pre><code><span class="keyword">Phase 1: Assessment & Planning</span>
+├── Inventory existing databases
+├── Identify dependencies
+├── Performance baseline
+└── Estimate effort & timeline
+
+<span class="keyword">Phase 2: Design & Preparation</span>
+├── Target architecture design
+├── Network connectivity planning
+├── Security & compliance review
+└── Capacity planning
+
+<span class="keyword">Phase 3: Migration & Testing</span>
+├── Create target Autonomous DB
+├── Data migration execution
+├── Validation & reconciliation
+└── Performance testing
+
+<span class="keyword">Phase 4: Cutover & Optimization</span>
+├── Final data sync
+├── Application cutover
+├── Performance tuning
+└── Production support</code></pre>
+                </div>
+
+                <h3>Pre-Migration Checklist</h3>
+                <div class="checklist">
+                    <h4>✓ Assessment Items</h4>
+                    <div class="checklist-item"><input type="checkbox"> Database size and growth rate</div>
+                    <div class="checklist-item"><input type="checkbox"> Application dependencies</div>
+                    <div class="checklist-item"><input type="checkbox"> Custom code and scripts</div>
+                    <div class="checklist-item"><input type="checkbox"> Scheduled jobs and workflows</div>
+                    <div class="checklist-item"><input type="checkbox"> Third-party integrations</div>
+                    <div class="checklist-item"><input type="checkbox"> Security requirements</div>
+                </div>
+            </section>
+
+            <section id="data-pump">
+                <h2>📦 Oracle Data Pump</h2>
+
+                <h3>Data Pump Export/Import</h3>
+                <table>
+                    <tr>
+                        <th>Method</th>
+                        <th>Speed</th>
+                        <th>Use Case</th>
+                        <th>Downtime</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Export/Import</strong></td>
+                        <td>Slow (1-50 GB/hr)</td>
+                        <td>Small databases, specific objects</td>
+                        <td>High (hours)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Data Pump Parallel</strong></td>
+                        <td>Fast (50-500 GB/hr)</td>
+                        <td>Medium databases, schema migration</td>
+                        <td>Medium</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Data Pump + Network</strong></td>
+                        <td>Very Fast (100+ GB/hr)</td>
+                        <td>Cloud migrations, large databases</td>
+                        <td>Minimal</td>
+                    </tr>
+                </table>
+
+                <h3>Data Pump Command Examples</h3>
+                <div class="code-block">
+                    <pre><code><span class="comment">-- Full database export</span>
+<span class="keyword">expdp</span> system/password@orcl <span class="property">DUMPFILE</span>=full.dmp <span class="property">LOGFILE</span>=full.log <span class="property">FULL</span>=Y <span class="property">PARALLEL</span>=4
+
+<span class="comment">-- Schema export</span>
+<span class="keyword">expdp</span> system/password@orcl <span class="property">DUMPFILE</span>=schema.dmp <span class="property">SCHEMAS</span>=hr,oe <span class="property">PARALLEL</span>=4
+
+<span class="comment">-- Import data</span>
+<span class="keyword">impdp</span> system/password@orcl <span class="property">DUMPFILE</span>=full.dmp <span class="property">LOGFILE</span>=import.log <span class="property">PARALLEL</span>=4
+
+<span class="comment">-- Network export (to cloud)</span>
+<span class="keyword">expdp</span> system/password@orcl <span class="property">DUMPFILE</span>=cloud.dmp <span class="property">NETWORK_LINK</span>=to_adb <span class="property">PARALLEL</span>=8</code></pre>
+                </div>
+            </section>
+
+            <section id="goldengate">
+                <h2>✨ Oracle GoldenGate Replication</h2>
+
+                <h3>GoldenGate Architecture</h3>
+                <div class="code-block">
+                    <pre><code>Source Database → <span class="function">Extract Process</span> → Trail File → <span class="function">Pump Process</span> → Network
+↓
+<span class="function">Replicat Process</span> ← Trail File ← Target Database
+
+<span class="property">Components:</span>
+- <span class="function">Extract</span>: Captures source database transactions
+- <span class="function">Pump</span>: Transmits data over network
+- <span class="function">Replicat</span>: Applies transactions to target
+- <span class="property">Trail</span>: Binary transaction log</code></pre>
+                </div>
+
+                <h3>GoldenGate GGSCI Commands</h3>
+                <div class="code-block">
+                    <pre><code><span class="comment">-- Create Extract (source capture)</span>
+<span class="keyword">ADD EXTRACT</span> ex01, TRANLOG, <span class="keyword">BEGIN NOW</span>
+<span class="keyword">ADD EXTTRAIL</span> ./dirdat/et <span class="keyword">EXTRACT</span> ex01
+
+<span class="comment">-- Create Replicat (target apply)</span>
+<span class="keyword">ADD REPLICAT</span> rp01 <span class="keyword">EXTTRAIL</span> ./dirdat/et
+
+<span class="comment">-- Start processes</span>
+<span class="keyword">START EXTRACT</span> ex01
+<span class="keyword">START REPLICAT</span> rp01
+
+<span class="comment">-- Monitor status</span>
+<span class="keyword">INFO ALL</span>
+<span class="keyword">STATUS EXTRACT</span> ex01</code></pre>
+                </div>
+
+                <div class="tip">
+                    <strong>💡 Tip:</strong> GoldenGate provides near-zero downtime migration with CDC (Change Data
+                    Capture)
+                </div>
+            </section>
+
+            <section id="validation">
+                <h2>✅ Data Validation & Performance Tuning</h2>
+
+                <h3>Post-Migration Validation</h3>
+                <table>
+                    <tr>
+                        <th>Check Type</th>
+                        <th>Query/Command</th>
+                        <th>Expected Result</th>
+                    </tr>
+                    <tr>
+                        <td>Row Count</td>
+                        <td>SELECT COUNT(*) FROM table_name</td>
+                        <td>Match source and target counts</td>
+                    </tr>
+                    <tr>
+                        <td>Data Checksum</td>
+                        <td>SELECT DBMS_CRYPTO.HASH(...)</td>
+                        <td>Source = Target hash</td>
+                    </tr>
+                    <tr>
+                        <td>Constraints</td>
+                        <td>SELECT * FROM user_constraints</td>
+                        <td>All constraints present and valid</td>
+                    </tr>
+                </table>
+
+                <h3>Performance Optimization</h3>
+                <div class="code-block">
+                    <pre><code><span class="comment">-- Gather statistics (Auto in Autonomous DB)</span>
+<span class="keyword">EXEC</span> DBMS_STATS.GATHER_SCHEMA_STATS(<span class="string">'SCHEMA_NAME'</span>);
+
+<span class="comment">-- Check execution plans</span>
+<span class="keyword">EXPLAIN PLAN FOR SELECT</span> * <span class="keyword">FROM</span> table_name <span class="keyword">WHERE</span> condition;
+<span class="keyword">SELECT</span> * <span class="keyword">FROM TABLE</span>(DBMS_XPLAN.DISPLAY);
+
+<span class="comment">-- Monitor query performance</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> gv$sql_workarea <span class="keyword">WHERE</span> module = <span class="string">'YOUR_APP'</span>;
+
+<span class="comment">-- Identify slow queries</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> gv$sql <span class="keyword">WHERE</span> executions > <span class="number">100</span> <span class="keyword">AND</span> elapsed_time > <span class="number">1000000000</span>;</code></pre>
+                </div>
+            </section>
+
+            <section id="best-practices">
+                <h2>🎯 Migration Best Practices</h2>
+
+                <h3>Zero-Downtime Migration Strategy</h3>
+                <ul>
+                    <li>Use GoldenGate for real-time replication</li>
+                    <li>Perform comprehensive testing on target</li>
+                    <li>Execute final delta sync with minimal downtime</li>
+                    <li>Have rollback plan ready</li>
+                    <li>Parallel run for verification period</li>
+                </ul>
+
+                <h3>Post-Migration Tasks</h3>
+                <ul>
+                    <li>Monitor performance metrics closely</li>
+                    <li>Validate all application functionality</li>
+                    <li>Update connection strings in applications</li>
+                    <li>Configure backups and recovery</li>
+                    <li>Document new environment setup</li>
+                    <li>Train operations team on Autonomous DB</li>
+                </ul>
+
+                <div class="warning">
+                    <strong>⚠️ Warning:</strong> Always test migration process in non-production environment first!
+                </div>
+
+                <div class="checklist">
+                    <h4>✓ Migration Success Criteria</h4>
+                    <div class="checklist-item"><input type="checkbox"> All data migrated and validated</div>
+                    <div class="checklist-item"><input type="checkbox"> Applications running without errors</div>
+                    <div class="checklist-item"><input type="checkbox"> Performance meets requirements</div>
+                    <div class="checklist-item"><input type="checkbox"> Backups and recovery verified</div>
+                    <div class="checklist-item"><input type="checkbox"> Monitoring and alerts configured</div>
+                    <div class="checklist-item"><input type="checkbox"> Team training completed</div>
+                    <div class="checklist-item"><input type="checkbox"> Documentation updated</div>
+                    <div class="checklist-item"><input type="checkbox"> No critical issues in logs</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Oracle Database Knowledge Hub. Module 25: Autonomous DB & Migration. All rights reserved.</p>
+        <div class="module-links">
+            <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+            <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+            <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+            <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+            <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+            <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+            <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+            <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+            <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+            <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+            <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+            <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+            <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+            <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+            <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+            <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+            <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+            <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+            <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+            <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+            <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+            <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+            <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+            <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+            <a href="module-25-autonomous-migration.html" class="module-link active">Module 25: Autonomous DB</a>
+            <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+        </div>
+
+        <div class="footer-grid">
+            <div class="footer-section">
+                <h4>📖 Learning Paths</h4>
+                <ul>
+                    <li><a href="#">SQL Fundamentals</a></li>
+                    <li><a href="#">Database Administration</a></li>
+                    <li><a href="#">Performance Tuning</a></li>
+                    <li><a href="#">High Availability</a></li>
+                    <li><a href="#">Cloud Migration</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>🔗 Official Resources</h4>
+                <ul>
+                    <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+                    <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+                    <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+                    <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+                    <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>🎓 Certifications</h4>
+                <ul>
+                    <li><a href="#">OCA Exam Prep</a></li>
+                    <li><a href="#">OCP Exam Prep</a></li>
+                    <li><a href="#">Study Resources</a></li>
+                    <li><a href="#">Practice Exams</a></li>
+                    <li><a href="#">Certification Guide</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+
+</html>

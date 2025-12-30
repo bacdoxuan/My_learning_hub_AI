@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 19: Data Integration & ETL</title>
+    <style>
+        :root {
+            --primary-color: #0078d4;
+            --secondary-color: #106ebe;
+            --accent-color: #0063b1;
+            --bg-light: #f5f7fa;
+            --bg-dark: #1a1a1a;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+            --border-color: #ddd;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --code-bg: #f4f4f4;
+            --code-border: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        body.dark-mode .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            border-color: #444;
+        }
+
+        body.dark-mode table {
+            border-color: #444;
+            background: #242424;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 120, 212, 0.2);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .stat-card {
+            background: #242424;
+            border-color: #444;
+        }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        body.dark-mode .stat-card .label {
+            color: #aaa;
+        }
+
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .content {
+            background: #242424;
+            border: 1px solid #444;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.8rem 0;
+            color: var(--secondary-color);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        body.dark-mode table {
+            background: #1a1a1a;
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode td {
+            border-color: #444;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        body.dark-mode tr:nth-child(even) {
+            background: #1a1a1a;
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        body.dark-mode .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+        }
+
+        .keyword {
+            color: #0078d4;
+            font-weight: bold;
+        }
+
+        .string {
+            color: #c41a16;
+        }
+
+        .number {
+            color: #098658;
+        }
+
+        .comment {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        ul,
+        ol {
+            margin: 1rem 0 1.5rem 2rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        body.dark-mode .highlight {
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .checklist {
+            background: #e7f3ff;
+            border: 1px solid var(--primary-color);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        body.dark-mode .checklist {
+            background: rgba(0, 120, 212, 0.1);
+        }
+
+        .checklist-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.8rem;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            margin-right: 0.8rem;
+            margin-top: 0.3rem;
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+        }
+
+        .checklist-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        footer {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #e0e0e0;
+            padding: 2rem;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-color);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .module-nav {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(0, 120, 212, 0.05);
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .module-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .module-link {
+            display: block;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .module-link:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .module-link.active {
+            background: white;
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer Grid */
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            text-align: left;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-section h4 {
+            color: white;
+            margin-bottom: 1.2rem;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            display: inline-block;
+        }
+
+        .footer-section a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .module-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .footer-section h4 {
+                border-bottom: none;
+                margin-top: 1rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .module-links {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid #444;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
+
+    <header>
+        <h1>🔄 Module 19: Data Integration & ETL</h1>
+        <p>Data Pump, External Tables, SQL*Loader, Data Movement</p>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number">PUMP</div>
+                <div class="label">Data Export/Import</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">EXTERNAL</div>
+                <div class="label">File Access</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">LOADER</div>
+                <div class="label">Bulk Load</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">ETL</div>
+                <div class="label">Data Transform</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2>💾 Oracle Data Pump</h2>
+
+            <h3>Data Pump Export & Import</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Export table using expdp (command line)</span>
+<span class="keyword">expdp</span> scott/tiger<span class="string\"> TABLES=employees,departments FILE=exp_data.dmp LOG=exp.log</span>
+
+<span class="comment">-- Export entire schema</span>
+<span class="keyword">expdp</span> scott/tiger<span class="string\"> FULL=Y FILE=full_db.dmp LOG=full.log</span>
+
+<span class="comment">-- Export with parallel processing</span>
+<span class="keyword">expdp</span> scott/tiger<span class="string\"> TABLES=employees PARALLEL=4 FILE=exp_%U.dmp LOG=exp.log</span>
+
+<span class="comment">-- Import table (impdp)</span>
+<span class="keyword">impdp</span> scott/tiger<span class="string\"> TABLES=employees FILE=exp_data.dmp LOG=imp.log</span>
+
+<span class="comment">-- Import with remap schema</span>
+<span class="keyword">impdp</span> scott/tiger<span class="string\"> TABLES=employees FILE=exp_data.dmp REMAP_SCHEMA=scott:new_user LOG=imp.log</span>
+
+<span class="comment">-- DBMS_DATAPUMP API (PL/SQL)</span>
+<span class="keyword">DECLARE</span>
+  h1 <span class="keyword">NUMBER</span>;
+<span class="keyword">BEGIN</span>
+  h1 := DBMS_DATAPUMP.OPEN(
+    operation => <span class="string\">'EXPORT'</span>,
+    job_mode => <span class="string\">'TABLE'</span>,
+    remote_link => <span class="keyword\">NULL</span>,
+    job_name => <span class=\"string\">'EXP_JOB'</span>,
+    version => <span class=\"string\">'LATEST'</span>
+  );
+  
+  DBMS_DATAPUMP.ADD_FILE(
+    handle => h1,
+    filename => <span class=\"string\">'exp_data.dmp'</span>,
+    directory => <span class=\"string\">'DPUMP_DIR'</span>,
+    filetype => DBMS_DATAPUMP.KU$_FILE_TYPE_DUMP_FILE
+  );
+  
+  DBMS_DATAPUMP.ADD_FILE(
+    handle => h1,
+    filename => <span class=\"string\">'exp.log'</span>,
+    directory => <span class=\"string\">'DPUMP_DIR'</span>,
+    filetype => DBMS_DATAPUMP.KU$_FILE_TYPE_LOG_FILE
+  );
+  
+  DBMS_DATAPUMP.START_JOB(h1);
+<span class=\"keyword\">END</span>;
+/</code></pre>
+            </div>
+
+            <h2>📄 External Tables</h2>
+
+            <h3>Creating External Tables</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Create external table from CSV file</span>
+<span class="keyword">CREATE TABLE</span> emp_external (
+  emp_id <span class="keyword">NUMBER</span>,
+  name <span class="keyword">VARCHAR2</span>(50),
+  salary <span class="keyword">NUMBER</span>,
+  dept_id <span class="keyword">NUMBER</span>
+)
+<span class="keyword">ORGANIZATION EXTERNAL</span> (
+  <span class="keyword">TYPE</span> ORACLE_LOADER
+  <span class="keyword">DEFAULT DIRECTORY</span> data_dir
+  <span class="keyword">ACCESS PARAMETERS</span> (
+    <span class="keyword">RECORDS DELIMITED BY</span> <span class="keyword">NEWLINE</span>
+    <span class="keyword">FIELDS TERMINATED BY</span> <span class="string\">','</span>
+    <span class="keyword">MISSING FIELD VALUES</span> <span class="keyword">ARE NULL</span>
+    (
+      emp_id,
+      name,
+      salary,
+      dept_id
+    )
+  )
+  <span class="keyword">LOCATION</span> (<span class="string\">'employees.csv'</span>)
+);
+
+<span class="comment">-- Create external table from fixed-width file</span>
+<span class="keyword">CREATE TABLE</span> emp_fixed (
+  emp_id <span class="keyword">NUMBER</span> <span class="keyword">EXTERNAL</span> <span class="keyword">CHAR</span>(5),
+  name <span class="keyword">VARCHAR2</span>(50) <span class="keyword">EXTERNAL</span> <span class="keyword">CHAR</span>(30),
+  salary <span class="keyword">NUMBER</span> <span class="keyword">EXTERNAL</span> <span class="keyword">CHAR</span>(10)
+)
+<span class="keyword">ORGANIZATION EXTERNAL</span> (
+  <span class="keyword">TYPE</span> ORACLE_LOADER
+  <span class="keyword">DEFAULT DIRECTORY</span> data_dir
+  <span class="keyword">ACCESS PARAMETERS</span> (
+    <span class="keyword">RECORDS FIXED</span> 100
+    <span class="keyword">FIELDS</span> (
+      emp_id <span class="keyword">POSITION</span> (1:5),
+      name <span class="keyword">POSITION</span> (6:35),
+      salary <span class="keyword">POSITION</span> (36:45)
+    )
+  )
+  <span class="keyword">LOCATION</span> (<span class="string\">'employees.txt'</span>)
+);
+
+<span class="comment">-- Query external table</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> emp_external <span class="keyword">WHERE</span> salary > 50000;</code></pre>
+            </div>
+
+            <h2>🚀 SQL*Loader</h3>
+
+                <h3>SQL*Loader Control Files</h3>
+                <div class="code-block">
+                    <pre><code><span class="comment">-- Control file for CSV loading</span>
+LOAD DATA
+<span class="keyword">INFILE</span> <span class="string\">'employees.csv'</span>
+<span class="keyword">INTO TABLE</span> employees
+<span class="keyword">FIELDS TERMINATED BY</span> <span class="string\">','</span>
+TRAILING NULLCOLS
+(
+  emp_id,
+  name,
+  salary,
+  dept_id
+)
+
+<span class="comment">-- Control file with data transformation</span>
+LOAD DATA
+<span class="keyword">INFILE</span> <span class="string\">'employees.txt'</span>
+<span class="keyword">INTO TABLE</span> employees
+<span class="keyword">INSERT</span>
+<span class="keyword">FIELDS TERMINATED BY</span> <span class="string\">'|'</span>
+(
+  emp_id,
+  name,
+  salary <span class="keyword\">DECIMAL EXTERNAL</span>,
+  hire_date <span class=\"keyword\">DATE \"YYYY-MM-DD\"</span>,
+  dept_id
+)
+
+<span class=\"comment\">-- Run SQL*Loader from command line</span>
+<span class=\"keyword\">sqlldr</span> scott/tiger <span class=\"keyword\">CONTROL</span>=employees.ctl <span class=\"keyword\">LOG</span>=load.log <span class=\"keyword\">BAD</span>=bad.txt</code></pre>
+                </div>
+
+                <h2>🔀 Data Integration Techniques</h2>
+
+                <h3>ETL Operations Comparison</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Tool/Method</th>
+                            <th>Speed</th>
+                            <th>Flexibility</th>
+                            <th>Best For</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Data Pump</strong></td>
+                            <td>Very Fast</td>
+                            <td>High</td>
+                            <td>Database migration, full exports</td>
+                        </tr>
+                        <tr>
+                            <td><strong>SQL*Loader</strong></td>
+                            <td>Fast</td>
+                            <td>High</td>
+                            <td>Bulk loading flat files</td>
+                        </tr>
+                        <tr>
+                            <td><strong>External Tables</strong></td>
+                            <td>Medium</td>
+                            <td>Medium</td>
+                            <td>Transparent file querying</td>
+                        </tr>
+                        <tr>
+                            <td><strong>INSERT AS SELECT</strong></td>
+                            <td>Slow</td>
+                            <td>Medium</td>
+                            <td>Complex transformations</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <h3>Merge Operations</h3>
+                <div class="code-block">
+                    <pre><code><span class="comment">-- MERGE for ETL processing</span>
+<span class="keyword">MERGE INTO</span> employees tgt
+<span class="keyword">USING</span> emp_source src
+<span class="keyword">ON</span> (tgt.emp_id = src.emp_id)
+<span class="keyword">WHEN MATCHED THEN</span>
+  <span class="keyword\">UPDATE SET</span>
+    tgt.name = src.name,
+    tgt.salary = src.salary
+  <span class=\"keyword\">WHERE</span> tgt.salary != src.salary
+<span class=\"keyword\">WHEN NOT MATCHED THEN</span>
+  <span class=\"keyword\">INSERT</span> (emp_id, name, salary, dept_id)
+  <span class=\"keyword\">VALUES</span> (src.emp_id, src.name, src.salary, src.dept_id);</code></pre>
+                </div>
+
+                <div class="highlight">
+                    <strong>💡 ETL Best Practices:</strong> Use Data Pump for large migrations. SQL*Loader for bulk file
+                    loads. External tables for transparent querying. Test data quality before loading. Log all ETL
+                    processes. Implement error handling. Validate row counts. Use parallel loading. Compress export
+                    files. Monitor loader performance.
+                </div>
+
+                <div class="checklist">
+                    <div class="checklist-title">✓ Learning Checklist - Module 19</div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check1">
+                        <label for="check1">Use Data Pump expdp/impdp</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check2">
+                        <label for="check2">Create external tables</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check3">
+                        <label for="check3">Work with SQL*Loader</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check4">
+                        <label for="check4">Load CSV and flat files</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check5">
+                        <label for="check5">Implement data transformations</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check6">
+                        <label for="check6">Use MERGE for ETL</label>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" id="check7">
+                        <label for="check7">Monitor ETL processes</label>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="module-nav">
+                <h3 style="margin-top: 0; color: var(--primary-color);">📚 Module Navigation</h3>
+                <div class="module-links">
+                    <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+                    <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+                    <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+                    <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+                    <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+                    <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+                    <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+                    <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+                    <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+                    <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+                    <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+                    <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+                    <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+                    <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+                    <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+                    <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+                    <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+                    <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+                    <a href="module-19-data-integration-etl.html" class="module-link active">Module 19: Data
+                        Integration</a>
+                    <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+                    <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+                    <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+                    <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+                    <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+                    <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+                    <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+                </div>
+            </div>
+
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>📖 Learning Paths</h4>
+                    <ul>
+                        <li><a href="#">SQL Fundamentals</a></li>
+                        <li><a href="#">Database Administration</a></li>
+                        <li><a href="#">Performance Tuning</a></li>
+                        <li><a href="#">High Availability</a></li>
+                        <li><a href="#">Cloud Migration</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🔗 Official Resources</h4>
+                    <ul>
+                        <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+                        <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+                        <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+                        <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+                        <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🎓 Certifications</h4>
+                    <ul>
+                        <li><a href="#">OCA Exam Prep</a></li>
+                        <li><a href="#">OCP Exam Prep</a></li>
+                        <li><a href="#">Study Resources</a></li>
+                        <li><a href="#">Practice Exams</a></li>
+                        <li><a href="#">Certification Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>Oracle Database Knowledge Base | Module 19 of 26 | Last Updated: Dec 2025</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            updateThemeButton();
+        }
+        function updateThemeButton() {
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+        }
+        window.addEventListener('load', function () {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+            updateThemeButton();
+        });
+    </script>
+</body>
+
+</html>

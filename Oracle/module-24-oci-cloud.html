@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 24: Oracle Cloud Infrastructure (OCI) - Console, Networking</title>
+    <style>
+        :root {
+            --primary-color: #0078d4;
+            --secondary-color: #106ebe;
+            --accent-color: #0063b1;
+            --bg-light: #f5f7fa;
+            --bg-dark: #1a1a1a;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+            --border-color: #ddd;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 120, 212, 0.2);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.95;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--bg-light);
+            padding: 2rem 1rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .sidebar {
+            background: #2a2a2a;
+            border-right-color: #444;
+        }
+
+        .sidebar h3 {
+            color: var(--primary-color);
+            margin: 1rem 0 0.5rem 0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin: 0.3rem 0;
+        }
+
+        .sidebar a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            display: block;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .sidebar a {
+            color: var(--text-dark);
+        }
+
+        .sidebar a:hover {
+            background: var(--primary-color);
+            color: white;
+            padding-left: 1rem;
+        }
+
+        .theme-toggle {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--secondary-color);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode section {
+            background: #2a2a2a;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.8rem;
+            text-align: left;
+        }
+
+        td {
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        body.dark-mode td {
+            border-bottom-color: #444;
+        }
+
+        tr:nth-child(even) {
+            background: var(--bg-light);
+        }
+
+        body.dark-mode tr:nth-child(even) {
+            background: #333;
+        }
+
+        .code-block {
+            background: #f4f4f4;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .keyword {
+            color: #0078d4;
+            font-weight: bold;
+        }
+
+        .string {
+            color: #d14;
+        }
+
+        .number {
+            color: #098658;
+        }
+
+        .comment {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .property {
+            color: #d14;
+        }
+
+        .function {
+            color: #6f42c1;
+        }
+
+        body.dark-mode .code-block {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .stat-card-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        ul,
+        ol {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
+        body.dark-mode .highlight {
+            background: #664d00;
+            color: #ffd700;
+        }
+
+        .checklist {
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        body.dark-mode .checklist {
+            background: #333;
+        }
+
+        .checklist h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .checklist-item {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .checklist-item input {
+            margin-right: 0.8rem;
+            cursor: pointer;
+        }
+
+        footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid var(--success);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        body.dark-mode .tip {
+            background: #1e3a1f;
+            border-left-color: #28a745;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        body.dark-mode .warning {
+            background: #332701;
+            border-left-color: #ffc107;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th,
+            td {
+                padding: 0.6rem;
+            }
+        }
+
+        .module-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .module-link {
+            display: block;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .module-link:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .module-link.active {
+            background: white;
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer Grid */
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            text-align: left;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-section h4 {
+            color: white;
+            margin-bottom: 1.2rem;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            display: inline-block;
+        }
+
+        .footer-section a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .module-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .footer-section h4 {
+                border-bottom: none;
+                margin-top: 1rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .module-links {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🏛️ Module 24: Oracle Cloud Infrastructure (OCI)</h1>
+        <p>Master OCI Console, Networking, and Cloud Infrastructure</p>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+            <h3>Topics</h3>
+            <ul>
+                <li><a href="#oci-overview">OCI Overview</a></li>
+                <li><a href="#oci-console">OCI Console</a></li>
+                <li><a href="#vcn">Virtual Cloud Network</a></li>
+                <li><a href="#compute">Compute Services</a></li>
+                <li><a href="#security">Security & IAM</a></li>
+                <li><a href="#monitoring">Monitoring</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+            </ul>
+        </aside>
+
+        <main>
+            <section id="oci-overview">
+                <h2>📊 OCI Overview & Architecture</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Regions</div>
+                        <div class="stat-card-number">40+</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Services</div>
+                        <div class="stat-card-number">100+</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Availability Zones</div>
+                        <div class="stat-card-number">75+</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Data Centers</div>
+                        <div class="stat-card-number">200+</div>
+                    </div>
+                </div>
+
+                <h3>OCI Architecture Layers</h3>
+                <table>
+                    <tr>
+                        <th>Layer</th>
+                        <th>Components</th>
+                        <th>Services</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Global</strong></td>
+                        <td>Regions, Availability Domains, Fault Domains</td>
+                        <td>Global Load Balancer, CDN</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Network</strong></td>
+                        <td>VCN, Subnet, Route Tables, Security Lists</td>
+                        <td>Networking, DNS, Load Balancing</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Compute</strong></td>
+                        <td>VM Instances, Bare Metal, Container Engine</td>
+                        <td>OKE, Functions, Container Registry</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Storage</strong></td>
+                        <td>Object Storage, Block Volumes, File Systems</td>
+                        <td>Backup, Archive Storage</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Database</strong></td>
+                        <td>Autonomous DB, DB Systems, NoSQL</td>
+                        <td>Data Warehouse, Graph Database</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="oci-console">
+                <h2>🖥️ OCI Console Navigation</h2>
+
+                <h3>Main Dashboard Components</h3>
+                <div class="code-block">
+                    <pre><code>Console Layout:
+├── <span class="property">Top Navigation Bar</span>
+│   ├── Search (Services, Resources)
+│   ├── Notifications
+│   ├── Settings
+│   └── User Profile
+├── <span class="property">Left Sidebar Menu</span>
+│   ├── Favorites
+│   ├── Infrastructure (Compute, Network, Storage)
+│   ├── Platform Services
+│   └── Administration
+└── <span class="property">Main Content Area</span>
+    ├── Dashboard Widgets
+    ├── Quick Links
+    └── Recent Resources</code></pre>
+                </div>
+
+                <h3>Key Console Features</h3>
+                <ul>
+                    <li><span class="highlight">Resource Groups</span>: Organize resources by project or environment
+                    </li>
+                    <li><span class="highlight">Compartments</span>: Logical containers for resource isolation and
+                        access control</li>
+                    <li><span class="highlight">Cost Analysis</span>: Monitor spending and forecast costs</li>
+                    <li><span class="highlight">Audit Logs</span>: Track API calls and resource changes</li>
+                    <li><span class="highlight">Budgets</span>: Set spending alerts and limits</li>
+                </ul>
+
+                <div class="tip">
+                    <strong>💡 Tip:</strong> Use Favorited resources for quick access to frequently used services
+                </div>
+            </section>
+
+            <section id="vcn">
+                <h2>🌐 Virtual Cloud Network (VCN)</h2>
+
+                <h3>VCN Architecture</h3>
+                <table>
+                    <tr>
+                        <th>Component</th>
+                        <th>Purpose</th>
+                        <th>Example</th>
+                    </tr>
+                    <tr>
+                        <td><strong>VCN</strong></td>
+                        <td>Private network in cloud</td>
+                        <td>10.0.0.0/16</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Subnet</strong></td>
+                        <td>Segment of VCN, AZ-specific</td>
+                        <td>10.0.1.0/24 (Public)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IGW</strong></td>
+                        <td>Internet Gateway for outbound traffic</td>
+                        <td>Allow 0.0.0.0/0</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NAT Gateway</strong></td>
+                        <td>NAT for private subnets</td>
+                        <td>Outbound only</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Route Table</strong></td>
+                        <td>Define traffic routing rules</td>
+                        <td>Destination → Target</td>
+                    </tr>
+                </table>
+
+                <h3>Security Lists (Network ACLs)</h3>
+                <div class="code-block">
+                    <pre><code><span class="comment"># Inbound Rules Example:</span>
+- <span class="property">CIDR</span>: <span class="string">0.0.0.0/0</span>, <span class="property">Protocol</span>: TCP, <span class="property">Port</span>: <span class="number">80</span> (HTTP)
+- <span class="property">CIDR</span>: <span class="string">0.0.0.0/0</span>, <span class="property">Protocol</span>: TCP, <span class="property">Port</span>: <span class="number">443</span> (HTTPS)
+- <span class="property">CIDR</span>: <span class="string">0.0.0.0/0</span>, <span class="property">Protocol</span>: TCP, <span class="property">Port</span>: <span class="number">22</span> (SSH)
+- <span class="property">CIDR</span>: <span class="string">10.0.0.0/16</span>, <span class="property">Protocol</span>: TCP, <span class="property">Port</span>: <span class="number">3306</span> (MySQL)
+
+<span class="comment"># Outbound Rules Example:</span>
+- <span class="property">Destination</span>: <span class="string">0.0.0.0/0</span>, <span class="property">Protocol</span>: All</code></pre>
+                </div>
+            </section>
+
+            <section id="compute">
+                <h2>⚙️ Compute Services</h2>
+
+                <h3>Compute Instance Types</h3>
+                <table>
+                    <tr>
+                        <th>Type</th>
+                        <th>Use Case</th>
+                        <th>Specifications</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Virtual Machine</strong></td>
+                        <td>Web apps, development</td>
+                        <td>1-64 vCPU, 6GB-1TB Memory</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Bare Metal</strong></td>
+                        <td>High performance computing</td>
+                        <td>52-160 vCPU, Direct access</td>
+                    </tr>
+                    <tr>
+                        <td><strong>GPU Instances</strong></td>
+                        <td>Machine learning, graphics</td>
+                        <td>NVIDIA GPU acceleration</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ARM-based</strong></td>
+                        <td>Cost-efficient workloads</td>
+                        <td>Ampere A1 processor</td>
+                    </tr>
+                </table>
+
+                <h3>Instance Configuration</h3>
+                <div class="code-block">
+                    <pre><code><span class="comment"># Key Attributes:</span>
+- <span class="property">Image</span>: OS type (Ubuntu, CentOS, Windows, Custom)
+- <span class="property">Shape</span>: CPU/Memory profile
+- <span class="property">Network</span>: VCN, Subnet, VNIC details
+- <span class="property">Storage</span>: Root volume size, additional block volumes
+- <span class="property">Metadata</span>: SSH keys, user scripts
+- <span class="property">Monitoring</span>: Enable Compute Agent</code></pre>
+                </div>
+            </section>
+
+            <section id="security">
+                <h2>🔐 Security & IAM</h2>
+
+                <h3>IAM Components</h3>
+                <ul>
+                    <li><strong>Users</strong>: Identity who can access OCI</li>
+                    <li><strong>Groups</strong>: Collections of users</li>
+                    <li><strong>Policies</strong>: Define permissions using statements</li>
+                    <li><strong>Roles</strong>: Pre-built permission sets</li>
+                    <li><strong>Compartments</strong>: Resource isolation and billing boundaries</li>
+                </ul>
+
+                <h3>Policy Syntax</h3>
+                <div class="code-block">
+                    <pre><code><span class="keyword">Allow</span> <span class="keyword">group</span> admin-group <span class="keyword">to</span> <span class="keyword">manage</span> all-resources <span class="keyword">in</span> <span class="keyword">compartment</span> devenv
+<span class="keyword">Allow</span> <span class="keyword">group</span> developers <span class="keyword">to</span> <span class="keyword">use</span> instances <span class="keyword">in</span> <span class="keyword">compartment</span> devenv
+<span class="keyword">Allow</span> <span class="keyword">group</span> analysts <span class="keyword">to</span> <span class="keyword">read</span> buckets <span class="keyword">in</span> <span class="keyword">compartment</span> devenv
+<span class="keyword">Allow</span> <span class="keyword">service</span> database <span class="keyword">to</span> <span class="keyword">manage</span> volumes <span class="keyword">in</span> <span class="keyword">compartment</span> prodenv</code></pre>
+                </div>
+
+                <div class="warning">
+                    <strong>⚠️ Warning:</strong> Apply principle of least privilege. Grant only necessary permissions.
+                </div>
+            </section>
+
+            <section id="monitoring">
+                <h2>📈 Monitoring & Operations</h2>
+
+                <h3>Monitoring Metrics</h3>
+                <table>
+                    <tr>
+                        <th>Service</th>
+                        <th>Key Metrics</th>
+                        <th>Retention</th>
+                    </tr>
+                    <tr>
+                        <td><strong>Compute</strong></td>
+                        <td>CPU%, Memory%, Disk I/O, Network</td>
+                        <td>1 hour - 15 days</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Network</strong></td>
+                        <td>Bytes In/Out, Packets, Errors</td>
+                        <td>1 hour - 15 days</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Storage</strong></td>
+                        <td>Capacity Used, Operations, Latency</td>
+                        <td>1 hour - 15 days</td>
+                    </tr>
+                </table>
+
+                <h3>Alarms & Notifications</h3>
+                <div class="code-block">
+                    <pre><code><span class="property">Alarm Types:</span>
+- <span class="string">Metric Alarms</span>: Trigger when threshold exceeded
+- <span class="string">Event-based Alarms</span>: Trigger on specific events
+- <span class="string">Log-based Alarms</span>: Trigger on log entries
+
+<span class="property">Notification Channels:</span>
+- Email
+- SMS
+- PagerDuty
+- Slack (via webhook)</code></pre>
+                </div>
+            </section>
+
+            <section id="best-practices">
+                <h2>✅ Best Practices</h2>
+
+                <h3>Infrastructure Design</h3>
+                <ul>
+                    <li>Use Multiple Availability Domains (AD) for high availability</li>
+                    <li>Implement proper network segmentation with security lists</li>
+                    <li>Use Network Security Groups (NSGs) for fine-grained control</li>
+                    <li>Enable VCN Flow Logs for traffic analysis</li>
+                    <li>Configure backup and disaster recovery strategies</li>
+                </ul>
+
+                <h3>Security Best Practices</h3>
+                <ul>
+                    <li>Enable MFA for all user accounts</li>
+                    <li>Use API signing keys instead of user passwords</li>
+                    <li>Rotate credentials regularly</li>
+                    <li>Implement audit logging for compliance</li>
+                    <li>Use service accounts with limited permissions</li>
+                </ul>
+
+                <div class="checklist">
+                    <h4>✓ Learning Checklist</h4>
+                    <div class="checklist-item"><input type="checkbox"> Understand OCI architecture and regions</div>
+                    <div class="checklist-item"><input type="checkbox"> Navigate OCI Console dashboard</div>
+                    <div class="checklist-item"><input type="checkbox"> Create and configure VCN</div>
+                    <div class="checklist-item"><input type="checkbox"> Launch compute instances</div>
+                    <div class="checklist-item"><input type="checkbox"> Configure security lists</div>
+                    <div class="checklist-item"><input type="checkbox"> Set up monitoring and alarms</div>
+                    <div class="checklist-item"><input type="checkbox"> Implement IAM policies</div>
+                    <div class="checklist-item"><input type="checkbox"> Configure backup strategies</div>
+                    <div class="checklist-item"><input type="checkbox"> Review cost optimization</div>
+                    <div class="checklist-item"><input type="checkbox"> Practice disaster recovery</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Oracle Database Knowledge Hub. Module 24: OCI Infrastructure. All rights reserved.</p>
+        <div class="module-links">
+            <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+            <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+            <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+            <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+            <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+            <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+            <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+            <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+            <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+            <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+            <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+            <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+            <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+            <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+            <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+            <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+            <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+            <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+            <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+            <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+            <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+            <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+            <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+            <a href="module-24-oci-cloud.html" class="module-link active">Module 24: OCI Cloud</a>
+            <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+            <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+        </div>
+
+        <div class="footer-grid">
+            <div class="footer-section">
+                <h4>📖 Learning Paths</h4>
+                <ul>
+                    <li><a href="#">SQL Fundamentals</a></li>
+                    <li><a href="#">Database Administration</a></li>
+                    <li><a href="#">Performance Tuning</a></li>
+                    <li><a href="#">High Availability</a></li>
+                    <li><a href="#">Cloud Migration</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>🔗 Official Resources</h4>
+                <ul>
+                    <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+                    <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+                    <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+                    <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+                    <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>🎓 Certifications</h4>
+                <ul>
+                    <li><a href="#">OCA Exam Prep</a></li>
+                    <li><a href="#">OCP Exam Prep</a></li>
+                    <li><a href="#">Study Resources</a></li>
+                    <li><a href="#">Practice Exams</a></li>
+                    <li><a href="#">Certification Guide</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+
+</html>

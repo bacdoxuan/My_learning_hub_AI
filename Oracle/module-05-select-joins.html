@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 5: SELECT Queries & JOINs - WHERE, ORDER BY, INNER/OUTER/CROSS JOINs</title>
+    <style>
+        :root {
+            --primary-color: #0078d4;
+            --secondary-color: #106ebe;
+            --accent-color: #0063b1;
+            --bg-light: #f5f7fa;
+            --bg-dark: #1a1a1a;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+            --border-color: #ddd;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --code-bg: #f4f4f4;
+            --code-border: #e0e0e0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+        body.dark-mode { background: var(--bg-dark); color: var(--text-dark); }
+        body.dark-mode .code-block { background: #2d2d2d; color: #f8f8f2; border-color: #444; }
+        body.dark-mode table { border-color: #444; background: #242424; }
+        body.dark-mode th, body.dark-mode td { border-color: #444; }
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,120,212,0.2);
+        }
+        header h1 { font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700; }
+        header p { font-size: 1rem; opacity: 0.95; }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover { background: var(--secondary-color); transform: scale(1.05); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+        .stat-card { background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+        body.dark-mode .stat-card { background: #242424; border-color: #444; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,120,212,0.2); }
+        .stat-card .number { font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.5rem; }
+        .stat-card .label { font-size: 0.9rem; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        body.dark-mode .stat-card .label { color: #aaa; }
+        .content { background: white; border-radius: 8px; padding: 2rem; margin: 2rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        body.dark-mode .content { background: #242424; border: 1px solid #444; }
+        h2 { font-size: 1.8rem; margin: 2rem 0 1rem 0; color: var(--primary-color); border-bottom: 3px solid var(--primary-color); padding-bottom: 0.5rem; }
+        h3 { font-size: 1.3rem; margin: 1.5rem 0 0.8rem 0; color: var(--secondary-color); }
+        h4 { font-size: 1.1rem; margin: 1rem 0 0.5rem 0; color: var(--accent-color); }
+        p { margin-bottom: 1rem; line-height: 1.8; }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: white; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
+        body.dark-mode table { background: #1a1a1a; }
+        th { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 1rem; text-align: left; font-weight: 600; border: 1px solid var(--primary-color); }
+        td { padding: 0.8rem 1rem; border: 1px solid var(--border-color); word-wrap: break-word; }
+        body.dark-mode td { border-color: #444; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        body.dark-mode tr:nth-child(even) { background: #1a1a1a; }
+        tr:hover { background: #f0f7ff; }
+        body.dark-mode tr:hover { background: #2a2a2a; }
+        .code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 6px; padding: 1.5rem; overflow-x: auto; margin: 1.5rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; line-height: 1.5; color: #2c3e50; }
+        .code-block pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+        .code-block code { display: block; }
+        .keyword { color: #0078d4; font-weight: bold; }
+        .string { color: #c41a16; }
+        .number { color: #098658; }
+        .comment { color: #6a737d; font-style: italic; }
+        .function { color: #6f42c1; }
+        ul, ol { margin: 1rem 0 1.5rem 2rem; }
+        li { margin-bottom: 0.5rem; line-height: 1.8; }
+        .highlight { background: #fff3cd; border-left: 4px solid var(--warning); padding: 1rem; margin: 1.5rem 0; border-radius: 4px; }
+        body.dark-mode .highlight { background: rgba(255, 193, 7, 0.1); border-left-color: #ffc107; }
+        .highlight strong { color: var(--warning); }
+        .warning { background: #f8d7da; border-left: 4px solid var(--danger); padding: 1rem; margin: 1.5rem 0; border-radius: 4px; color: #721c24; }
+        body.dark-mode .warning { background: rgba(220, 53, 69, 0.1); color: #ff7675; }
+        .success { background: #d4edda; border-left: 4px solid var(--success); padding: 1rem; margin: 1.5rem 0; border-radius: 4px; color: #155724; }
+        body.dark-mode .success { background: rgba(40, 167, 69, 0.1); color: #52c41a; }
+        .checklist { background: #e7f3ff; border: 1px solid var(--primary-color); border-radius: 6px; padding: 1.5rem; margin: 2rem 0; }
+        body.dark-mode .checklist { background: rgba(0, 120, 212, 0.1); border-color: #0078d4; }
+        .checklist-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--primary-color); }
+        .checklist-item { display: flex; align-items: flex-start; margin-bottom: 0.8rem; padding: 0.5rem 0; }
+        .checklist-item input[type="checkbox"] { margin-right: 0.8rem; margin-top: 0.3rem; cursor: pointer; width: 20px; height: 20px; }
+        .checklist-item label { cursor: pointer; flex: 1; }
+        footer { background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); color: #e0e0e0; padding: 2rem; margin-top: 3rem; border-top: 3px solid var(--primary-color); }
+        .footer-content { max-width: 1200px; margin: 0 auto; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+        .footer-section h4 { color: var(--primary-color); margin-bottom: 1rem; font-size: 1.1rem; }
+        .footer-section ul { list-style: none; margin: 0; padding: 0; }
+        .footer-section li { margin-bottom: 0.6rem; }
+        .footer-section a { color: #aaa; text-decoration: none; transition: color 0.3s ease; }
+        .footer-section a:hover { color: var(--primary-color); }
+        .module-nav { margin: 1.5rem 0; padding: 1rem; background: rgba(0, 120, 212, 0.05); border-radius: 6px; border-left: 4px solid var(--primary-color); }
+        .module-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; }
+        .module-link { display: inline-block; padding: 0.6rem 1rem; background: var(--primary-color); color: white; text-decoration: none; border-radius: 4px; transition: all 0.3s ease; font-size: 0.9rem; text-align: center; }
+        .module-link:hover { background: var(--secondary-color); transform: translateY(-2px); }
+        .module-link.active { background: var(--secondary-color); font-weight: 600; }
+        .footer-bottom { text-align: center; padding-top: 1.5rem; border-top: 1px solid #444; font-size: 0.9rem; }
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.5rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .container { padding: 1rem; }
+            .content { padding: 1rem; }
+            .theme-toggle { top: 10px; right: 10px; padding: 8px 12px; }
+        }
+        @media (max-width: 480px) {
+            header h1 { font-size: 1.2rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            h2 { font-size: 1.4rem; }
+            h3 { font-size: 1.1rem; }
+            table { font-size: 0.85rem; }
+            th, td { padding: 0.6rem 0.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
+
+    <header>
+        <h1>🔍 Module 5: SELECT Queries & JOINs</h1>
+        <p>WHERE, ORDER BY, INNER/OUTER/CROSS JOINs, Table Joins</p>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number">SELECT</div>
+                <div class="label">Query Basics</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">WHERE</div>
+                <div class="label">Filtering</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">JOIN</div>
+                <div class="label">Table Joins</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">ORDER BY</div>
+                <div class="label">Sorting</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- SECTION 1: SELECT Basics -->
+            <h2>📋 SELECT Statement Basics</h2>
+
+            <h3>Basic SELECT Syntax</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Simple SELECT statement</span>
+<span class="keyword">SELECT</span> 
+  employee_id,
+  first_name,
+  last_name,
+  salary
+<span class="keyword">FROM</span> employees;
+
+<span class="comment">-- SELECT all columns</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees;
+
+<span class="comment">-- SELECT with aliases</span>
+<span class="keyword">SELECT</span> 
+  employee_id <span class="keyword">AS</span> emp_id,
+  first_name || <span class="string">' '</span> || last_name <span class="keyword">AS</span> full_name,
+  salary <span class="keyword">AS</span> monthly_salary
+<span class="keyword">FROM</span> employees;
+
+<span class="comment">-- SELECT with expressions</span>
+<span class="keyword">SELECT</span> 
+  employee_id,
+  salary,
+  salary * <span class="number">12</span> <span class="keyword">AS</span> annual_salary,
+  salary * <span class="number">1.1</span> <span class="keyword">AS</span> salary_with_10_pct_raise
+<span class="keyword">FROM</span> employees;</code></pre>
+            </div>
+
+            <h3>DISTINCT and LIMIT</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Get unique departments</span>
+<span class="keyword">SELECT DISTINCT</span> department_id
+<span class="keyword">FROM</span> employees;
+
+<span class="comment">-- ROWNUM - Get first N rows (Oracle)</span>
+<span class="keyword">SELECT</span> *
+<span class="keyword">FROM</span> employees
+<span class="keyword">WHERE</span> ROWNUM &lt;= <span class="number">10</span>;
+
+<span class="comment">-- FETCH NEXT - Modern approach (12c+)</span>
+<span class="keyword">SELECT</span> *
+<span class="keyword">FROM</span> employees
+<span class="keyword">ORDER BY</span> employee_id
+<span class="keyword">FETCH NEXT</span> <span class="number">10</span> ROWS <span class="keyword">ONLY</span>;
+
+<span class="comment">-- OFFSET with FETCH</span>
+<span class="keyword">SELECT</span> *
+<span class="keyword">FROM</span> employees
+<span class="keyword">ORDER BY</span> employee_id
+<span class="keyword">OFFSET</span> <span class="number">5</span> ROWS 
+<span class="keyword">FETCH NEXT</span> <span class="number">10</span> ROWS <span class="keyword">ONLY</span>;</code></pre>
+            </div>
+
+            <!-- SECTION 2: WHERE Clause -->
+            <h2>🔎 WHERE Clause & Filtering</h2>
+
+            <h3>WHERE Operators</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Comparison operators</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees <span class="keyword">WHERE</span> salary &gt; <span class="number">50000</span>;
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees <span class="keyword">WHERE</span> salary &lt;&gt; <span class="number">50000</span>;
+
+<span class="comment">-- IN operator</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">WHERE</span> department_id <span class="keyword">IN</span> (<span class="number">10</span>, <span class="number">20</span>, <span class="number">30</span>);
+
+<span class="comment">-- BETWEEN operator</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">WHERE</span> salary <span class="keyword">BETWEEN</span> <span class="number">50000</span> <span class="keyword">AND</span> <span class="number">100000</span>;
+
+<span class="comment">-- LIKE operator (pattern matching)</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">WHERE</span> first_name <span class="keyword">LIKE</span> <span class="string">'J%'</span>;  <span class="comment">-- Starts with J</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">WHERE</span> first_name <span class="keyword">LIKE</span> <span class="string">'%n'</span>;  <span class="comment">-- Ends with n</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">WHERE</span> first_name <span class="keyword">LIKE</span> <span class="string">'J_hn'</span>;  <span class="comment">-- Exactly 4 chars, J and hn fixed</span>
+
+<span class="comment">-- IS NULL / IS NOT NULL</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees <span class="keyword">WHERE</span> manager_id <span class="keyword">IS NULL</span>;
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees <span class="keyword">WHERE</span> commission <span class="keyword">IS NOT NULL</span>;
+
+<span class="comment">-- Logical operators (AND, OR, NOT)</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">WHERE</span> salary &gt; <span class="number">50000</span> <span class="keyword">AND</span> department_id = <span class="number">20</span>;
+
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">WHERE</span> salary &gt; <span class="number">100000</span> <span class="keyword">OR</span> department_id = <span class="number">10</span>;
+
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">WHERE</span> <span class="keyword">NOT</span> department_id = <span class="number">20</span>;</code></pre>
+            </div>
+
+            <h3>WHERE Best Practices</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Clause</th>
+                        <th>Purpose</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>WHERE</strong></td>
+                        <td>Filter rows before aggregation</td>
+                        <td>WHERE salary &gt; 50000</td>
+                    </tr>
+                    <tr>
+                        <td><strong>HAVING</strong></td>
+                        <td>Filter groups after aggregation</td>
+                        <td>HAVING COUNT(*) &gt; 5</td>
+                    </tr>
+                    <tr>
+                        <td><strong>AND</strong></td>
+                        <td>All conditions must be true</td>
+                        <td>salary &gt; 50000 AND dept=20</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OR</strong></td>
+                        <td>Any condition can be true</td>
+                        <td>dept=10 OR dept=20</td>
+                    </tr>
+                    <tr>
+                        <td><strong>IN</strong></td>
+                        <td>Match multiple values</td>
+                        <td>dept IN (10,20,30)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 3: ORDER BY -->
+            <h2>📊 ORDER BY - Sorting Results</h2>
+
+            <h3>Sorting Syntax</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Sort ascending (default)</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">ORDER BY</span> salary <span class="keyword">ASC</span>;
+
+<span class="comment">-- Sort descending</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">ORDER BY</span> salary <span class="keyword">DESC</span>;
+
+<span class="comment">-- Multi-column sort</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">ORDER BY</span> department_id <span class="keyword">ASC</span>, salary <span class="keyword">DESC</span>;
+
+<span class="comment">-- Sort by column position</span>
+<span class="keyword">SELECT</span> department_id, COUNT(*), AVG(salary)
+<span class="keyword">FROM</span> employees 
+<span class="keyword">GROUP BY</span> department_id
+<span class="keyword">ORDER BY</span> <span class="number">3</span> <span class="keyword">DESC</span>;  <span class="comment">-- Order by 3rd column (AVG salary)</span>
+
+<span class="comment">-- Sort with NULLS FIRST/LAST</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">ORDER BY</span> commission <span class="keyword">ASC NULLS LAST</span>;
+
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees 
+<span class="keyword">ORDER BY</span> manager_id <span class="keyword">ASC NULLS FIRST</span>;</code></pre>
+            </div>
+
+            <!-- SECTION 4: JOINs -->
+            <h2>🔗 JOIN Operations</h2>
+
+            <h3>INNER JOIN</h3>
+            <p>Returns rows where there's a match in both tables.</p>
+            <div class="code-block">
+                <pre><code><span class="comment">-- INNER JOIN - explicit</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name,
+  e.salary,
+  d.department_name
+<span class="keyword">FROM</span> employees e
+<span class="keyword">INNER JOIN</span> departments d 
+  <span class="keyword">ON</span> e.department_id = d.department_id;
+
+<span class="comment">-- INNER JOIN - implicit (old style, comma notation)</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name,
+  d.department_name
+<span class="keyword">FROM</span> employees e, departments d
+<span class="keyword">WHERE</span> e.department_id = d.department_id;
+
+<span class="comment">-- INNER JOIN with multiple tables</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name,
+  d.department_name,
+  l.city
+<span class="keyword">FROM</span> employees e
+<span class="keyword">INNER JOIN</span> departments d ON e.department_id = d.department_id
+<span class="keyword">INNER JOIN</span> locations l ON d.location_id = l.location_id;</code></pre>
+            </div>
+
+            <h3>LEFT OUTER JOIN</h3>
+            <p>Returns all rows from left table + matching rows from right table.</p>
+            <div class="code-block">
+                <pre><code><span class="comment">-- LEFT OUTER JOIN</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name,
+  d.department_name
+<span class="keyword">FROM</span> employees e
+<span class="keyword">LEFT OUTER JOIN</span> departments d 
+  <span class="keyword">ON</span> e.department_id = d.department_id;
+
+<span class="comment">-- SHORT FORM: LEFT JOIN</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name,
+  d.department_name
+<span class="keyword">FROM</span> employees e
+<span class="keyword">LEFT JOIN</span> departments d 
+  <span class="keyword">ON</span> e.department_id = d.department_id;</code></pre>
+            </div>
+
+            <h3>RIGHT OUTER JOIN</h3>
+            <p>Returns all rows from right table + matching rows from left table.</p>
+            <div class="code-block">
+                <pre><code><span class="comment">-- RIGHT OUTER JOIN</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name,
+  d.department_name
+<span class="keyword">FROM</span> employees e
+<span class="keyword">RIGHT OUTER JOIN</span> departments d 
+  <span class="keyword">ON</span> e.department_id = d.department_id;
+
+<span class="comment">-- Get departments with no employees</span>
+<span class="keyword">SELECT</span> 
+  d.department_id,
+  d.department_name,
+  COUNT(e.employee_id) <span class="keyword">AS</span> emp_count
+<span class="keyword">FROM</span> employees e
+<span class="keyword">RIGHT JOIN</span> departments d 
+  <span class="keyword">ON</span> e.department_id = d.department_id
+<span class="keyword">WHERE</span> e.employee_id <span class="keyword">IS NULL</span>
+<span class="keyword">GROUP BY</span> d.department_id, d.department_name;</code></pre>
+            </div>
+
+            <h3>FULL OUTER JOIN</h3>
+            <p>Returns all rows from both tables, matching where possible.</p>
+            <div class="code-block">
+                <pre><code><span class="comment">-- FULL OUTER JOIN</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name,
+  d.department_name
+<span class="keyword">FROM</span> employees e
+<span class="keyword">FULL OUTER JOIN</span> departments d 
+  <span class="keyword">ON</span> e.department_id = d.department_id;</code></pre>
+            </div>
+
+            <h3>CROSS JOIN</h3>
+            <p>Cartesian product - returns all combinations of rows.</p>
+            <div class="code-block">
+                <pre><code><span class="comment">-- CROSS JOIN - all combinations</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name,
+  d.department_name
+<span class="keyword">FROM</span> employees e
+<span class="keyword">CROSS JOIN</span> departments d;
+
+<span class="comment">-- Use case: Generate all dates in range</span>
+<span class="keyword">SELECT</span> d.report_date, s.shift_name
+<span class="keyword">FROM</span> (
+  <span class="keyword">SELECT</span> TRUNC(SYSDATE) + ROWNUM - <span class="number">1</span> <span class="keyword">AS</span> report_date
+  <span class="keyword">FROM</span> DUAL 
+  <span class="keyword">CONNECT BY</span> ROWNUM &lt;= <span class="number">30</span>
+) d
+<span class="keyword">CROSS JOIN</span> shifts s;</code></pre>
+            </div>
+
+            <h3>SELF JOIN</h3>
+            <p>Join a table to itself (typically for hierarchical data).</p>
+            <div class="code-block">
+                <pre><code><span class="comment">-- SELF JOIN - employee and their manager</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name <span class="keyword">AS</span> employee_name,
+  m.first_name <span class="keyword">AS</span> manager_name,
+  m.employee_id <span class="keyword">AS</span> manager_id
+<span class="keyword">FROM</span> employees e
+<span class="keyword">LEFT JOIN</span> employees m 
+  <span class="keyword">ON</span> e.manager_id = m.employee_id;</code></pre>
+            </div>
+
+            <h3>JOIN Comparison</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>JOIN Type</th>
+                        <th>Left Table</th>
+                        <th>Right Table</th>
+                        <th>Match</th>
+                        <th>Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>INNER</strong></td>
+                        <td>✓ Matched</td>
+                        <td>✓ Matched</td>
+                        <td>Required</td>
+                        <td>Only related data</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LEFT</strong></td>
+                        <td>✓ All</td>
+                        <td>✓ Matched</td>
+                        <td>Optional</td>
+                        <td>Primary table complete</td>
+                    </tr>
+                    <tr>
+                        <td><strong>RIGHT</strong></td>
+                        <td>✓ Matched</td>
+                        <td>✓ All</td>
+                        <td>Optional</td>
+                        <td>Secondary table complete</td>
+                    </tr>
+                    <tr>
+                        <td><strong>FULL</strong></td>
+                        <td>✓ All</td>
+                        <td>✓ All</td>
+                        <td>Optional</td>
+                        <td>All data from both</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CROSS</strong></td>
+                        <td>✓ All</td>
+                        <td>✓ All</td>
+                        <td>None</td>
+                        <td>All combinations</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 5: Advanced JOIN Techniques -->
+            <h2>⚡ Advanced JOIN Techniques</h2>
+
+            <h3>Multiple JOINs with Conditions</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Complex multi-table JOIN with filtering</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name,
+  d.department_name,
+  l.city,
+  COUNT(p.project_id) <span class="keyword">AS</span> project_count
+<span class="keyword">FROM</span> employees e
+<span class="keyword">INNER JOIN</span> departments d ON e.department_id = d.department_id
+<span class="keyword">INNER JOIN</span> locations l ON d.location_id = l.location_id
+<span class="keyword">LEFT JOIN</span> projects p ON e.employee_id = p.lead_id
+<span class="keyword">WHERE</span> e.hire_date &gt; <span class="string">'01-JAN-2020'</span>
+<span class="keyword">GROUP BY</span> e.employee_id, e.first_name, d.department_name, l.city
+<span class="keyword">ORDER BY</span> project_count <span class="keyword">DESC</span>;</code></pre>
+            </div>
+
+            <h3>Anti-JOIN (Find Non-Matching)</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Find employees without projects</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name
+<span class="keyword">FROM</span> employees e
+<span class="keyword">LEFT JOIN</span> projects p ON e.employee_id = p.lead_id
+<span class="keyword">WHERE</span> p.project_id <span class="keyword">IS NULL</span>;
+
+<span class="comment">-- Alternative using NOT IN</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.first_name
+<span class="keyword">FROM</span> employees e
+<span class="keyword">WHERE</span> e.employee_id <span class="keyword">NOT IN</span> (
+  <span class="keyword">SELECT DISTINCT</span> lead_id <span class="keyword">FROM</span> projects
+);</code></pre>
+            </div>
+
+            <div class="highlight">
+                <strong>💡 Tip:</strong> Use table aliases (e, d, l) for readability. Use INNER JOIN when you need matches in both tables. Use LEFT/RIGHT for optional relationships.
+            </div>
+
+            <!-- CHECKLIST -->
+            <div class="checklist">
+                <div class="checklist-title">✓ Learning Checklist - Module 5</div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check1">
+                    <label for="check1">Master SELECT statement syntax and basic queries</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check2">
+                    <label for="check2">Apply WHERE clause with various operators</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check3">
+                    <label for="check3">Use ORDER BY for sorting with multiple columns</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check4">
+                    <label for="check4">Implement INNER JOIN correctly</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check5">
+                    <label for="check5">Use LEFT/RIGHT/FULL OUTER JOINs effectively</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check6">
+                    <label for="check6">Apply CROSS JOIN for Cartesian products</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check7">
+                    <label for="check7">Perform SELF JOINs for hierarchical queries</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check8">
+                    <label for="check8">Build complex multi-table JOINs with proper filtering</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-content">
+            <div class="module-nav">
+                <h3 style="margin-top: 0; color: var(--primary-color);">📚 Oracle Database Modules Navigation</h3>
+                <div class="module-links">
+                    <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+                    <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+                    <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+                    <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+                    <a href="module-05-select-joins.html" class="module-link active">Module 5: SELECT & JOINs</a>
+                    <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+                    <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+                    <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+                    <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+                    <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+                    <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+                    <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+                    <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+                    <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+                    <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+                    <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+                    <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+                    <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+                    <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+                    <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+                    <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+                    <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+                    <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+                    <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+                    <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+                    <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+                </div>
+            </div>
+
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>📖 Learning Paths</h4>
+                    <ul>
+                        <li><a href="#">SQL Fundamentals</a></li>
+                        <li><a href="#">Database Administration</a></li>
+                        <li><a href="#">Performance Tuning</a></li>
+                        <li><a href="#">High Availability</a></li>
+                        <li><a href="#">Cloud Migration</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🔗 Official Resources</h4>
+                    <ul>
+                        <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+                        <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+                        <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+                        <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+                        <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🎓 Certifications</h4>
+                    <ul>
+                        <li><a href="#">OCA Exam Prep</a></li>
+                        <li><a href="#">OCP Exam Prep</a></li>
+                        <li><a href="#">Study Resources</a></li>
+                        <li><a href="#">Practice Exams</a></li>
+                        <li><a href="#">Certification Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>Oracle Database Knowledge Base | Module 5 of 26 | Last Updated: Dec 2025</p>
+                <p>📧 Contact | 💬 Feedback | 📱 Mobile Version | 🌍 Global</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            updateThemeButton();
+        }
+        function updateThemeButton() {
+            const btn = document.querySelector('.theme-toggle');
+            if (document.body.classList.contains('dark-mode')) {
+                btn.textContent = '☀️';
+            } else {
+                btn.textContent = '🌙';
+            }
+        }
+        window.addEventListener('load', function() {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+            updateThemeButton();
+        });
+    </script>
+</body>
+</html>

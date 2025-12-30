@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 3: SQL Basics - DDL & DML - CREATE, ALTER, DROP, INSERT, UPDATE, DELETE</title>
+    <style>
+        :root {
+            --primary-color: #0078d4;
+            --secondary-color: #106ebe;
+            --accent-color: #0063b1;
+            --bg-light: #f5f7fa;
+            --bg-dark: #1a1a1a;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+            --border-color: #ddd;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --code-bg: #f4f4f4;
+            --code-border: #e0e0e0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+        body.dark-mode { background: var(--bg-dark); color: var(--text-dark); }
+        body.dark-mode .code-block { background: #2d2d2d; color: #f8f8f2; border-color: #444; }
+        body.dark-mode table { border-color: #444; background: #242424; }
+        body.dark-mode th, body.dark-mode td { border-color: #444; }
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,120,212,0.2);
+        }
+        header h1 { font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700; }
+        header p { font-size: 1rem; opacity: 0.95; }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover { background: var(--secondary-color); transform: scale(1.05); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        body.dark-mode .stat-card { background: #242424; border-color: #444; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,120,212,0.2); }
+        .stat-card .number { font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.5rem; }
+        .stat-card .label { font-size: 0.9rem; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        body.dark-mode .stat-card .label { color: #aaa; }
+        .content { background: white; border-radius: 8px; padding: 2rem; margin: 2rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        body.dark-mode .content { background: #242424; border: 1px solid #444; }
+        h2 { font-size: 1.8rem; margin: 2rem 0 1rem 0; color: var(--primary-color); border-bottom: 3px solid var(--primary-color); padding-bottom: 0.5rem; }
+        h3 { font-size: 1.3rem; margin: 1.5rem 0 0.8rem 0; color: var(--secondary-color); }
+        h4 { font-size: 1.1rem; margin: 1rem 0 0.5rem 0; color: var(--accent-color); }
+        p { margin-bottom: 1rem; line-height: 1.8; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        body.dark-mode table { background: #1a1a1a; }
+        th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid var(--primary-color);
+        }
+        td { padding: 0.8rem 1rem; border: 1px solid var(--border-color); word-wrap: break-word; }
+        body.dark-mode td { border-color: #444; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        body.dark-mode tr:nth-child(even) { background: #1a1a1a; }
+        tr:hover { background: #f0f7ff; }
+        body.dark-mode tr:hover { background: #2a2a2a; }
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #2c3e50;
+        }
+        .code-block pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+        .code-block code { display: block; }
+        .keyword { color: #0078d4; font-weight: bold; }
+        .string { color: #c41a16; }
+        .number { color: #098658; }
+        .comment { color: #6a737d; font-style: italic; }
+        .function { color: #6f42c1; }
+        ul, ol { margin: 1rem 0 1.5rem 2rem; }
+        li { margin-bottom: 0.5rem; line-height: 1.8; }
+        .highlight { background: #fff3cd; border-left: 4px solid var(--warning); padding: 1rem; margin: 1.5rem 0; border-radius: 4px; }
+        body.dark-mode .highlight { background: rgba(255, 193, 7, 0.1); border-left-color: #ffc107; }
+        .highlight strong { color: var(--warning); }
+        .warning { background: #f8d7da; border-left: 4px solid var(--danger); padding: 1rem; margin: 1.5rem 0; border-radius: 4px; color: #721c24; }
+        body.dark-mode .warning { background: rgba(220, 53, 69, 0.1); color: #ff7675; }
+        .success { background: #d4edda; border-left: 4px solid var(--success); padding: 1rem; margin: 1.5rem 0; border-radius: 4px; color: #155724; }
+        body.dark-mode .success { background: rgba(40, 167, 69, 0.1); color: #52c41a; }
+        .checklist { background: #e7f3ff; border: 1px solid var(--primary-color); border-radius: 6px; padding: 1.5rem; margin: 2rem 0; }
+        body.dark-mode .checklist { background: rgba(0, 120, 212, 0.1); border-color: #0078d4; }
+        .checklist-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--primary-color); }
+        .checklist-item { display: flex; align-items: flex-start; margin-bottom: 0.8rem; padding: 0.5rem 0; }
+        .checklist-item input[type="checkbox"] { margin-right: 0.8rem; margin-top: 0.3rem; cursor: pointer; width: 20px; height: 20px; }
+        .checklist-item label { cursor: pointer; flex: 1; }
+        footer { background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); color: #e0e0e0; padding: 2rem; margin-top: 3rem; border-top: 3px solid var(--primary-color); }
+        .footer-content { max-width: 1200px; margin: 0 auto; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+        .footer-section h4 { color: var(--primary-color); margin-bottom: 1rem; font-size: 1.1rem; }
+        .footer-section ul { list-style: none; margin: 0; padding: 0; }
+        .footer-section li { margin-bottom: 0.6rem; }
+        .footer-section a { color: #aaa; text-decoration: none; transition: color 0.3s ease; }
+        .footer-section a:hover { color: var(--primary-color); }
+        .module-nav { margin: 1.5rem 0; padding: 1rem; background: rgba(0, 120, 212, 0.05); border-radius: 6px; border-left: 4px solid var(--primary-color); }
+        .module-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; }
+        .module-link {
+            display: inline-block;
+            padding: 0.6rem 1rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .module-link:hover { background: var(--secondary-color); transform: translateY(-2px); }
+        .module-link.active { background: var(--secondary-color); font-weight: 600; }
+        .footer-bottom { text-align: center; padding-top: 1.5rem; border-top: 1px solid #444; font-size: 0.9rem; }
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.5rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .container { padding: 1rem; }
+            .content { padding: 1rem; }
+            .theme-toggle { top: 10px; right: 10px; padding: 8px 12px; }
+        }
+        @media (max-width: 480px) {
+            header h1 { font-size: 1.2rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            h2 { font-size: 1.4rem; }
+            h3 { font-size: 1.1rem; }
+            table { font-size: 0.85rem; }
+            th, td { padding: 0.6rem 0.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
+
+    <header>
+        <h1>💾 Module 3: SQL Basics - DDL & DML</h1>
+        <p>CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, Transactions, COMMIT/ROLLBACK</p>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number">DDL</div>
+                <div class="label">Data Definition</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">DML</div>
+                <div class="label">Data Manipulation</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">ACID</div>
+                <div class="label">Transactions</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">100%</div>
+                <div class="label">Coverage</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- SECTION 1: DDL -->
+            <h2>🔨 DDL (Data Definition Language)</h2>
+
+            <h3>CREATE TABLE</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Basic table creation with constraints</span>
+<span class="keyword">CREATE TABLE</span> employees (
+  employee_id <span class="keyword">NUMBER</span> <span class="keyword">PRIMARY KEY</span>,
+  first_name <span class="keyword">VARCHAR2</span>(<span class="number">50</span>) <span class="keyword">NOT NULL</span>,
+  last_name <span class="keyword">VARCHAR2</span>(<span class="number">50</span>) <span class="keyword">NOT NULL</span>,
+  email <span class="keyword">VARCHAR2</span>(<span class="number">100</span>) <span class="keyword">UNIQUE</span>,
+  hire_date <span class="keyword">DATE</span> <span class="keyword">DEFAULT</span> <span class="keyword">SYSDATE</span>,
+  salary <span class="keyword">NUMBER</span>(<span class="number">10</span>,<span class="number">2</span>) <span class="keyword">CHECK</span> (salary > <span class="number">0</span>),
+  dept_id <span class="keyword">NUMBER</span> <span class="keyword">REFERENCES</span> departments(dept_id),
+  <span class="keyword">CONSTRAINT</span> emp_email_uk <span class="keyword">UNIQUE</span> (email),
+  <span class="keyword">CONSTRAINT</span> emp_salary_ck <span class="keyword">CHECK</span> (salary > <span class="number">0</span>)
+);</code></pre>
+            </div>
+
+            <h3>Common Constraints</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Constraint</th>
+                        <th>Syntax</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>PRIMARY KEY</strong></td>
+                        <td>employee_id NUMBER PRIMARY KEY</td>
+                        <td>Unique identifier, NOT NULL</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NOT NULL</strong></td>
+                        <td>first_name VARCHAR2(50) NOT NULL</td>
+                        <td>Column must have a value</td>
+                    </tr>
+                    <tr>
+                        <td><strong>UNIQUE</strong></td>
+                        <td>email VARCHAR2(100) UNIQUE</td>
+                        <td>All values unique (allows NULL)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CHECK</strong></td>
+                        <td>salary NUMBER CHECK (salary > 0)</td>
+                        <td>Value must satisfy condition</td>
+                    </tr>
+                    <tr>
+                        <td><strong>FOREIGN KEY</strong></td>
+                        <td>dept_id REFERENCES departments</td>
+                        <td>Reference to another table</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DEFAULT</strong></td>
+                        <td>hire_date DATE DEFAULT SYSDATE</td>
+                        <td>Default value if not provided</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>ALTER TABLE</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Add new column</span>
+<span class="keyword">ALTER TABLE</span> employees <span class="keyword">ADD</span> phone_number <span class="keyword">VARCHAR2</span>(<span class="number">20</span>);
+
+<span class="comment">-- Modify existing column (increase size)</span>
+<span class="keyword">ALTER TABLE</span> employees <span class="keyword">MODIFY</span> first_name <span class="keyword">VARCHAR2</span>(<span class="number">100</span>);
+
+<span class="comment">-- Drop column</span>
+<span class="keyword">ALTER TABLE</span> employees <span class="keyword">DROP COLUMN</span> phone_number;
+
+<span class="comment">-- Disable/Enable constraints</span>
+<span class="keyword">ALTER TABLE</span> employees <span class="keyword">DISABLE CONSTRAINT</span> emp_salary_ck;
+<span class="keyword">ALTER TABLE</span> employees <span class="keyword">ENABLE CONSTRAINT</span> emp_salary_ck;
+
+<span class="comment">-- Rename table</span>
+<span class="keyword">ALTER TABLE</span> employees <span class="keyword">RENAME TO</span> staff;
+
+<span class="comment">-- Rename column</span>
+<span class="keyword">ALTER TABLE</span> employees <span class="keyword">RENAME COLUMN</span> phone_number <span class="keyword">TO</span> contact_phone;</code></pre>
+            </div>
+
+            <h3>DROP TABLE</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Drop table with cascading constraints</span>
+<span class="keyword">DROP TABLE</span> employees <span class="keyword">CASCADE CONSTRAINTS</span>;
+
+<span class="comment">-- Drop table keeping data (use for recycle bin)</span>
+<span class="keyword">DROP TABLE</span> temp_data;
+
+<span class="comment">-- Restore from recycle bin</span>
+<span class="keyword">FLASHBACK TABLE</span> temp_data <span class="keyword">TO BEFORE DROP</span>;</code></pre>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ Warning:</strong> CASCADE CONSTRAINTS drops dependent objects. Use cautiously in production!
+            </div>
+
+            <!-- SECTION 2: DML -->
+            <h2>✏️ DML (Data Manipulation Language)</h2>
+
+            <h3>INSERT - Adding Data</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Standard INSERT</span>
+<span class="keyword">INSERT INTO</span> employees (employee_id, first_name, last_name, salary)
+<span class="keyword">VALUES</span> (<span class="number">1001</span>, <span class="string">'John'</span>, <span class="string">'Smith'</span>, <span class="number">75000</span>);
+
+<span class="comment">-- INSERT without column list (must provide all values in order)</span>
+<span class="keyword">INSERT INTO</span> employees
+<span class="keyword">VALUES</span> (<span class="number">1002</span>, <span class="string">'Sarah'</span>, <span class="string">'Jones'</span>, <span class="string">'sarah@company.com'</span>, <span class="keyword">SYSDATE</span>, <span class="number">85000</span>, <span class="number">10</span>);
+
+<span class="comment">-- INSERT multiple rows at once</span>
+<span class="keyword">INSERT ALL</span>
+  <span class="keyword">INTO</span> employees <span class="keyword">VALUES</span> (<span class="number">1003</span>, <span class="string">'Mike'</span>, <span class="string">'Brown'</span>, <span class="number">72000</span>)
+  <span class="keyword">INTO</span> employees <span class="keyword">VALUES</span> (<span class="number">1004</span>, <span class="string">'Lisa'</span>, <span class="string">'White'</span>, <span class="number">81000</span>)
+<span class="keyword">SELECT * FROM</span> dual;
+
+<span class="comment">-- INSERT from SELECT (copy data)</span>
+<span class="keyword">INSERT INTO</span> employees_backup
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees <span class="keyword">WHERE</span> salary > <span class="number">80000</span>;</code></pre>
+            </div>
+
+            <h3>UPDATE - Modifying Data</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Update single record</span>
+<span class="keyword">UPDATE</span> employees
+<span class="keyword">SET</span> salary = <span class="number">80000</span>
+<span class="keyword">WHERE</span> employee_id = <span class="number">1001</span>;
+
+<span class="comment">-- Update multiple columns</span>
+<span class="keyword">UPDATE</span> employees
+<span class="keyword">SET</span> salary = salary * <span class="number">1.1</span>, 
+    hire_date = <span class="keyword">SYSDATE</span>
+<span class="keyword">WHERE</span> dept_id = <span class="number">10</span>;
+
+<span class="comment">-- Update using subquery</span>
+<span class="keyword">UPDATE</span> employees
+<span class="keyword">SET</span> salary = (
+  <span class="keyword">SELECT</span> <span class="keyword">AVG</span>(salary) 
+  <span class="keyword">FROM</span> employees 
+  <span class="keyword">WHERE</span> dept_id = <span class="number">20</span>
+)
+<span class="keyword">WHERE</span> employee_id = <span class="number">1005</span>;
+
+<span class="comment">-- Update with CASE expression</span>
+<span class="keyword">UPDATE</span> employees
+<span class="keyword">SET</span> salary = <span class="keyword">CASE</span>
+  <span class="keyword">WHEN</span> dept_id = <span class="number">10</span> <span class="keyword">THEN</span> salary * <span class="number">1.15</span>
+  <span class="keyword">WHEN</span> dept_id = <span class="number">20</span> <span class="keyword">THEN</span> salary * <span class="number">1.10</span>
+  <span class="keyword">ELSE</span> salary
+<span class="keyword">END</span>;</code></pre>
+            </div>
+
+            <h3>DELETE - Removing Data</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Delete specific records</span>
+<span class="keyword">DELETE FROM</span> employees
+<span class="keyword">WHERE</span> employee_id = <span class="number">1001</span>;
+
+<span class="comment">-- Delete by condition</span>
+<span class="keyword">DELETE FROM</span> employees
+<span class="keyword">WHERE</span> salary < <span class="number">30000</span> <span class="keyword">AND</span> dept_id <span class="keyword">IS NULL</span>;
+
+<span class="comment">-- Delete all records (use TRUNCATE for speed)</span>
+<span class="keyword">DELETE FROM</span> employees;
+
+<span class="comment">-- TRUNCATE (faster, cannot rollback in some cases)</span>
+<span class="keyword">TRUNCATE TABLE</span> temp_table;
+
+<span class="comment">-- Check rows affected</span>
+<span class="keyword">DELETE FROM</span> employees <span class="keyword">WHERE</span> salary < <span class="number">30000</span>;
+<span class="keyword">DBMS_OUTPUT</span>.put_line(<span class="string">'Rows deleted: '</span> || <span class="keyword">SQL%ROWCOUNT</span>);</code></pre>
+            </div>
+
+            <div class="highlight">
+                <strong>💡 Tip:</strong> Use TRUNCATE for DELETE all (cannot rollback in AUTOCOMMIT mode), but DELETE can be rolled back. TRUNCATE resets identity, DELETE preserves it.
+            </div>
+
+            <!-- SECTION 3: Transactions -->
+            <h2>🔄 Transactions (ACID Properties)</h2>
+
+            <h3>ACID Properties</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Meaning</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Atomicity</strong></td>
+                        <td>All or nothing - whole transaction succeeds or fails</td>
+                        <td>Money transfer: debit & credit both succeed or both fail</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Consistency</strong></td>
+                        <td>Database moves from one consistent state to another</td>
+                        <td>All constraints validated before commit</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Isolation</strong></td>
+                        <td>Transactions don't interfere with each other</td>
+                        <td>Read locks prevent dirty reads</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Durability</strong></td>
+                        <td>Committed data survives failures</td>
+                        <td>Data written to redo logs, persists</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Transaction Control</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Start transaction (implicit)</span>
+<span class="keyword">BEGIN</span>;  <span class="comment">-- PL/SQL blocks use BEGIN</span>
+
+<span class="keyword">INSERT INTO</span> accounts (account_id, balance) <span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="number">1000</span>);
+<span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = balance + <span class="number">500</span> <span class="keyword">WHERE</span> account_id = <span class="number">2</span>;
+
+<span class="comment">-- COMMIT: Save all changes permanently</span>
+<span class="keyword">COMMIT</span>;
+
+<span class="comment">-- Example with rollback</span>
+<span class="keyword">BEGIN</span>
+<span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = <span class="number">0</span>;
+<span class="comment">-- Oops! Wrong update, rollback</span>
+<span class="keyword">ROLLBACK</span>;  <span class="comment">-- Undo changes</span>
+<span class="keyword">END</span>;
+
+<span class="comment">-- SAVEPOINT: Rollback to checkpoint</span>
+<span class="keyword">SAVEPOINT</span> sp1;
+<span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = <span class="number">500</span>;
+<span class="comment">-- Rollback to sp1, undoing the UPDATE</span>
+<span class="keyword">ROLLBACK TO SAVEPOINT</span> sp1;</code></pre>
+            </div>
+
+            <h3>Isolation Levels</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>Dirty Read</th>
+                        <th>Non-repeatable Read</th>
+                        <th>Phantom Read</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>READ UNCOMMITTED</strong></td>
+                        <td>Possible</td>
+                        <td>Possible</td>
+                        <td>Possible</td>
+                    </tr>
+                    <tr>
+                        <td><strong>READ COMMITTED</strong></td>
+                        <td>No</td>
+                        <td>Possible</td>
+                        <td>Possible</td>
+                    </tr>
+                    <tr>
+                        <td><strong>REPEATABLE READ</strong></td>
+                        <td>No</td>
+                        <td>No</td>
+                        <td>Possible</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SERIALIZABLE</strong></td>
+                        <td>No</td>
+                        <td>No</td>
+                        <td>No</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="code-block">
+                <pre><code><span class="comment">-- Set transaction isolation level</span>
+<span class="keyword">SET TRANSACTION ISOLATION LEVEL SERIALIZABLE</span>;
+
+<span class="comment">-- Set read-only transaction (for reports)</span>
+<span class="keyword">SET TRANSACTION READ ONLY</span>;
+
+<span class="comment">-- Default is READ COMMITTED</span></code></pre>
+            </div>
+
+            <!-- SECTION 4: Best Practices -->
+            <h2>✅ Best Practices</h2>
+
+            <h3>DDL Best Practices</h3>
+            <ul>
+                <li><strong>Use meaningful names:</strong> employee_id instead of eid</li>
+                <li><strong>Define constraints:</strong> NOT NULL, UNIQUE, CHECK at creation time</li>
+                <li><strong>Use REFERENCES for FK:</strong> Maintain referential integrity</li>
+                <li><strong>Partition large tables:</strong> For better performance</li>
+                <li><strong>Plan for growth:</strong> Use appropriate data types (VARCHAR2 vs CHAR)</li>
+                <li><strong>Document structure:</strong> Add comments to explain complex designs</li>
+            </ul>
+
+            <h3>DML Best Practices</h3>
+            <ul>
+                <li><strong>Use transactions:</strong> Always group related operations</li>
+                <li><strong>Avoid N+1 queries:</strong> Use JOIN instead of loops</li>
+                <li><strong>Use bind variables:</strong> Prevent SQL injection, improve reusability</li>
+                <li><strong>Batch operations:</strong> Insert/update in batches for performance</li>
+                <li><strong>Always have WHERE clause:</strong> Prevent accidental bulk deletes</li>
+                <li><strong>Test on development:</strong> Before running on production</li>
+            </ul>
+
+            <div class="code-block">
+                <pre><code><span class="comment">-- Example: Safe transaction with error handling</span>
+<span class="keyword">BEGIN</span>
+  <span class="keyword">INSERT INTO</span> audit_log (action, timestamp)
+  <span class="keyword">VALUES</span> (<span class="string">'Employee Update Started'</span>, <span class="keyword">SYSDATE</span>);
+  
+  <span class="keyword">UPDATE</span> employees 
+  <span class="keyword">SET</span> salary = salary * <span class="number">1.1</span>
+  <span class="keyword">WHERE</span> dept_id = <span class="number">10</span>;
+  
+  <span class="keyword">IF</span> <span class="keyword">SQL%ROWCOUNT</span> = <span class="number">0</span> <span class="keyword">THEN</span>
+    <span class="keyword">RAISE</span> NO_DATA_FOUND;
+  <span class="keyword">END IF</span>;
+  
+  <span class="keyword">COMMIT</span>;
+<span class="keyword">EXCEPTION</span>
+  <span class="keyword">WHEN</span> NO_DATA_FOUND <span class="keyword">THEN</span>
+    <span class="keyword">ROLLBACK</span>;
+    <span class="keyword">DBMS_OUTPUT</span>.put_line(<span class="string">'No employees found'</span>);
+<span class="keyword">END</span>;</code></pre>
+            </div>
+
+            <!-- CHECKLIST -->
+            <div class="checklist">
+                <div class="checklist-title">✓ Learning Checklist - Module 3</div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check1">
+                    <label for="check1">Master CREATE TABLE with constraints</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check2">
+                    <label for="check2">Use ALTER TABLE for modifications</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check3">
+                    <label for="check3">Understand PRIMARY KEY and FOREIGN KEY</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check4">
+                    <label for="check4">Write INSERT statements (single and bulk)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check5">
+                    <label for="check5">Update data safely with WHERE clause</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check6">
+                    <label for="check6">Delete data safely (DELETE vs TRUNCATE)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check7">
+                    <label for="check7">Understand ACID properties</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check8">
+                    <label for="check8">Use COMMIT, ROLLBACK, SAVEPOINT</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-content">
+            <div class="module-nav">
+                <h3 style="margin-top: 0; color: var(--primary-color);">📚 Oracle Database Modules Navigation</h3>
+                <div class="module-links">
+                    <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+                    <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+                    <a href="module-03-sql-ddl-dml.html" class="module-link active">Module 3: SQL DDL/DML</a>
+                    <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+                    <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+                    <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+                    <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+                    <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+                    <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+                    <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+                    <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+                    <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+                    <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+                    <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+                    <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+                    <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+                    <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+                    <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+                    <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+                    <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+                    <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+                    <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+                    <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+                    <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+                    <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+                    <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+                </div>
+            </div>
+
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>📖 Learning Paths</h4>
+                    <ul>
+                        <li><a href="#">SQL Fundamentals</a></li>
+                        <li><a href="#">Database Administration</a></li>
+                        <li><a href="#">Performance Tuning</a></li>
+                        <li><a href="#">High Availability</a></li>
+                        <li><a href="#">Cloud Migration</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🔗 Official Resources</h4>
+                    <ul>
+                        <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+                        <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+                        <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+                        <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+                        <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🎓 Certifications</h4>
+                    <ul>
+                        <li><a href="#">OCA Exam Prep</a></li>
+                        <li><a href="#">OCP Exam Prep</a></li>
+                        <li><a href="#">Study Resources</a></li>
+                        <li><a href="#">Practice Exams</a></li>
+                        <li><a href="#">Certification Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>Oracle Database Knowledge Base | Module 3 of 26 | Last Updated: Dec 2025</p>
+                <p>📧 Contact | 💬 Feedback | 📱 Mobile Version | 🌍 Global</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            updateThemeButton();
+        }
+        function updateThemeButton() {
+            const btn = document.querySelector('.theme-toggle');
+            if (document.body.classList.contains('dark-mode')) {
+                btn.textContent = '☀️';
+            } else {
+                btn.textContent = '🌙';
+            }
+        }
+        window.addEventListener('load', function() {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+            updateThemeButton();
+        });
+    </script>
+</body>
+</html>

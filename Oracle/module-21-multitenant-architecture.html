@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 21 - Multitenant Architecture | Oracle Database</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      background: #0a0e27;
+      color: #e8e8e8;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 60px 20px;
+      text-align: center;
+      margin-bottom: 40px;
+      border-radius: 10px;
+    }
+
+    header h1 {
+      font-size: 3em;
+      color: white;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    header p {
+      font-size: 1.2em;
+      color: #f0f0f0;
+    }
+
+    h2 {
+      color: #667eea;
+      font-size: 2em;
+      margin: 40px 0 20px 0;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      color: #9f7aea;
+      font-size: 1.4em;
+      margin: 25px 0 15px 0;
+    }
+
+    pre {
+      background: #1a1d2e;
+      border-left: 4px solid #667eea;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95em;
+      line-height: 1.5;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    pre code {
+      color: #a9b7c6;
+    }
+
+    .keyword {
+      color: #cc7832;
+      font-weight: bold;
+    }
+
+    .string {
+      color: #6a8759;
+    }
+
+    .comment {
+      color: #808080;
+      font-style: italic;
+    }
+
+    .function {
+      color: #ffc66d;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      background: #1a1d2e;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    table th {
+      background: #667eea;
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #2a2d3e;
+    }
+
+    table tr:hover {
+      background: #252839;
+    }
+
+    .tip {
+      background: #1e3a5f;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
+
+    .tip strong {
+      color: #60a5fa;
+    }
+
+    .warning {
+      background: #3d2817;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
+
+    .warning strong {
+      color: #fbbf24;
+    }
+
+    ul,
+    ol {
+      margin: 15px 0 15px 30px;
+    }
+
+    li {
+      margin: 8px 0;
+    }
+
+    .checklist {
+      background: #1a1d2e;
+      padding: 25px;
+      border-radius: 8px;
+      margin-top: 30px;
+      border: 2px solid #667eea;
+    }
+
+    .checklist h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .checklist li {
+      list-style: none;
+      padding-left: 25px;
+      position: relative;
+    }
+
+    .checklist li:before {
+      content: "✓";
+      color: #10b981;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+
+    footer {
+      background: #667eea;
+      color: white;
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-radius: 10px;
+    }
+
+    footer p {
+      margin: 10px 0;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      transition: all 0.3s;
+    }
+
+    .footer-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .module-links {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+      text-align: center;
+    }
+
+    .module-link {
+      display: block;
+      padding: 0.8rem;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .module-link:hover {
+      background: white;
+      color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .module-link.active {
+      background: white;
+      color: #667eea;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Footer Grid */
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      text-align: left;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .footer-section h4 {
+      color: white;
+      margin-bottom: 1.2rem;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+      padding-bottom: 0.5rem;
+      display: inline-block;
+    }
+
+    .footer-section ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .footer-section li {
+      margin-bottom: 0.8rem;
+    }
+
+    .footer-section a {
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+      display: inline-block;
+    }
+
+    .footer-section a:hover {
+      color: white;
+      transform: translateX(5px);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .module-links {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 2rem;
+      }
+
+      .footer-section h4 {
+        border-bottom: none;
+        margin-top: 1rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .module-links {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>🏗️ Module 21: Multitenant Architecture</h1>
+      <p>Container Databases (CDB) & Pluggable Databases (PDB)</p>
+    </header>
+
+    <h2>🏛️ Multitenant Architecture Overview</h2>
+
+    <h3>Architecture Components</h3>
+    <table>
+      <tr>
+        <th>Component</th>
+        <th>Description</th>
+        <th>Purpose</th>
+      </tr>
+      <tr>
+        <td><strong>CDB (Container DB)</strong></td>
+        <td>Root container</td>
+        <td>Shared memory & processes</td>
+      </tr>
+      <tr>
+        <td><strong>PDB (Pluggable DB)</strong></td>
+        <td>Isolated database</td>
+        <td>Application data & schemas</td>
+      </tr>
+      <tr>
+        <td><strong>CDB$ROOT</strong></td>
+        <td>Root container</td>
+        <td>System metadata</td>
+      </tr>
+      <tr>
+        <td><strong>PDB$SEED</strong></td>
+        <td>Template PDB</td>
+        <td>Fast provisioning</td>
+      </tr>
+    </table>
+
+    <h3>Check CDB Status</h3>
+    <pre><code><span class="comment">-- Verify database is CDB</span>
+<span class="keyword">SELECT</span> CDB, CON_ID, NAME
+<span class="keyword">FROM</span> V$DATABASE;
+
+<span class="comment">-- View all containers</span>
+<span class="keyword">SELECT</span> CON_ID, NAME, OPEN_MODE, RESTRICTED
+<span class="keyword">FROM</span> V$PDBS;
+
+<span class="comment">-- Current container</span>
+<span class="keyword">SHOW</span> CON_NAME;
+<span class="keyword">SHOW</span> CON_ID;
+</code></pre>
+
+    <h2>🔨 Creating & Managing PDBs</h2>
+
+    <h3>Create PDB from Seed</h3>
+    <pre><code><span class="comment">-- Create PDB from seed template</span>
+<span class="keyword">CREATE PLUGGABLE DATABASE</span> pdb1
+  <span class="keyword">ADMIN USER</span> pdb_admin <span class="keyword">IDENTIFIED BY</span> <span class="string">"SecurePass123"</span>
+  <span class="keyword">FILE_NAME_CONVERT</span> = (<span class="string">'/pdbseed/'</span>, <span class="string">'/pdb1/'</span>);
+
+<span class="comment">-- Create with tablespace</span>
+<span class="keyword">CREATE PLUGGABLE DATABASE</span> pdb2
+  <span class="keyword">ADMIN USER</span> pdb_admin <span class="keyword">IDENTIFIED BY</span> <span class="string">"Pass456"</span>
+  <span class="keyword">DEFAULT TABLESPACE</span> users
+  <span class="keyword">DATAFILE</span> <span class="string">'/u01/oradata/pdb2/users01.dbf'</span> <span class="keyword">SIZE</span> 100M
+  <span class="keyword">FILE_NAME_CONVERT</span> = (<span class="string">'/pdbseed/'</span>, <span class="string">'/pdb2/'</span>);
+</code></pre>
+
+    <h3>Clone Existing PDB</h3>
+    <pre><code><span class="comment">-- Clone PDB (source must be READ ONLY)</span>
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1 <span class="keyword">CLOSE</span>;
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1 <span class="keyword">OPEN READ ONLY</span>;
+
+<span class="keyword">CREATE PLUGGABLE DATABASE</span> pdb1_clone
+  <span class="keyword">FROM</span> pdb1
+  <span class="keyword">FILE_NAME_CONVERT</span> = (<span class="string">'/pdb1/'</span>, <span class="string">'/pdb1_clone/'</span>);
+
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1 <span class="keyword">CLOSE</span>;
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1 <span class="keyword">OPEN</span>;
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1_clone <span class="keyword">OPEN</span>;
+</code></pre>
+
+    <h3>Unplug & Plug PDB</h3>
+    <pre><code><span class="comment">-- Unplug PDB (export metadata)</span>
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb2 <span class="keyword">CLOSE</span>;
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb2 
+  <span class="keyword">UNPLUG INTO</span> <span class="string">'/tmp/pdb2.xml'</span>;
+
+<span class="comment">-- Drop unplugged PDB</span>
+<span class="keyword">DROP PLUGGABLE DATABASE</span> pdb2 <span class="keyword">KEEP DATAFILES</span>;
+
+<span class="comment">-- Plug PDB into another CDB</span>
+<span class="keyword">CREATE PLUGGABLE DATABASE</span> pdb2
+  <span class="keyword">USING</span> <span class="string">'/tmp/pdb2.xml'</span>
+  <span class="keyword">NOCOPY</span>
+  <span class="keyword">TEMPFILE REUSE</span>;
+</code></pre>
+
+    <div class="tip">
+      <strong>💡 Tip:</strong> Use <code>NOCOPY</code> when datafiles are in target location. Use <code>COPY</code> to
+      copy files to new location.
+    </div>
+
+    <h2>⚙️ PDB Operations</h2>
+
+    <h3>Open/Close Operations</h3>
+    <pre><code><span class="comment">-- Open PDB</span>
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1 <span class="keyword">OPEN</span>;
+
+<span class="comment">-- Open all PDBs</span>
+<span class="keyword">ALTER PLUGGABLE DATABASE ALL OPEN</span>;
+
+<span class="comment">-- Close PDB</span>
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1 <span class="keyword">CLOSE IMMEDIATE</span>;
+
+<span class="comment">-- Open in restricted mode</span>
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1 <span class="keyword">OPEN RESTRICTED</span>;
+
+<span class="comment">-- Open in read-only</span>
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1 <span class="keyword">OPEN READ ONLY</span>;
+</code></pre>
+
+    <h3>Switch Between Containers</h3>
+    <pre><code><span class="comment">-- Switch to PDB</span>
+<span class="keyword">ALTER SESSION SET CONTAINER</span> = pdb1;
+
+<span class="comment">-- Switch to root</span>
+<span class="keyword">ALTER SESSION SET CONTAINER</span> = CDB$ROOT;
+
+<span class="comment">-- Connect directly to PDB</span>
+<span class="keyword">CONNECT</span> username/password@localhost:1521/pdb1
+</code></pre>
+
+    <h3>Save PDB State</h3>
+    <pre><code><span class="comment">-- Save state (auto-open on startup)</span>
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1 <span class="keyword">SAVE STATE</span>;
+
+<span class="comment">-- Discard saved state</span>
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb1 <span class="keyword">DISCARD STATE</span>;
+
+<span class="comment">-- View saved states</span>
+<span class="keyword">SELECT</span> CON_NAME, STATE
+<span class="keyword">FROM</span> DBA_PDB_SAVED_STATES;
+</code></pre>
+
+    <h2>📊 Resource Management</h2>
+
+    <h3>CDB Resource Plans</h3>
+    <pre><code><span class="comment">-- Create CDB resource plan</span>
+<span class="keyword">BEGIN</span>
+  DBMS_RESOURCE_MANAGER.CREATE_CDB_PLAN(
+    plan    => <span class="string">'cdb_plan'</span>,
+    comment => <span class="string">'CDB resource plan'</span>
+  );
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- Create directives (allocate shares)</span>
+<span class="keyword">BEGIN</span>
+  DBMS_RESOURCE_MANAGER.CREATE_CDB_PLAN_DIRECTIVE(
+    plan                  => <span class="string">'cdb_plan'</span>,
+    pluggable_database    => <span class="string">'pdb1'</span>,
+    shares                => 3,
+    utilization_limit     => 80,  <span class="comment">-- Max 80% CPU</span>
+    parallel_server_limit => 50   <span class="comment">-- Max 50% parallel</span>
+  );
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- Activate plan</span>
+<span class="keyword">ALTER SYSTEM SET</span> RESOURCE_MANAGER_PLAN = <span class="string">'cdb_plan'</span>;
+</code></pre>
+
+    <h3>Monitor Resources</h3>
+    <pre><code><span class="comment">-- View directives</span>
+<span class="keyword">SELECT</span> PLAN, PLUGGABLE_DATABASE, SHARES, UTILIZATION_LIMIT
+<span class="keyword">FROM</span> DBA_CDB_RSRC_PLAN_DIRECTIVES;
+
+<span class="comment">-- Monitor CPU usage</span>
+<span class="keyword">SELECT</span> p.NAME, s.CPU_TIME, s.CPU_WAIT_TIME
+<span class="keyword">FROM</span> V$RSRC_CONS_GROUP_HISTORY s
+<span class="keyword">JOIN</span> V$PDBS p <span class="keyword">ON</span> s.CON_ID = p.CON_ID;
+</code></pre>
+
+    <div class="warning">
+      <strong>⚠️ Warning:</strong> Resource plans affect PDB performance. Test thoroughly before production.
+    </div>
+
+    <h2>🚀 Advanced Features</h2>
+
+    <h3>PDB Relocation (18c+)</h3>
+    <pre><code><span class="comment">-- Relocate PDB online</span>
+<span class="keyword">CREATE PLUGGABLE DATABASE</span> pdb_relocated
+  <span class="keyword">FROM</span> pdb1@source_db_link
+  <span class="keyword">RELOCATE</span>
+  <span class="keyword">FILE_NAME_CONVERT</span> = (<span class="string">'/source/'</span>, <span class="string">'/target/'</span>);
+</code></pre>
+
+    <h3>PDB Refresh (21c+)</h3>
+    <pre><code><span class="comment">-- Create refreshable clone</span>
+<span class="keyword">CREATE PLUGGABLE DATABASE</span> pdb_refresh
+  <span class="keyword">FROM</span> pdb_prod@prod_link
+  <span class="keyword">REFRESH MODE MANUAL</span>
+  <span class="keyword">FILE_NAME_CONVERT</span> = (<span class="string">'/prod/'</span>, <span class="string">'/refresh/'</span>);
+
+<span class="comment">-- Manually refresh</span>
+<span class="keyword">ALTER PLUGGABLE DATABASE</span> pdb_refresh <span class="keyword">REFRESH</span>;
+</code></pre>
+
+    <h3>Common vs Local Users</h3>
+    <pre><code><span class="comment">-- Create common user (C## prefix)</span>
+<span class="keyword">ALTER SESSION SET CONTAINER</span> = CDB$ROOT;
+<span class="keyword">CREATE USER</span> C##admin <span class="keyword">IDENTIFIED BY</span> <span class="string">"Pass123"</span> 
+  <span class="keyword">CONTAINER</span> = ALL;
+<span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> C##admin <span class="keyword">CONTAINER</span> = ALL;
+
+<span class="comment">-- Create local user (in PDB)</span>
+<span class="keyword">ALTER SESSION SET CONTAINER</span> = pdb1;
+<span class="keyword">CREATE USER</span> app_user <span class="keyword">IDENTIFIED BY</span> <span class="string">"AppPass"</span>;
+<span class="keyword">GRANT</span> CONNECT, RESOURCE <span class="keyword">TO</span> app_user;
+</code></pre>
+
+    <h2>🔍 Monitoring Queries</h2>
+
+    <h3>PDB Status & Information</h3>
+    <pre><code><span class="comment">-- List all PDBs</span>
+<span class="keyword">SELECT</span> PDB_ID, PDB_NAME, STATUS, OPEN_MODE, RESTRICTED
+<span class="keyword">FROM</span> DBA_PDBS;
+
+<span class="comment">-- PDB datafiles</span>
+<span class="keyword">SELECT</span> p.NAME, d.FILE_NAME, d.BYTES/1024/1024 <span class="keyword">AS</span> size_mb
+<span class="keyword">FROM</span> CDB_DATA_FILES d
+<span class="keyword">JOIN</span> V$PDBS p <span class="keyword">ON</span> d.CON_ID = p.CON_ID
+<span class="keyword">ORDER BY</span> p.NAME;
+
+<span class="comment">-- PDB size</span>
+<span class="keyword">SELECT</span> p.NAME, <span class="keyword">ROUND</span>(<span class="keyword">SUM</span>(s.BYTES)/1024/1024/1024, 2) <span class="keyword">AS</span> size_gb
+<span class="keyword">FROM</span> CDB_SEGMENTS s
+<span class="keyword">JOIN</span> V$PDBS p <span class="keyword">ON</span> s.CON_ID = p.CON_ID
+<span class="keyword">GROUP BY</span> p.NAME;
+
+<span class="comment">-- Common vs local users</span>
+<span class="keyword">SELECT</span> USERNAME, COMMON, CON_ID, ACCOUNT_STATUS
+<span class="keyword">FROM</span> CDB_USERS
+<span class="keyword">WHERE</span> USERNAME <span class="keyword">NOT IN</span> (<span class="string">'SYS'</span>, <span class="string">'SYSTEM'</span>)
+<span class="keyword">ORDER BY</span> COMMON <span class="keyword">DESC</span>;
+</code></pre>
+
+    <h2>🎯 Best Practices</h2>
+
+    <strong>💡 Multitenant Best Practices:</strong>
+    <ul>
+      <li>Use meaningful PDB names (app_dev, app_prod)</li>
+      <li>Set resource plans to prevent monopolization</li>
+      <li>Backup entire CDB or individual PDBs per SLA</li>
+      <li>Use C## prefix for common users only</li>
+      <li>Monitor PDB states and resource usage</li>
+      <li>Document PDB purpose and ownership</li>
+      <li>Test operations in dev before production</li>
+      <li>Automate provisioning with scripts</li>
+    </ul>
+
+    <div class="checklist">
+      <h3>✓ Learning Checklist - Module 21</h3>
+      <ul>
+        <li>Understand CDB vs PDB architecture</li>
+        <li>Create PDBs from seed and clone existing</li>
+        <li>Unplug and plug PDBs between CDBs</li>
+        <li>Open, close, and manage PDB states</li>
+        <li>Switch between containers</li>
+        <li>Configure CDB resource plans</li>
+        <li>Create common and local users</li>
+        <li>Monitor PDB status and size</li>
+        <li>Use advanced features (relocation, refresh)</li>
+        <li>Apply multitenant best practices</li>
+      </ul>
+    </div>
+
+    <footer>
+      <p><strong>Module 21: Multitenant Architecture (CDB/PDB)</strong></p>
+      <p>Oracle Database Knowledge Base</p>
+      <div class="module-links">
+        <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+        <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+        <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+        <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+        <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+        <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+        <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+        <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+        <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+        <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+        <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+        <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+        <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+        <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+        <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+        <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+        <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+        <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+        <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+        <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+        <a href="module-21-multitenant-architecture.html" class="module-link active">Module 21: Multitenant</a>
+        <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+        <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+        <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+        <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+        <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+      </div>
+
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h4>📖 Learning Paths</h4>
+          <ul>
+            <li><a href="#">SQL Fundamentals</a></li>
+            <li><a href="#">Database Administration</a></li>
+            <li><a href="#">Performance Tuning</a></li>
+            <li><a href="#">High Availability</a></li>
+            <li><a href="#">Cloud Migration</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>🔗 Official Resources</h4>
+          <ul>
+            <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+            <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+            <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+            <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+            <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>🎓 Certifications</h4>
+          <ul>
+            <li><a href="#">OCA Exam Prep</a></li>
+            <li><a href="#">OCP Exam Prep</a></li>
+            <li><a href="#">Study Resources</a></li>
+            <li><a href="#">Practice Exams</a></li>
+            <li><a href="#">Certification Guide</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+
+</html>

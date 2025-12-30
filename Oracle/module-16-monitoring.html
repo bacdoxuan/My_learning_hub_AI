@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 16: Monitoring & Diagnostics</title>
+    <style>
+        :root {
+            --primary-color: #0078d4;
+            --secondary-color: #106ebe;
+            --accent-color: #0063b1;
+            --bg-light: #f5f7fa;
+            --bg-dark: #1a1a1a;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+            --border-color: #ddd;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --code-bg: #f4f4f4;
+            --code-border: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        body.dark-mode .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            border-color: #444;
+        }
+
+        body.dark-mode table {
+            border-color: #444;
+            background: #242424;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 120, 212, 0.2);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .stat-card {
+            background: #242424;
+            border-color: #444;
+        }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+        }
+
+        body.dark-mode .stat-card .label {
+            color: #aaa;
+        }
+
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .content {
+            background: #242424;
+            border: 1px solid #444;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.8rem 0;
+            color: var(--secondary-color);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        body.dark-mode table {
+            background: #1a1a1a;
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-color);
+        }
+
+        body.dark-mode td {
+            border-color: #444;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        body.dark-mode tr:nth-child(even) {
+            background: #1a1a1a;
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        body.dark-mode .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+        }
+
+        .keyword {
+            color: #0078d4;
+            font-weight: bold;
+        }
+
+        .string {
+            color: #c41a16;
+        }
+
+        .number {
+            color: #098658;
+        }
+
+        .comment {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        ul,
+        ol {
+            margin: 1rem 0 1.5rem 2rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        body.dark-mode .highlight {
+            background: rgba(255, 193, 7, 0.1);
+        }
+
+        .checklist {
+            background: #e7f3ff;
+            border: 1px solid var(--primary-color);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        body.dark-mode .checklist {
+            background: rgba(0, 120, 212, 0.1);
+        }
+
+        .checklist-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.8rem;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            margin-right: 0.8rem;
+            margin-top: 0.3rem;
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+        }
+
+        .checklist-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        footer {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #e0e0e0;
+            padding: 2rem;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-color);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .module-nav {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(0, 120, 212, 0.05);
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .module-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .module-link {
+            display: block;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .module-link:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .module-link.active {
+            background: white;
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer Grid */
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            text-align: left;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-section h4 {
+            color: white;
+            margin-bottom: 1.2rem;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            display: inline-block;
+        }
+
+        .footer-section a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .module-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .footer-section h4 {
+                border-bottom: none;
+                margin-top: 1rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .module-links {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid #444;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
+
+    <header>
+        <h1>📊 Module 16: Monitoring & Diagnostics</h1>
+        <p>AWR, ASH, ADDM Reports, Performance Monitoring</p>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number">AWR</div>
+                <div class="label">Workload Data</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">ASH</div>
+                <div class="label">Active Sessions</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">ADDM</div>
+                <div class="label">Diagnostics</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">METRIC</div>
+                <div class="label">Performance Data</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <h2>📈 AWR (Automatic Workload Repository)</h2>
+
+            <h3>AWR Basics & Snapshots</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Create manual snapshot</span>
+<span class="keyword">BEGIN</span>
+  DBMS_WORKLOAD_REPOSITORY.CREATE_SNAPSHOT();
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- View snapshots (last 10)</span>
+<span class="keyword">SELECT</span> snap_id, snap_time, snap_level
+<span class="keyword">FROM</span> dba_hist_snapshot
+<span class="keyword">ORDER BY</span> snap_id <span class="keyword">DESC</span>
+<span class="keyword">FETCH FIRST</span> 10 <span class="keyword">ROWS ONLY</span>;
+
+<span class="comment">-- Set AWR retention (in minutes)</span>
+<span class="keyword">BEGIN</span>
+  DBMS_WORKLOAD_REPOSITORY.MODIFY_SNAPSHOT_SETTINGS(
+    retention => 10080,  <span class="comment">-- 7 days</span>
+    interval => 60       <span class="comment">-- 1 hour</span>
+  );
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- View AWR settings</span>
+<span class="keyword">SELECT</span> *
+<span class="keyword">FROM</span> dba_hist_wr_control;</code></pre>
+            </div>
+
+            <h3>Generating AWR Reports</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Generate AWR HTML report (run as SYS/SYSDBA)</span>
+<span class="comment">-- Use SQL*Plus: @$ORACLE_HOME/rdbms/admin/awrrpt.sql</span>
+<span class="comment">-- Or programmatically:</span>
+<span class="keyword">SET</span> heading <span class="keyword">OFF</span> feedback <span class="keyword">OFF</span> verify <span class="keyword">OFF</span>
+<span class="keyword">SET</span> PAGESIZE 0 linesize 1000 long 20000
+
+<span class="keyword">SELECT</span> output
+<span class="keyword">FROM</span> TABLE(DBMS_WORKLOAD_REPOSITORY.AWR_REPORT_HTML(
+  l_dbid => (SELECT dbid FROM v$database),
+  l_inst_num => 1,
+  l_begin_snap => 100,
+  l_end_snap => 110
+));</code></pre>
+            </div>
+
+            <h2>📊 ASH (Active Session History)</h2>
+
+            <h3>ASH Query Examples</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Top wait events in last hour</span>
+<span class="keyword">SELECT</span> event, count(*) wait_count
+<span class="keyword">FROM</span> v$active_session_history
+<span class="keyword">WHERE</span> sample_time > TRUNC(SYSDATE) + 1
+<span class="keyword">GROUP BY</span> event
+<span class="keyword">ORDER BY</span> wait_count <span class="keyword">DESC</span>;
+
+<span class="comment">-- Top SQL by elapsed time</span>
+<span class="keyword">SELECT</span> sql_id, count(*) sample_count,
+       MAX(sql_exec_start) last_execution
+<span class="keyword">FROM</span> v$active_session_history
+<span class="keyword">WHERE</span> sql_id <span class="keyword">IS NOT NULL</span>
+  <span class="keyword">AND</span> sample_time > SYSDATE - 1/24
+<span class="keyword">GROUP BY</span> sql_id
+<span class="keyword">ORDER BY</span> sample_count <span class="keyword">DESC</span>
+<span class="keyword">FETCH FIRST</span> 10 <span class="keyword">ROWS ONLY</span>;
+
+<span class="comment">-- Active sessions over time</span>
+<span class="keyword">SELECT</span> TRUNC(sample_time, 'HH') hour,
+       count(*) active_sessions
+<span class="keyword">FROM</span> v$active_session_history
+<span class="keyword">WHERE</span> sample_time > SYSDATE - 1
+<span class="keyword">GROUP BY</span> TRUNC(sample_time, 'HH')
+<span class="keyword">ORDER BY</span> hour <span class="keyword">DESC</span>;</code></pre>
+            </div>
+
+            <h2>🔧 ADDM (Automatic Database Diagnostic Monitor)</h2>
+
+            <h3>Running ADDM Analysis</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Analyze performance between snapshots</span>
+<span class="keyword">DECLARE</span>
+  task_id <span class="keyword">NUMBER</span>;
+<span class="keyword">BEGIN</span>
+  task_id := DBMS_ADDM.CREATE_TASK(
+    task_name => 'my_addm_task',
+    description => 'Database diagnostic analysis',
+    dbid => (SELECT dbid FROM v$database),
+    instance_number => 1,
+    snapshot_begin => 100,
+    snapshot_end => 110
+  );
+  
+  DBMS_ADDM.EXECUTE_TASK(task_id);
+  
+  DBMS_OUTPUT.PUT_LINE('ADDM Task ID: ' || task_id);
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- View ADDM findings</span>
+<span class="keyword">SELECT</span> task_id, task_name, task_status
+<span class="keyword">FROM</span> dba_addm_tasks
+<span class="keyword">ORDER BY</span> task_id <span class="keyword">DESC</span>;
+
+<span class="comment">-- View recommendations</span>
+<span class="keyword">SELECT</span> finding_id, type, message, impact
+<span class="keyword">FROM</span> dba_addm_findings
+<span class="keyword">WHERE</span> task_id = 1
+<span class="keyword">ORDER BY</span> impact <span class="keyword">DESC</span>;</code></pre>
+            </div>
+
+            <h2>📊 Performance Metrics Monitoring</h2>
+
+            <h3>Key Database Metrics</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Description</th>
+                        <th>Ideal Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>DB CPU Time</strong></td>
+                        <td>Total CPU used by database</td>
+                        <td>Low to Moderate</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Physical I/O</strong></td>
+                        <td>Disk read/write operations</td>
+                        <td>Minimize</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Logical I/O</strong></td>
+                        <td>Buffer cache reads</td>
+                        <td>Reasonable</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Library Cache Hit Ratio</strong></td>
+                        <td>SQL reuse efficiency</td>
+                        <td>> 95%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Buffer Cache Hit Ratio</strong></td>
+                        <td>Memory hit efficiency</td>
+                        <td>> 99%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Parse Time Ratio</strong></td>
+                        <td>Time spent parsing SQL</td>
+                        <td>
+                            < 5%</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Query Performance Metrics</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Database performance metrics</span>
+<span class="keyword">SELECT</span> metric_name, value, metric_unit
+<span class="keyword">FROM</span> v$sysmetric
+<span class="keyword">WHERE</span> metric_name <span class="keyword">IN</span> (
+  'Database CPU Time Ratio',
+  'Memory Sorts Ratio',
+  'Redo Allocation Hit Ratio'
+);
+
+<span class="comment">-- Wait events breakdown</span>
+<span class="keyword">SELECT</span> event, total_waits, total_timeouts,
+       time_waited_micro / 1000 time_waited_ms
+<span class="keyword">FROM</span> v$system_event
+<span class="keyword">WHERE</span> event <span class="keyword">NOT LIKE</span> 'SQL%'
+<span class="keyword">ORDER BY</span> time_waited_micro <span class="keyword">DESC</span>
+<span class="keyword">FETCH FIRST</span> 15 <span class="keyword">ROWS ONLY</span>;
+
+<span class="comment">-- Session resource usage</span>
+<span class="keyword">SELECT</span> username, sid, physical_reads, logical_reads, cpu_time
+<span class="keyword">FROM</span> v$sess_io
+<span class="keyword">ORDER BY</span> cpu_time <span class="keyword">DESC</span>
+<span class="keyword">FETCH FIRST</span> 10 <span class="keyword">ROWS ONLY</span>;</code></pre>
+            </div>
+
+            <h2>🔍 Real-Time Monitoring Commands</h2>
+
+            <h3>Session & Lock Monitoring</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Active sessions with their SQL</span>
+<span class="keyword">SELECT</span> s.username, s.sid, s.serial#,
+       sq.sql_text, s.status, s.wait_class
+<span class="keyword">FROM</span> v$session s
+<span class="keyword">LEFT JOIN</span> v$sql sq <span class="keyword">ON</span> s.sql_id = sq.sql_id
+<span class="keyword">WHERE</span> s.username <span class="keyword">IS NOT NULL</span>
+<span class="keyword">ORDER BY</span> s.status;
+
+<span class="comment">-- Blocking locks</span>
+<span class="keyword">SELECT</span> blocking_session, sid, serial#, username
+<span class="keyword">FROM</span> v$session
+<span class="keyword">WHERE</span> blocking_session <span class="keyword">IS NOT NULL</span>;
+
+<span class="comment">-- Long running operations</span>
+<span class="keyword">SELECT</span> sid, serial#, username, opname,
+       elapsed_seconds, time_remaining
+<span class="keyword">FROM</span> v$long_ops
+<span class="keyword">WHERE</span> sofar != totalwork;</code></pre>
+            </div>
+
+            <div class="highlight">
+                <strong>💡 Monitoring Best Practices:</strong> Monitor AWR snapshots regularly (hourly). Check ASH for
+                blocking issues. Run ADDM analysis weekly. Watch key metrics (CPU, I/O, memory). Monitor wait events.
+                Check for long-running operations. Review redo log generation. Monitor archive log space. Check
+                tablespace usage. Review alert log for errors.
+            </div>
+
+            <div class="checklist">
+                <div class="checklist-title">✓ Learning Checklist - Module 16</div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check1">
+                    <label for="check1">Understand AWR snapshots and retention</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check2">
+                    <label for="check2">Generate and analyze AWR reports</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check3">
+                    <label for="check3">Query ASH for active session history</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check4">
+                    <label for="check4">Run ADDM diagnostic analysis</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check5">
+                    <label for="check5">Monitor key database metrics</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check6">
+                    <label for="check6">Identify and analyze wait events</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check7">
+                    <label for="check7">Monitor sessions and blocking locks</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="module-nav">
+                <h3 style="margin-top: 0; color: var(--primary-color);">📚 Module Navigation</h3>
+                <div class="module-links">
+                    <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+                    <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+                    <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+                    <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+                    <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+                    <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+                    <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+                    <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+                    <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+                    <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+                    <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+                    <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+                    <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+                    <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+                    <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+                    <a href="module-16-monitoring.html" class="module-link active">Module 16: Monitoring</a>
+                    <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+                    <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+                    <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+                    <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+                    <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+                    <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+                    <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+                    <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+                    <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+                    <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+                </div>
+            </div>
+
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>📖 Learning Paths</h4>
+                    <ul>
+                        <li><a href="#">SQL Fundamentals</a></li>
+                        <li><a href="#">Database Administration</a></li>
+                        <li><a href="#">Performance Tuning</a></li>
+                        <li><a href="#">High Availability</a></li>
+                        <li><a href="#">Cloud Migration</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🔗 Official Resources</h4>
+                    <ul>
+                        <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+                        <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+                        <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+                        <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+                        <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🎓 Certifications</h4>
+                    <ul>
+                        <li><a href="#">OCA Exam Prep</a></li>
+                        <li><a href="#">OCP Exam Prep</a></li>
+                        <li><a href="#">Study Resources</a></li>
+                        <li><a href="#">Practice Exams</a></li>
+                        <li><a href="#">Certification Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>Oracle Database Knowledge Base | Module 16 of 26 | Last Updated: Dec 2025</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            updateThemeButton();
+        }
+        function updateThemeButton() {
+            const btn = document.querySelector('.theme-toggle');
+            btn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+        }
+        window.addEventListener('load', function () {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+            updateThemeButton();
+        });
+    </script>
+</body>
+
+</html>

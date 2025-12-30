@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 23 - Real-time Data & Messaging | Oracle Database</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      background: #0a0e27;
+      color: #e8e8e8;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 60px 20px;
+      text-align: center;
+      margin-bottom: 40px;
+      border-radius: 10px;
+    }
+
+    header h1 {
+      font-size: 3em;
+      color: white;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    header p {
+      font-size: 1.2em;
+      color: #f0f0f0;
+    }
+
+    h2 {
+      color: #667eea;
+      font-size: 2em;
+      margin: 40px 0 20px 0;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      color: #9f7aea;
+      font-size: 1.4em;
+      margin: 25px 0 15px 0;
+    }
+
+    pre {
+      background: #1a1d2e;
+      border-left: 4px solid #667eea;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95em;
+      line-height: 1.5;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    pre code {
+      color: #a9b7c6;
+    }
+
+    .keyword {
+      color: #cc7832;
+      font-weight: bold;
+    }
+
+    .string {
+      color: #6a8759;
+    }
+
+    .comment {
+      color: #808080;
+      font-style: italic;
+    }
+
+    .function {
+      color: #ffc66d;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      background: #1a1d2e;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    table th {
+      background: #667eea;
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #2a2d3e;
+    }
+
+    table tr:hover {
+      background: #252839;
+    }
+
+    .tip {
+      background: #1e3a5f;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
+
+    .tip strong {
+      color: #60a5fa;
+    }
+
+    .warning {
+      background: #3d2817;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
+
+    .warning strong {
+      color: #fbbf24;
+    }
+
+    ul,
+    ol {
+      margin: 15px 0 15px 30px;
+    }
+
+    li {
+      margin: 8px 0;
+    }
+
+    .checklist {
+      background: #1a1d2e;
+      padding: 25px;
+      border-radius: 8px;
+      margin-top: 30px;
+      border: 2px solid #667eea;
+    }
+
+    .checklist h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .checklist li {
+      list-style: none;
+      padding-left: 25px;
+      position: relative;
+    }
+
+    .checklist li:before {
+      content: "✓";
+      color: #10b981;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+
+    footer {
+      background: #667eea;
+      color: white;
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-radius: 10px;
+    }
+
+    footer p {
+      margin: 10px 0;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      transition: all 0.3s;
+    }
+
+    .footer-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .module-links {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+      text-align: center;
+    }
+
+    .module-link {
+      display: block;
+      padding: 0.8rem;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .module-link:hover {
+      background: white;
+      color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .module-link.active {
+      background: white;
+      color: #667eea;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Footer Grid */
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      text-align: left;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .footer-section h4 {
+      color: white;
+      margin-bottom: 1.2rem;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+      padding-bottom: 0.5rem;
+      display: inline-block;
+    }
+
+    .footer-section ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .footer-section li {
+      margin-bottom: 0.8rem;
+    }
+
+    .footer-section a {
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+      display: inline-block;
+    }
+
+    .footer-section a:hover {
+      color: white;
+      transform: translateX(5px);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .module-links {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 2rem;
+      }
+
+      .footer-section h4 {
+        border-bottom: none;
+        margin-top: 1rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .module-links {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>⚡ Module 23: Real-time Data & Messaging</h1>
+      <p>Oracle Streams & Advanced Queuing</p>
+    </header>
+
+    <h2>📨 Oracle Advanced Queuing (AQ)</h2>
+
+    <h3>AQ Architecture</h3>
+    <table>
+      <tr>
+        <th>Component</th>
+        <th>Description</th>
+        <th>Purpose</th>
+      </tr>
+      <tr>
+        <td><strong>Queue</strong></td>
+        <td>Message container</td>
+        <td>Async processing</td>
+      </tr>
+      <tr>
+        <td><strong>Queue Table</strong></td>
+        <td>Storage table</td>
+        <td>Persistent messages</td>
+      </tr>
+      <tr>
+        <td><strong>Producer</strong></td>
+        <td>Enqueue application</td>
+        <td>Send messages</td>
+      </tr>
+      <tr>
+        <td><strong>Consumer</strong></td>
+        <td>Dequeue application</td>
+        <td>Process messages</td>
+      </tr>
+      <tr>
+        <td><strong>Subscriber</strong></td>
+        <td>Registered recipient</td>
+        <td>Selective consumption</td>
+      </tr>
+    </table>
+
+    <h3>Message Delivery Modes</h3>
+    <table>
+      <tr>
+        <th>Mode</th>
+        <th>Storage</th>
+        <th>Use Case</th>
+      </tr>
+      <tr>
+        <td><strong>Persistent</strong></td>
+        <td>Queue table</td>
+        <td>Mission-critical</td>
+      </tr>
+      <tr>
+        <td><strong>Buffered</strong></td>
+        <td>Memory (SGA)</td>
+        <td>High throughput</td>
+      </tr>
+      <tr>
+        <td><strong>Persistent Buffered</strong></td>
+        <td>Both</td>
+        <td>Balance speed & reliability</td>
+      </tr>
+    </table>
+
+    <h2>🔨 Creating Queues</h2>
+
+    <h3>Grant AQ Privileges</h3>
+    <pre><code><span class="comment">-- Grant privileges</span>
+<span class="keyword">GRANT</span> AQ_ADMINISTRATOR_ROLE <span class="keyword">TO</span> app_user;
+<span class="keyword">GRANT</span> EXECUTE <span class="keyword">ON</span> DBMS_AQ <span class="keyword">TO</span> app_user;
+<span class="keyword">GRANT</span> EXECUTE <span class="keyword">ON</span> DBMS_AQADM <span class="keyword">TO</span> app_user;
+</code></pre>
+
+    <h3>Create Queue Table & Queue</h3>
+    <pre><code><span class="comment">-- Create payload type</span>
+<span class="keyword">CREATE TYPE</span> order_message_t <span class="keyword">AS OBJECT</span> (
+  order_id       <span class="keyword">NUMBER</span>,
+  customer_id    <span class="keyword">NUMBER</span>,
+  order_amount   <span class="keyword">NUMBER</span>,
+  order_date     <span class="keyword">DATE</span>,
+  status         <span class="keyword">VARCHAR2</span>(50)
+);
+/
+
+<span class="comment">-- Create queue table</span>
+<span class="keyword">BEGIN</span>
+  DBMS_AQADM.CREATE_QUEUE_TABLE(
+    queue_table        => <span class="string">'order_queue_table'</span>,
+    queue_payload_type => <span class="string">'order_message_t'</span>,
+    multiple_consumers => TRUE,
+    comment            => <span class="string">'Order processing'</span>
+  );
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- Create queue</span>
+<span class="keyword">BEGIN</span>
+  DBMS_AQADM.CREATE_QUEUE(
+    queue_name  => <span class="string">'order_queue'</span>,
+    queue_table => <span class="string">'order_queue_table'</span>
+  );
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- Start queue</span>
+<span class="keyword">BEGIN</span>
+  DBMS_AQADM.START_QUEUE(queue_name => <span class="string">'order_queue'</span>);
+<span class="keyword">END</span>;
+/
+</code></pre>
+
+    <h2>📤 Enqueue Messages</h2>
+
+    <h3>Producer Example</h3>
+    <pre><code><span class="comment">-- Enqueue a message</span>
+<span class="keyword">DECLARE</span>
+  enqueue_options    DBMS_AQ.ENQUEUE_OPTIONS_T;
+  message_properties DBMS_AQ.MESSAGE_PROPERTIES_T;
+  message_handle     RAW(16);
+  message            order_message_t;
+<span class="keyword">BEGIN</span>
+  message := order_message_t(
+    order_id     => 1001,
+    customer_id  => 5001,
+    order_amount => 299.99,
+    order_date   => SYSDATE,
+    status       => <span class="string">'PENDING'</span>
+  );
+
+  <span class="comment">-- Set priority (lower = higher priority)</span>
+  message_properties.priority := 1;
+  message_properties.expiration := 3600; <span class="comment">-- 1 hour</span>
+
+  DBMS_AQ.ENQUEUE(
+    queue_name         => <span class="string">'order_queue'</span>,
+    enqueue_options    => enqueue_options,
+    message_properties => message_properties,
+    payload            => message,
+    msgid              => message_handle
+  );
+
+  <span class="keyword">COMMIT</span>;
+<span class="keyword">END</span>;
+/
+</code></pre>
+
+    <h2>📥 Dequeue Messages</h2>
+
+    <h3>Consumer Example</h3>
+    <pre><code><span class="comment">-- Dequeue a message</span>
+<span class="keyword">DECLARE</span>
+  dequeue_options    DBMS_AQ.DEQUEUE_OPTIONS_T;
+  message_properties DBMS_AQ.MESSAGE_PROPERTIES_T;
+  message_handle     RAW(16);
+  message            order_message_t;
+<span class="keyword">BEGIN</span>
+  dequeue_options.wait := 5; <span class="comment">-- Wait 5 seconds</span>
+  dequeue_options.navigation := DBMS_AQ.FIRST_MESSAGE;
+
+  DBMS_AQ.DEQUEUE(
+    queue_name         => <span class="string">'order_queue'</span>,
+    dequeue_options    => dequeue_options,
+    message_properties => message_properties,
+    payload            => message,
+    msgid              => message_handle
+  );
+
+  <span class="comment">-- Process message</span>
+  DBMS_OUTPUT.PUT_LINE(<span class="string">'Order: '</span> || message.order_id);
+  DBMS_OUTPUT.PUT_LINE(<span class="string">'Amount: '</span> || message.order_amount);
+
+  <span class="keyword">COMMIT</span>; <span class="comment">-- Remove from queue</span>
+<span class="keyword">EXCEPTION</span>
+  <span class="keyword">WHEN</span> OTHERS <span class="keyword">THEN</span>
+    <span class="keyword">IF</span> SQLCODE = -25228 <span class="keyword">THEN</span>
+      DBMS_OUTPUT.PUT_LINE(<span class="string">'No messages'</span>);
+    <span class="keyword">ELSE</span>
+      <span class="keyword">RAISE</span>;
+    <span class="keyword">END IF</span>;
+<span class="keyword">END</span>;
+/
+</code></pre>
+
+    <div class="tip">
+      <strong>💡 Tip:</strong> Use <code>dequeue_options.wait := DBMS_AQ.NO_WAIT</code> for non-blocking or
+      <code>DBMS_AQ.FOREVER</code> to wait indefinitely.
+    </div>
+
+    <h2>🔔 Subscribers & Propagation</h2>
+
+    <h3>Add Queue Subscribers</h3>
+    <pre><code><span class="comment">-- Add subscriber</span>
+<span class="keyword">DECLARE</span>
+  subscriber SYS.AQ$_AGENT;
+<span class="keyword">BEGIN</span>
+  subscriber := SYS.AQ$_AGENT(<span class="string">'warehouse_app'</span>, NULL, NULL);
+
+  DBMS_AQADM.ADD_SUBSCRIBER(
+    queue_name => <span class="string">'order_queue'</span>,
+    subscriber => subscriber
+  );
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- Subscriber with rule-based filter</span>
+<span class="keyword">DECLARE</span>
+  subscriber SYS.AQ$_AGENT;
+<span class="keyword">BEGIN</span>
+  subscriber := SYS.AQ$_AGENT(<span class="string">'priority_app'</span>, NULL, NULL);
+
+  DBMS_AQADM.ADD_SUBSCRIBER(
+    queue_name => <span class="string">'order_queue'</span>,
+    subscriber => subscriber,
+    rule       => <span class="string">'tab.user_data.order_amount > 1000'</span>
+  );
+<span class="keyword">END</span>;
+/
+</code></pre>
+
+    <h3>Dequeue for Specific Subscriber</h3>
+    <pre><code><span class="comment">-- Dequeue as subscriber</span>
+<span class="keyword">DECLARE</span>
+  dequeue_options    DBMS_AQ.DEQUEUE_OPTIONS_T;
+  message_properties DBMS_AQ.MESSAGE_PROPERTIES_T;
+  message_handle     RAW(16);
+  message            order_message_t;
+<span class="keyword">BEGIN</span>
+  dequeue_options.consumer_name := <span class="string">'warehouse_app'</span>;
+  dequeue_options.wait := 5;
+
+  DBMS_AQ.DEQUEUE(
+    queue_name         => <span class="string">'order_queue'</span>,
+    dequeue_options    => dequeue_options,
+    message_properties => message_properties,
+    payload            => message,
+    msgid              => message_handle
+  );
+
+  <span class="keyword">COMMIT</span>;
+<span class="keyword">END</span>;
+/
+</code></pre>
+
+    <h3>Queue Propagation</h3>
+    <pre><code><span class="comment">-- Create database link</span>
+<span class="keyword">CREATE DATABASE LINK</span> remote_db
+  <span class="keyword">CONNECT TO</span> aq_user <span class="keyword">IDENTIFIED BY</span> password
+  <span class="keyword">USING</span> <span class="string">'remote_tns'</span>;
+
+<span class="comment">-- Schedule propagation</span>
+<span class="keyword">BEGIN</span>
+  DBMS_AQADM.SCHEDULE_PROPAGATION(
+    queue_name      => <span class="string">'order_queue'</span>,
+    destination     => <span class="string">'remote_db'</span>,
+    start_time      => SYSDATE,
+    latency         => 60  <span class="comment">-- Every 60 seconds</span>
+  );
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- View propagation schedules</span>
+<span class="keyword">SELECT</span> SCHEMA, QUEUE_NAME, DESTINATION, LATENCY
+<span class="keyword">FROM</span> DBA_QUEUE_SCHEDULES;
+</code></pre>
+
+    <h2>📊 Monitoring Queues</h2>
+
+    <h3>Essential Queries</h3>
+    <pre><code><span class="comment">-- View all queues</span>
+<span class="keyword">SELECT</span> NAME, QUEUE_TABLE, ENQUEUE_ENABLED, DEQUEUE_ENABLED
+<span class="keyword">FROM</span> DBA_QUEUES;
+
+<span class="comment">-- View queue tables</span>
+<span class="keyword">SELECT</span> QUEUE_TABLE, TYPE, RECIPIENTS
+<span class="keyword">FROM</span> DBA_QUEUE_TABLES;
+
+<span class="comment">-- Messages in queue</span>
+<span class="keyword">SELECT</span> MSG_ID, MSG_STATE, ENQUEUE_TIME
+<span class="keyword">FROM</span> order_queue_table;
+
+<span class="comment">-- Queue statistics</span>
+<span class="keyword">SELECT</span> QUEUE_SCHEMA, QUEUE_NAME, NUM_MSGS, SPILL_MSGS
+<span class="keyword">FROM</span> V$AQ;
+
+<span class="comment">-- Subscribers</span>
+<span class="keyword">SELECT</span> QUEUE_NAME, CONSUMER_NAME, ADDRESS, RULE
+<span class="keyword">FROM</span> DBA_QUEUE_SUBSCRIBERS;
+</code></pre>
+
+    <h2>🎯 Queue Management</h2>
+
+    <h3>Queue Operations</h3>
+    <pre><code><span class="comment">-- Stop queue</span>
+<span class="keyword">BEGIN</span>
+  DBMS_AQADM.STOP_QUEUE(queue_name => <span class="string">'order_queue'</span>);
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- Start queue</span>
+<span class="keyword">BEGIN</span>
+  DBMS_AQADM.START_QUEUE(queue_name => <span class="string">'order_queue'</span>);
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- Purge old messages</span>
+<span class="keyword">DECLARE</span>
+  purge_options DBMS_AQADM.AQ$_PURGE_OPTIONS_T;
+<span class="keyword">BEGIN</span>
+  purge_options.block := TRUE;
+
+  DBMS_AQADM.PURGE_QUEUE_TABLE(
+    queue_table      => <span class="string">'order_queue_table'</span>,
+    purge_condition  => <span class="string">'enqueue_time < SYSDATE - 7'</span>,
+    purge_options    => purge_options
+  );
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- Drop queue</span>
+<span class="keyword">BEGIN</span>
+  DBMS_AQADM.STOP_QUEUE(queue_name => <span class="string">'order_queue'</span>);
+  DBMS_AQADM.DROP_QUEUE(queue_name => <span class="string">'order_queue'</span>);
+  DBMS_AQADM.DROP_QUEUE_TABLE(
+    queue_table => <span class="string">'order_queue_table'</span>, 
+    force => TRUE
+  );
+<span class="keyword">END</span>;
+/
+</code></pre>
+
+    <h2>🌊 Oracle Streams (Legacy)</h2>
+
+    <h3>Streams Components</h3>
+    <table>
+      <tr>
+        <th>Component</th>
+        <th>Description</th>
+        <th>Purpose</th>
+      </tr>
+      <tr>
+        <td><strong>Capture</strong></td>
+        <td>Reads redo logs</td>
+        <td>Extract changes</td>
+      </tr>
+      <tr>
+        <td><strong>Propagation</strong></td>
+        <td>Sends LCRs</td>
+        <td>Transfer changes</td>
+      </tr>
+      <tr>
+        <td><strong>Apply</strong></td>
+        <td>Applies changes</td>
+        <td>Replicate data</td>
+      </tr>
+      <tr>
+        <td><strong>LCR</strong></td>
+        <td>Logical Change Record</td>
+        <td>Change event</td>
+      </tr>
+    </table>
+
+    <div class="warning">
+      <strong>⚠️ Warning:</strong> Oracle Streams is deprecated since 19c. Use GoldenGate for replication or AQ for
+      messaging.
+    </div>
+
+    <h3>Streams Alternatives</h3>
+    <table>
+      <tr>
+        <th>Use Case</th>
+        <th>Replacement</th>
+        <th>Benefits</th>
+      </tr>
+      <tr>
+        <td>Data Replication</td>
+        <td><strong>Oracle GoldenGate</strong></td>
+        <td>Real-time CDC</td>
+      </tr>
+      <tr>
+        <td>Messaging</td>
+        <td><strong>Advanced Queuing</strong></td>
+        <td>Transactional</td>
+      </tr>
+      <tr>
+        <td>Event Processing</td>
+        <td><strong>Kafka + Oracle CDC</strong></td>
+        <td>High throughput</td>
+      </tr>
+      <tr>
+        <td>DB Migration</td>
+        <td><strong>Data Pump + GoldenGate</strong></td>
+        <td>Zero downtime</td>
+      </tr>
+    </table>
+
+    <h2>🚀 Best Practices</h2>
+
+    <h3>AQ Best Practices</h3>
+    <ul>
+      <li>Keep payloads small (<1MB)< /li>
+      <li>Set retention policy to purge old messages</li>
+      <li>Monitor queue depth (NUM_MSGS)</li>
+      <li>Use exception queues for failed messages</li>
+      <li>Use message priority for critical messages</li>
+      <li>Commit after dequeue to acknowledge</li>
+      <li>Use buffered queues for high throughput</li>
+      <li>Use rule-based filtering for subscribers</li>
+      <li>Test message expiration behavior</li>
+    </ul>
+
+    <h3>Common Use Cases</h3>
+    <ul>
+      <li><strong>Order Processing:</strong> Decouple entry from fulfillment</li>
+      <li><strong>Email Notifications:</strong> Queue emails for async delivery</li>
+      <li><strong>ETL Pipelines:</strong> Queue data change events</li>
+      <li><strong>Audit Logging:</strong> Queue audit records</li>
+      <li><strong>Microservices:</strong> Async communication</li>
+      <li><strong>Event-Driven:</strong> Publish/subscribe patterns</li>
+    </ul>
+
+    <div class="checklist">
+      <h3>✓ Learning Checklist - Module 23</h3>
+      <ul>
+        <li>Understand AQ architecture</li>
+        <li>Create queue tables with payload types</li>
+        <li>Enqueue messages with priority</li>
+        <li>Dequeue messages (blocking/non-blocking)</li>
+        <li>Add subscribers with filters</li>
+        <li>Configure queue propagation</li>
+        <li>Monitor queue depth and states</li>
+        <li>Implement exception queues</li>
+        <li>Understand Streams deprecation</li>
+        <li>Apply AQ best practices</li>
+      </ul>
+    </div>
+
+    <footer>
+      <p><strong>Module 23: Real-time Data & Messaging</strong></p>
+      <p>Oracle Database Knowledge Base</p>
+      <div class="module-links">
+        <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+        <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+        <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+        <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+        <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+        <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+        <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+        <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+        <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+        <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+        <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+        <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+        <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+        <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+        <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+        <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+        <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+        <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+        <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+        <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+        <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+        <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+        <a href="module-23-real-time-messaging.html" class="module-link active">Module 23: Real-time Data</a>
+        <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+        <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+        <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+      </div>
+
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h4>📖 Learning Paths</h4>
+          <ul>
+            <li><a href="#">SQL Fundamentals</a></li>
+            <li><a href="#">Database Administration</a></li>
+            <li><a href="#">Performance Tuning</a></li>
+            <li><a href="#">High Availability</a></li>
+            <li><a href="#">Cloud Migration</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>🔗 Official Resources</h4>
+          <ul>
+            <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+            <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+            <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+            <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+            <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>🎓 Certifications</h4>
+          <ul>
+            <li><a href="#">OCA Exam Prep</a></li>
+            <li><a href="#">OCP Exam Prep</a></li>
+            <li><a href="#">Study Resources</a></li>
+            <li><a href="#">Practice Exams</a></li>
+            <li><a href="#">Certification Guide</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+
+</html>

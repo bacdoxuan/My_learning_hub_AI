@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Module 22 - High Availability | Oracle Database</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      background: #0a0e27;
+      color: #e8e8e8;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 60px 20px;
+      text-align: center;
+      margin-bottom: 40px;
+      border-radius: 10px;
+    }
+
+    header h1 {
+      font-size: 3em;
+      color: white;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    header p {
+      font-size: 1.2em;
+      color: #f0f0f0;
+    }
+
+    h2 {
+      color: #667eea;
+      font-size: 2em;
+      margin: 40px 0 20px 0;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    h3 {
+      color: #9f7aea;
+      font-size: 1.4em;
+      margin: 25px 0 15px 0;
+    }
+
+    pre {
+      background: #1a1d2e;
+      border-left: 4px solid #667eea;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 0.95em;
+      line-height: 1.5;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    pre code {
+      color: #a9b7c6;
+    }
+
+    .keyword {
+      color: #cc7832;
+      font-weight: bold;
+    }
+
+    .string {
+      color: #6a8759;
+    }
+
+    .comment {
+      color: #808080;
+      font-style: italic;
+    }
+
+    .function {
+      color: #ffc66d;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      background: #1a1d2e;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+
+    table th {
+      background: #667eea;
+      color: white;
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #2a2d3e;
+    }
+
+    table tr:hover {
+      background: #252839;
+    }
+
+    .tip {
+      background: #1e3a5f;
+      border-left: 4px solid #3b82f6;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
+
+    .tip strong {
+      color: #60a5fa;
+    }
+
+    .warning {
+      background: #3d2817;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 6px;
+    }
+
+    .warning strong {
+      color: #fbbf24;
+    }
+
+    ul,
+    ol {
+      margin: 15px 0 15px 30px;
+    }
+
+    li {
+      margin: 8px 0;
+    }
+
+    .checklist {
+      background: #1a1d2e;
+      padding: 25px;
+      border-radius: 8px;
+      margin-top: 30px;
+      border: 2px solid #667eea;
+    }
+
+    .checklist h3 {
+      color: #667eea;
+      margin-bottom: 15px;
+    }
+
+    .checklist li {
+      list-style: none;
+      padding-left: 25px;
+      position: relative;
+    }
+
+    .checklist li:before {
+      content: "✓";
+      color: #10b981;
+      font-weight: bold;
+      position: absolute;
+      left: 0;
+    }
+
+    footer {
+      background: #667eea;
+      color: white;
+      text-align: center;
+      padding: 40px 20px;
+      margin-top: 60px;
+      border-radius: 10px;
+    }
+
+    footer p {
+      margin: 10px 0;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .footer-links a {
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      transition: all 0.3s;
+    }
+
+    .footer-links a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .module-links {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+      text-align: center;
+    }
+
+    .module-link {
+      display: block;
+      padding: 0.8rem;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .module-link:hover {
+      background: white;
+      color: #667eea;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .module-link.active {
+      background: white;
+      color: #667eea;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Footer Grid */
+    .footer-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      text-align: left;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .footer-section h4 {
+      color: white;
+      margin-bottom: 1.2rem;
+      font-size: 1.1rem;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+      padding-bottom: 0.5rem;
+      display: inline-block;
+    }
+
+    .footer-section ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .footer-section li {
+      margin-bottom: 0.8rem;
+    }
+
+    .footer-section a {
+      color: rgba(255, 255, 255, 0.85);
+      text-decoration: none;
+      transition: all 0.2s;
+      font-size: 0.95rem;
+      display: inline-block;
+    }
+
+    .footer-section a:hover {
+      color: white;
+      transform: translateX(5px);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .module-links {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .footer-grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 2rem;
+      }
+
+      .footer-section h4 {
+        border-bottom: none;
+        margin-top: 1rem;
+      }
+    }
+
+    @media (max-width: 600px) {
+      .module-links {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <header>
+      <h1>🛡️ Module 22: High Availability</h1>
+      <p>Data Guard & Oracle RAC - Disaster Recovery & Clustering</p>
+    </header>
+
+    <h2>🔄 Oracle Data Guard</h2>
+
+    <h3>Data Guard Architecture</h3>
+    <table>
+      <tr>
+        <th>Component</th>
+        <th>Description</th>
+        <th>Purpose</th>
+      </tr>
+      <tr>
+        <td><strong>Primary Database</strong></td>
+        <td>Production DB (read-write)</td>
+        <td>Active workload</td>
+      </tr>
+      <tr>
+        <td><strong>Standby Database</strong></td>
+        <td>Replica synchronized</td>
+        <td>Disaster recovery</td>
+      </tr>
+      <tr>
+        <td><strong>Redo Transport</strong></td>
+        <td>Ships redo logs</td>
+        <td>Data replication</td>
+      </tr>
+      <tr>
+        <td><strong>Apply Services</strong></td>
+        <td>Applies redo</td>
+        <td>Keep standby sync'd</td>
+      </tr>
+      <tr>
+        <td><strong>Role Management</strong></td>
+        <td>Switchover/failover</td>
+        <td>DR automation</td>
+      </tr>
+    </table>
+
+    <h3>Standby Types</h3>
+    <table>
+      <tr>
+        <th>Type</th>
+        <th>Data Format</th>
+        <th>Use Case</th>
+      </tr>
+      <tr>
+        <td><strong>Physical Standby</strong></td>
+        <td>Block-for-block</td>
+        <td>Exact replica, fast failover</td>
+      </tr>
+      <tr>
+        <td><strong>Logical Standby</strong></td>
+        <td>SQL-based</td>
+        <td>Open for queries</td>
+      </tr>
+      <tr>
+        <td><strong>Snapshot Standby</strong></td>
+        <td>Writable copy</td>
+        <td>Testing, development</td>
+      </tr>
+    </table>
+
+    <h3>Enable Archive Log Mode</h3>
+    <pre><code><span class="comment">-- Check archive log status</span>
+<span class="keyword">SELECT</span> LOG_MODE <span class="keyword">FROM</span> V$DATABASE;
+
+<span class="comment">-- Enable archive log mode</span>
+<span class="keyword">SHUTDOWN IMMEDIATE</span>;
+<span class="keyword">STARTUP MOUNT</span>;
+<span class="keyword">ALTER DATABASE ARCHIVELOG</span>;
+<span class="keyword">ALTER DATABASE OPEN</span>;
+
+<span class="comment">-- Set archive destination</span>
+<span class="keyword">ALTER SYSTEM SET</span> LOG_ARCHIVE_DEST_1=
+  <span class="string">'LOCATION=/u01/archive VALID_FOR=(ALL_LOGFILES,ALL_ROLES)'</span>;
+</code></pre>
+
+    <h2>⚙️ Configure Data Guard</h2>
+
+    <h3>Primary Database Setup</h3>
+    <pre><code><span class="comment">-- Enable force logging</span>
+<span class="keyword">ALTER DATABASE FORCE LOGGING</span>;
+
+<span class="comment">-- Set standby redo destination</span>
+<span class="keyword">ALTER SYSTEM SET</span> LOG_ARCHIVE_DEST_2=
+  <span class="string">'SERVICE=standby ASYNC VALID_FOR=(ONLINE_LOGFILES,PRIMARY_ROLE)'</span>;
+
+<span class="comment">-- Configure redo transport</span>
+<span class="keyword">ALTER SYSTEM SET</span> LOG_ARCHIVE_CONFIG=
+  <span class="string">'DG_CONFIG=(primary,standby)'</span>;
+
+<span class="keyword">ALTER SYSTEM SET</span> LOG_ARCHIVE_FORMAT=<span class="string">'%t_%s_%r.arc'</span>;
+
+<span class="comment">-- Add standby redo logs</span>
+<span class="keyword">ALTER DATABASE ADD STANDBY LOGFILE</span> 
+  <span class="string">'/u01/oradata/standby_redo01.log'</span> <span class="keyword">SIZE</span> 200M;
+</code></pre>
+
+    <h3>Create Physical Standby</h3>
+    <pre><code><span class="comment">-- Step 1: Backup primary</span>
+RMAN> <span class="keyword">BACKUP DATABASE PLUS ARCHIVELOG</span>;
+RMAN> <span class="keyword">BACKUP CURRENT CONTROLFILE FOR STANDBY</span>;
+
+<span class="comment">-- Step 2: Restore on standby</span>
+RMAN> <span class="keyword">RESTORE CONTROLFILE FROM</span> <span class="string">'/backup/control.ctl'</span>;
+RMAN> <span class="keyword">STARTUP MOUNT</span>;
+RMAN> <span class="keyword">RESTORE DATABASE</span>;
+RMAN> <span class="keyword">RECOVER DATABASE</span>;
+
+<span class="comment">-- Step 3: Start redo apply</span>
+<span class="keyword">ALTER DATABASE RECOVER MANAGED STANDBY DATABASE</span> 
+  <span class="keyword">USING CURRENT LOGFILE DISCONNECT FROM SESSION</span>;
+</code></pre>
+
+    <div class="tip">
+      <strong>💡 Tip:</strong> Use Data Guard Broker (DGMGRL) for easier management and automated failover.
+    </div>
+
+    <h2>🔧 Data Guard Operations</h2>
+
+    <h3>Switchover (Planned)</h3>
+    <pre><code><span class="comment">-- On primary</span>
+<span class="keyword">ALTER DATABASE COMMIT TO SWITCHOVER TO PHYSICAL STANDBY</span> 
+  <span class="keyword">WITH SESSION SHUTDOWN</span>;
+<span class="keyword">SHUTDOWN IMMEDIATE</span>;
+<span class="keyword">STARTUP MOUNT</span>;
+
+<span class="comment">-- On standby (becomes primary)</span>
+<span class="keyword">ALTER DATABASE COMMIT TO SWITCHOVER TO PRIMARY</span>;
+<span class="keyword">ALTER DATABASE OPEN</span>;
+
+<span class="comment">-- On old primary (now standby)</span>
+<span class="keyword">ALTER DATABASE RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="keyword">USING CURRENT LOGFILE DISCONNECT</span>;
+</code></pre>
+
+    <h3>Failover (Unplanned)</h3>
+    <pre><code><span class="comment">-- On standby: Activate as primary</span>
+<span class="keyword">ALTER DATABASE RECOVER MANAGED STANDBY DATABASE FINISH</span>;
+<span class="keyword">ALTER DATABASE ACTIVATE PHYSICAL STANDBY DATABASE</span>;
+<span class="keyword">ALTER DATABASE OPEN</span>;
+</code></pre>
+
+    <h3>Active Data Guard</h3>
+    <pre><code><span class="comment">-- Open standby read-only with apply</span>
+<span class="keyword">ALTER DATABASE OPEN READ ONLY</span>;
+<span class="keyword">ALTER DATABASE RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="keyword">USING CURRENT LOGFILE DISCONNECT</span>;
+
+<span class="comment">-- Check apply lag</span>
+<span class="keyword">SELECT</span> NAME, VALUE, UNIT, TIME_COMPUTED
+<span class="keyword">FROM</span> V$DATAGUARD_STATS
+<span class="keyword">WHERE</span> NAME <span class="keyword">IN</span> (<span class="string">'apply lag'</span>, <span class="string">'transport lag'</span>);
+</code></pre>
+
+    <h3>Snapshot Standby</h3>
+    <pre><code><span class="comment">-- Convert to snapshot (writable)</span>
+<span class="keyword">ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL</span>;
+<span class="keyword">ALTER DATABASE CONVERT TO SNAPSHOT STANDBY</span>;
+<span class="keyword">ALTER DATABASE OPEN</span>;
+
+<span class="comment">-- Convert back to physical</span>
+<span class="keyword">SHUTDOWN IMMEDIATE</span>;
+<span class="keyword">STARTUP MOUNT</span>;
+<span class="keyword">ALTER DATABASE CONVERT TO PHYSICAL STANDBY</span>;
+<span class="keyword">ALTER DATABASE RECOVER MANAGED STANDBY DATABASE</span>
+  <span class="keyword">USING CURRENT LOGFILE DISCONNECT</span>;
+</code></pre>
+
+    <h2>📊 Monitor Data Guard</h2>
+
+    <h3>Monitoring Queries</h3>
+    <pre><code><span class="comment">-- Check database role</span>
+<span class="keyword">SELECT</span> DATABASE_ROLE, OPEN_MODE <span class="keyword">FROM</span> V$DATABASE;
+
+<span class="comment">-- Archive log status</span>
+<span class="keyword">SELECT</span> DEST_ID, STATUS, DESTINATION, ERROR
+<span class="keyword">FROM</span> V$ARCHIVE_DEST
+<span class="keyword">WHERE</span> STATUS <> <span class="string">'INACTIVE'</span>;
+
+<span class="comment">-- Redo apply progress</span>
+<span class="keyword">SELECT</span> PROCESS, STATUS, THREAD#, SEQUENCE#, BLOCK#
+<span class="keyword">FROM</span> V$MANAGED_STANDBY;
+
+<span class="comment">-- Apply/transport lag</span>
+<span class="keyword">SELECT</span> NAME, VALUE, DATUM_TIME, TIME_COMPUTED
+<span class="keyword">FROM</span> V$DATAGUARD_STATS;
+
+<span class="comment">-- Archive gap detection</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> V$ARCHIVE_GAP;
+</code></pre>
+
+    <h3>Data Guard Broker</h3>
+    <pre><code><span class="comment">-- Enable broker</span>
+<span class="keyword">ALTER SYSTEM SET</span> DG_BROKER_START=TRUE;
+
+<span class="comment">-- DGMGRL commands</span>
+DGMGRL> <span class="keyword">CONNECT</span> sys/password@primary
+DGMGRL> <span class="keyword">CREATE CONFIGURATION</span> dg_config <span class="keyword">AS</span>
+        <span class="keyword">PRIMARY DATABASE IS</span> primary
+        <span class="keyword">CONNECT IDENTIFIER IS</span> primary;
+
+DGMGRL> <span class="keyword">ADD DATABASE</span> standby <span class="keyword">AS</span>
+        <span class="keyword">CONNECT IDENTIFIER IS</span> standby;
+
+DGMGRL> <span class="keyword">ENABLE CONFIGURATION</span>;
+DGMGRL> <span class="keyword">SHOW CONFIGURATION</span>;
+DGMGRL> <span class="keyword">SWITCHOVER TO</span> standby;
+</code></pre>
+
+    <div class="warning">
+      <strong>⚠️ Warning:</strong> Always test switchover monthly and failover quarterly in non-production.
+    </div>
+
+    <h2>🔗 Oracle RAC</h2>
+
+    <h3>RAC Architecture</h3>
+    <table>
+      <tr>
+        <th>Component</th>
+        <th>Description</th>
+        <th>Purpose</th>
+      </tr>
+      <tr>
+        <td><strong>Cluster Nodes</strong></td>
+        <td>Multiple servers</td>
+        <td>Load balancing, HA</td>
+      </tr>
+      <tr>
+        <td><strong>Shared Storage</strong></td>
+        <td>ASM or SAN</td>
+        <td>Single DB, multiple instances</td>
+      </tr>
+      <tr>
+        <td><strong>Cache Fusion</strong></td>
+        <td>Inter-instance comm</td>
+        <td>Share data blocks</td>
+      </tr>
+      <tr>
+        <td><strong>CRS</strong></td>
+        <td>Cluster Ready Services</td>
+        <td>Node membership, failover</td>
+      </tr>
+      <tr>
+        <td><strong>Interconnect</strong></td>
+        <td>High-speed network</td>
+        <td>Cache fusion traffic</td>
+      </tr>
+    </table>
+
+    <h3>RAC Administration</h3>
+    <pre><code><span class="comment">-- Check RAC status</span>
+<span class="keyword">SELECT</span> INST_ID, INSTANCE_NAME, HOST_NAME, STATUS
+<span class="keyword">FROM</span> GV$INSTANCE
+<span class="keyword">ORDER BY</span> INST_ID;
+
+<span class="comment">-- View active instances</span>
+<span class="keyword">SELECT</span> INST_ID, INSTANCE_NUMBER, THREAD#
+<span class="keyword">FROM</span> GV$INSTANCE;
+
+<span class="comment">-- Check interconnect</span>
+<span class="keyword">SELECT</span> NAME, VALUE 
+<span class="keyword">FROM</span> GV$SYSSTAT
+<span class="keyword">WHERE</span> NAME <span class="keyword">LIKE</span> <span class="string">'%gc%'</span>
+<span class="keyword">ORDER BY</span> INST_ID;
+
+<span class="comment">-- Services configuration</span>
+<span class="keyword">SELECT</span> NAME, NETWORK_NAME 
+<span class="keyword">FROM</span> DBA_SERVICES;
+</code></pre>
+
+    <h3>RAC Service Management</h3>
+    <pre><code><span class="comment">-- Create RAC service</span>
+<span class="keyword">BEGIN</span>
+  DBMS_SERVICE.CREATE_SERVICE(
+    service_name => <span class="string">'app_service'</span>,
+    network_name => <span class="string">'app_service.example.com'</span>
+  );
+  DBMS_SERVICE.START_SERVICE(<span class="string">'app_service'</span>);
+<span class="keyword">END</span>;
+/
+
+<span class="comment">-- SRVCTL commands (OS level)</span>
+$ srvctl status database -d orcl
+$ srvctl start instance -d orcl -i orcl1
+$ srvctl stop instance -d orcl -i orcl2
+$ srvctl relocate service -d orcl -s app_service -i orcl1 -t orcl2
+</code></pre>
+
+    <h2>🎯 Best Practices</h2>
+
+    <h3>Data Guard Best Practices</h3>
+    <ul>
+      <li>Use dedicated network for redo transport</li>
+      <li>Ensure standby has equal/greater storage</li>
+      <li>Test switchover monthly, failover quarterly</li>
+      <li>Alert on apply lag > 30 seconds</li>
+      <li>Use Data Guard Broker for automation</li>
+      <li>Active Data Guard requires license</li>
+      <li>Use Far Sync for long-distance zero data loss</li>
+    </ul>
+
+    <h3>RAC Best Practices</h3>
+    <ul>
+      <li>Use dedicated redundant 10GbE+ interconnect</li>
+      <li>Use services for load balancing</li>
+      <li>Use ASM for shared storage</li>
+      <li>Partition workload by services</li>
+      <li>Monitor GCS/GES waits</li>
+      <li>Use rolling patches for zero downtime</li>
+      <li>Test instance failover regularly</li>
+    </ul>
+
+    <div class="checklist">
+      <h3>✓ Learning Checklist - Module 22</h3>
+      <ul>
+        <li>Understand Data Guard architecture</li>
+        <li>Configure physical standby from backup</li>
+        <li>Perform switchover (planned)</li>
+        <li>Perform failover (unplanned)</li>
+        <li>Monitor redo apply lag</li>
+        <li>Use Data Guard Broker (DGMGRL)</li>
+        <li>Configure Active Data Guard</li>
+        <li>Understand RAC architecture</li>
+        <li>Query RAC instance status</li>
+        <li>Create and manage RAC services</li>
+      </ul>
+    </div>
+
+    <footer>
+      <p><strong>Module 22: High Availability - Data Guard & RAC</strong></p>
+      <p>Oracle Database Knowledge Base</p>
+      <div class="module-links">
+        <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+        <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+        <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+        <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+        <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+        <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+        <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+        <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+        <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+        <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+        <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+        <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+        <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+        <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+        <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+        <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+        <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+        <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+        <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+        <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+        <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+        <a href="module-22-high-availability.html" class="module-link active">Module 22: High Availability</a>
+        <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+        <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+        <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+        <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+      </div>
+
+      <div class="footer-grid">
+        <div class="footer-section">
+          <h4>📖 Learning Paths</h4>
+          <ul>
+            <li><a href="#">SQL Fundamentals</a></li>
+            <li><a href="#">Database Administration</a></li>
+            <li><a href="#">Performance Tuning</a></li>
+            <li><a href="#">High Availability</a></li>
+            <li><a href="#">Cloud Migration</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>🔗 Official Resources</h4>
+          <ul>
+            <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+            <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+            <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+            <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+            <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+          </ul>
+        </div>
+        <div class="footer-section">
+          <h4>🎓 Certifications</h4>
+          <ul>
+            <li><a href="#">OCA Exam Prep</a></li>
+            <li><a href="#">OCP Exam Prep</a></li>
+            <li><a href="#">Study Resources</a></li>
+            <li><a href="#">Practice Exams</a></li>
+            <li><a href="#">Certification Guide</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+
+</html>

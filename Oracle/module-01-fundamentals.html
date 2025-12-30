@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 1: Oracle Database Fundamentals - Architecture & Instance Management</title>
+    <style>
+        :root {
+            --primary-color: #0078d4;
+            --secondary-color: #106ebe;
+            --accent-color: #0063b1;
+            --bg-light: #f5f7fa;
+            --bg-dark: #1a1a1a;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+            --border-color: #ddd;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --code-bg: #f4f4f4;
+            --code-border: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        body.dark-mode .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            border-color: #444;
+        }
+
+        body.dark-mode table {
+            border-color: #444;
+            background: #242424;
+        }
+
+        body.dark-mode th,
+        body.dark-mode td {
+            border-color: #444;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 120, 212, 0.2);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.95;
+        }
+
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            background: var(--secondary-color);
+            transform: scale(1.05);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode .stat-card {
+            background: #242424;
+            border-color: #444;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0, 120, 212, 0.2);
+        }
+
+        .stat-card .number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        body.dark-mode .stat-card .label {
+            color: #aaa;
+        }
+
+        .content {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 2rem 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        body.dark-mode .content {
+            background: #242424;
+            border: 1px solid #444;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem 0;
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.8rem 0;
+            color: var(--secondary-color);
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            margin: 1rem 0 0.5rem 0;
+            color: var(--accent-color);
+        }
+
+        p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        body.dark-mode table {
+            background: #1a1a1a;
+        }
+
+        th {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            border: 1px solid var(--primary-color);
+        }
+
+        td {
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--border-color);
+            word-wrap: break-word;
+        }
+
+        body.dark-mode td {
+            border-color: #444;
+        }
+
+        tr:nth-child(even) {
+            background: #f9f9f9;
+        }
+
+        body.dark-mode tr:nth-child(even) {
+            background: #1a1a1a;
+        }
+
+        tr:hover {
+            background: #f0f7ff;
+        }
+
+        body.dark-mode tr:hover {
+            background: #2a2a2a;
+        }
+
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-radius: 6px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            color: #2c3e50;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .code-block code {
+            display: block;
+        }
+
+        /* Syntax highlighting */
+        .keyword {
+            color: #0078d4;
+            font-weight: bold;
+        }
+
+        .string {
+            color: #c41a16;
+        }
+
+        .number {
+            color: #098658;
+        }
+
+        .comment {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .function {
+            color: #6f42c1;
+        }
+
+        ul,
+        ol {
+            margin: 1rem 0 1.5rem 2rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            line-height: 1.8;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        body.dark-mode .highlight {
+            background: rgba(255, 193, 7, 0.1);
+            border-left-color: #ffc107;
+        }
+
+        .highlight strong {
+            color: var(--warning);
+        }
+
+        .warning {
+            background: #f8d7da;
+            border-left: 4px solid var(--danger);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+            color: #721c24;
+        }
+
+        body.dark-mode .warning {
+            background: rgba(220, 53, 69, 0.1);
+            color: #ff7675;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid var(--success);
+            padding: 1rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+            color: #155724;
+        }
+
+        body.dark-mode .success {
+            background: rgba(40, 167, 69, 0.1);
+            color: #52c41a;
+        }
+
+        .checklist {
+            background: #e7f3ff;
+            border: 1px solid var(--primary-color);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        body.dark-mode .checklist {
+            background: rgba(0, 120, 212, 0.1);
+            border-color: #0078d4;
+        }
+
+        .checklist-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 0.8rem;
+            padding: 0.5rem 0;
+        }
+
+        .checklist-item input[type="checkbox"] {
+            margin-right: 0.8rem;
+            margin-top: 0.3rem;
+            cursor: pointer;
+            width: 20px;
+            height: 20px;
+        }
+
+        .checklist-item label {
+            cursor: pointer;
+            flex: 1;
+        }
+
+        footer {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+            color: #e0e0e0;
+            padding: 2rem;
+            margin-top: 3rem;
+            border-top: 3px solid var(--primary-color);
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.6rem;
+        }
+
+        .footer-section a {
+            color: #aaa;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: var(--primary-color);
+        }
+
+        .module-nav {
+            margin: 1.5rem 0;
+            padding: 1rem;
+            background: rgba(0, 120, 212, 0.05);
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .module-links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .module-link {
+            display: inline-block;
+            padding: 0.6rem 1rem;
+            background: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .module-link:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .module-link.active {
+            background: var(--secondary-color);
+            font-weight: 600;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid #444;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .content {
+                padding: 1rem;
+            }
+
+            .theme-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 1.2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h2 {
+                font-size: 1.4rem;
+            }
+
+            h3 {
+                font-size: 1.1rem;
+            }
+
+            table {
+                font-size: 0.85rem;
+            }
+
+            th,
+            td {
+                padding: 0.6rem 0.4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
+
+    <header>
+        <h1>📊 Module 1: Oracle Database Fundamentals</h1>
+        <p>Architecture, Instance Management, Memory Structures & Processes</p>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number">3</div>
+                <div class="label">Main Layers</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">5+</div>
+                <div class="label">Key Processes</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">SGA/PGA</div>
+                <div class="label">Memory Areas</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">100%</div>
+                <div class="label">Coverage</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- SECTION 1 -->
+            <h2>🏗️ Oracle Database Architecture</h2>
+
+            <h3>Three-Tier Architecture Overview</h3>
+            <p>Oracle Database follows a three-layer architecture that separates concerns and enables scalability:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Layer</th>
+                        <th>Components</th>
+                        <th>Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Client/Presentation Layer</strong></td>
+                        <td>SQL*Plus, SQL Developer, Applications</td>
+                        <td>User interface & SQL submission</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Application/Logic Layer</strong></td>
+                        <td>Listener, Connection Manager, Dispatcher</td>
+                        <td>Connection management, request processing</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Database Server Layer</strong></td>
+                        <td>Oracle Instance, Database Files</td>
+                        <td>Data storage, transactions, recovery</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Database vs Instance</h3>
+            <ul>
+                <li><strong>Instance:</strong> Collection of processes and memory structures running in RAM (temporary)
+                </li>
+                <li><strong>Database:</strong> Set of physical files on disk (permanent data storage)</li>
+                <li><strong>Relationship:</strong> One database can have multiple instances (RAC), one instance manages
+                    one database</li>
+            </ul>
+
+            <!-- SECTION 2 -->
+            <h2>💾 Memory Structures (SGA - System Global Area)</h2>
+
+            <h3>SGA Components</h3>
+            <p>The System Global Area is shared memory allocated when database instance starts:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Size</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>DB Buffer Cache</strong></td>
+                        <td>25-50% of SGA</td>
+                        <td>Caches data blocks from disk, reduces I/O</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Redo Log Buffer</strong></td>
+                        <td>4-10MB (small)</td>
+                        <td>Records all database changes for recovery</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Shared Pool</strong></td>
+                        <td>20-40% of SGA</td>
+                        <td>Library cache (SQL), Data dictionary cache</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Large Pool</strong></td>
+                        <td>Optional</td>
+                        <td>Memory for I/O, batch operations, sessions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Java Pool</strong></td>
+                        <td>Optional</td>
+                        <td>Java code execution in database</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="highlight">
+                <strong>💡 Key Insight:</strong> Buffer Cache efficiency directly impacts performance. High cache hit
+                ratio (95%+) means less disk I/O.
+            </div>
+
+            <h3>Query Execution & Buffer Cache Flow</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- User query execution flow:</span>
+<span class="keyword">SELECT</span> * <span class="keyword">FROM</span> employees <span class="keyword">WHERE</span> salary > <span class="number">5000</span>;
+
+<span class="comment">-- Oracle checks: Is data in Buffer Cache?</span>
+<span class="comment">-- YES → Return from cache (1-2ms)</span>
+<span class="comment">-- NO  → Read from disk (5-20ms) → Store in cache</span>
+
+<span class="comment">-- Check buffer cache hit ratio:</span>
+<span class="keyword">SELECT</span> 
+    name, 
+    value 
+<span class="keyword">FROM</span> v$sysstat 
+<span class="keyword">WHERE</span> name <span class="keyword">IN</span> (
+    <span class="string">'consistent gets'</span>,
+    <span class="string">'db block gets'</span>,
+    <span class="string">'physical reads'</span>
+);</code></pre>
+            </div>
+
+            <!-- SECTION 3 -->
+            <h2>⚙️ Process Structures</h2>
+
+            <h3>Background Processes</h3>
+            <p>These processes run automatically when database instance starts:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Process</th>
+                        <th>Full Name</th>
+                        <th>Responsibility</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>PMON</strong></td>
+                        <td>Process Monitor</td>
+                        <td>Cleans up failed processes, recovers resources</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SMON</strong></td>
+                        <td>System Monitor</td>
+                        <td>Instance recovery, merges free extents</td>
+                    </tr>
+                    <tr>
+                        <td><strong>DBW0</strong></td>
+                        <td>Database Writer</td>
+                        <td>Writes dirty blocks from buffer cache to disk</td>
+                    </tr>
+                    <tr>
+                        <td><strong>LGWR</strong></td>
+                        <td>Log Writer</td>
+                        <td>Writes redo log buffer to redo log files</td>
+                    </tr>
+                    <tr>
+                        <td><strong>CKPT</strong></td>
+                        <td>Checkpoint</td>
+                        <td>Synchronizes database files with SGA</td>
+                    </tr>
+                    <tr>
+                        <td><strong>ARCH</strong></td>
+                        <td>Archiver</td>
+                        <td>Archives filled redo log files (optional)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Viewing Active Processes</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- List all active background processes:</span>
+<span class="keyword">SELECT</span> pid, pname, spid 
+<span class="keyword">FROM</span> v$process 
+<span class="keyword">WHERE</span> pname <span class="keyword">IS NOT NULL</span> 
+<span class="keyword">ORDER BY</span> pname;
+
+<span class="comment">-- Output example:</span>
+<span class="comment">-- PID PNAME SPID</span>
+<span class="comment">-- 2   PMON  15234</span>
+<span class="comment">-- 3   SMON  15235</span>
+<span class="comment">-- 4   DBW0  15236</span>
+<span class="comment">-- 5   LGWR  15237</span></code></pre>
+            </div>
+
+            <!-- SECTION 4 -->
+            <h2>📁 Database Physical Files</h2>
+
+            <h3>Core Database Files</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>File Type</th>
+                        <th>Quantity</th>
+                        <th>Purpose</th>
+                        <th>Recovery Needed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Data Files</strong></td>
+                        <td>Multiple (1-1000+)</td>
+                        <td>Stores actual table data, indexes</td>
+                        <td>YES - Critical</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Redo Log Files</strong></td>
+                        <td>2-3 (minimum)</td>
+                        <td>Records all changes for recovery</td>
+                        <td>YES - Critical</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Control Files</strong></td>
+                        <td>2-3 (multiplexed)</td>
+                        <td>Database configuration, checkpoint info</td>
+                        <td>YES - Critical</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Temp Files</strong></td>
+                        <td>1+ (optional)</td>
+                        <td>Temporary storage for sorts, hash joins</td>
+                        <td>NO - Recreated</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Undo Files</strong></td>
+                        <td>1+ (in undo tablespace)</td>
+                        <td>Stores undo data for rollback</td>
+                        <td>YES - Important</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Checking Physical File Locations</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- View all data files:</span>
+<span class="keyword">SELECT</span> file#, name, bytes/<span class="number">1024</span>/<span class="number">1024</span> <span class="keyword">AS</span> size_mb 
+<span class="keyword">FROM</span> v$datafile;
+
+<span class="comment">-- View redo log files:</span>
+<span class="keyword">SELECT</span> group#, member, status 
+<span class="keyword">FROM</span> v$logfile 
+<span class="keyword">ORDER BY</span> group#;
+
+<span class="comment">-- View control files:</span>
+<span class="keyword">SELECT</span> name 
+<span class="keyword">FROM</span> v$controlfile;</code></pre>
+            </div>
+
+            <!-- SECTION 5 -->
+            <h2>🔄 Database Initialization & Parameters</h2>
+
+            <h3>Initialization Parameters (init.ora / spfile)</h3>
+            <p>Control database startup behavior and resource allocation:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Type</th>
+                        <th>Example Value</th>
+                        <th>Impact</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>db_name</strong></td>
+                        <td>String</td>
+                        <td>ORCL</td>
+                        <td>Database identifier</td>
+                    </tr>
+                    <tr>
+                        <td><strong>db_files</strong></td>
+                        <td>Integer</td>
+                        <td>200</td>
+                        <td>Max data files allowed</td>
+                    </tr>
+                    <tr>
+                        <td><strong>sga_max_size</strong></td>
+                        <td>Size</td>
+                        <td>4G</td>
+                        <td>Max SGA size</td>
+                    </tr>
+                    <tr>
+                        <td><strong>pga_aggregate_target</strong></td>
+                        <td>Size</td>
+                        <td>2G</td>
+                        <td>Total PGA for all sessions</td>
+                    </tr>
+                    <tr>
+                        <td><strong>processes</strong></td>
+                        <td>Integer</td>
+                        <td>150</td>
+                        <td>Max concurrent processes</td>
+                    </tr>
+                    <tr>
+                        <td><strong>open_cursors</strong></td>
+                        <td>Integer</td>
+                        <td>300</td>
+                        <td>Max open cursors per session</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Modifying Parameters Dynamically</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Change parameter in session (temporary):</span>
+<span class="keyword">ALTER SESSION SET</span> db_recovery_file_dest_size = 50G;
+
+<span class="comment">-- Change parameter system-wide (permanent in spfile):</span>
+<span class="keyword">ALTER SYSTEM SET</span> sga_max_size = 5G <span class="keyword">SCOPE</span> = <span class="keyword">BOTH</span>;
+
+<span class="comment">-- View current parameter values:</span>
+<span class="keyword">SHOW PARAMETERS</span> sga_max_size;
+
+<span class="comment">-- View all parameters:</span>
+<span class="keyword">SELECT</span> name, value 
+<span class="keyword">FROM</span> v$parameter 
+<span class="keyword">WHERE</span> name <span class="keyword">LIKE</span> <span class="string">'%sga%'</span>;</code></pre>
+            </div>
+
+            <div class="warning">
+                <strong>⚠️ Warning:</strong> Changing parameters with SCOPE=BOTH requires database restart. Use
+                SCOPE=MEMORY for runtime changes only.
+            </div>
+
+            <!-- SECTION 6 -->
+            <h2>🚀 Instance Startup & Shutdown Sequence</h2>
+
+            <h3>Database Startup Phases</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Phase</th>
+                        <th>Command</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>NOMOUNT</strong></td>
+                        <td>STARTUP NOMOUNT</td>
+                        <td>Read init.ora, start processes, allocate SGA</td>
+                    </tr>
+                    <tr>
+                        <td><strong>MOUNT</strong></td>
+                        <td>ALTER DATABASE MOUNT</td>
+                        <td>Read control file, identify data/redo files</td>
+                    </tr>
+                    <tr>
+                        <td><strong>OPEN</strong></td>
+                        <td>ALTER DATABASE OPEN</td>
+                        <td>Open data/redo/temp files, ready for users</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Startup & Shutdown Commands</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Normal startup (all 3 phases):</span>
+<span class="keyword">STARTUP</span>;
+
+<span class="comment">-- Startup with recovery:</span>
+<span class="keyword">STARTUP MOUNT</span>;
+<span class="keyword">RECOVER DATABASE</span>;
+
+<span class="comment">-- Restrict access (admin only):</span>
+<span class="keyword">STARTUP RESTRICT</span>;
+
+<span class="comment">-- Graceful shutdown (wait for sessions):</span>
+<span class="keyword">SHUTDOWN NORMAL</span>;
+
+<span class="comment">-- Immediate shutdown (no wait):</span>
+<span class="keyword">SHUTDOWN IMMEDIATE</span>;
+
+<span class="comment">-- Abort shutdown (emergency, may need recovery):</span>
+<span class="keyword">SHUTDOWN ABORT</span>;
+
+<span class="comment">-- Check current database status:</span>
+<span class="keyword">SELECT</span> status, open_cursors 
+<span class="keyword">FROM</span> v$instance;</code></pre>
+            </div>
+
+            <!-- SECTION 7 -->
+            <h2>✅ Best Practices</h2>
+
+            <h3>Architecture Best Practices</h3>
+            <ul>
+                <li><strong>Multiplex Control Files:</strong> Keep 2-3 copies on different disks to prevent single point
+                    of failure</li>
+                <li><strong>Separate Redo Logs:</strong> Place redo logs on fast storage separate from data files</li>
+                <li><strong>Monitor SGA Usage:</strong> Keep buffer cache hit ratio > 95% for optimal performance</li>
+                <li><strong>Parameter Tuning:</strong> Adjust SGA, PGA based on available memory and workload</li>
+                <li><strong>Background Process Monitoring:</strong> Monitor PMON, SMON, DBW0 performance regularly</li>
+                <li><strong>Regular Backups:</strong> Implement automated backup strategies using RMAN</li>
+                <li><strong>Archivelog Mode:</strong> Enable for production databases to support point-in-time recovery
+                </li>
+            </ul>
+
+            <h3>Performance Monitoring Essentials</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Monitor active sessions:</span>
+<span class="keyword">SELECT</span> sid, serial#, username, status, event 
+<span class="keyword">FROM</span> v$session 
+<span class="keyword">WHERE</span> status = <span class="string">'ACTIVE'</span>;
+
+<span class="comment">-- Check database load:</span>
+<span class="keyword">SELECT</span> value 
+<span class="keyword">FROM</span> v$sysstat 
+<span class="keyword">WHERE</span> name = <span class="string">'CPU used by this session'</span>;
+
+<span class="comment">-- Monitor tablespace usage:</span>
+<span class="keyword">SELECT</span> tablespace_name, 
+        sum(bytes)/<span class="number">1024</span>/<span class="number">1024</span> total_mb,
+        sum(<span class="keyword">DECODE</span>(free, null, <span class="number">0</span>, free))/<span class="number">1024</span>/<span class="number">1024</span> free_mb
+<span class="keyword">FROM</span> dba_data_files 
+<span class="keyword">GROUP BY</span> tablespace_name;</code></pre>
+            </div>
+
+            <!-- LEARNING CHECKLIST -->
+            <div class="checklist">
+                <div class="checklist-title">✓ Learning Checklist - Module 1</div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check1">
+                    <label for="check1">Understand 3-layer architecture (Client, Application, Database)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check2">
+                    <label for="check2">Know difference between Instance and Database</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check3">
+                    <label for="check3">Master SGA components and sizing</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check4">
+                    <label for="check4">Understand core background processes (PMON, SMON, DBW0, LGWR)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check5">
+                    <label for="check5">Identify physical files (data, redo, control, temp, undo)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check6">
+                    <label for="check6">Configure initialization parameters</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check7">
+                    <label for="check7">Master startup and shutdown sequences</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check8">
+                    <label for="check8">Monitor key performance metrics from v$ views</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER WITH MODULE NAVIGATION -->
+    <footer>
+        <div class="footer-content">
+            <div class="module-nav">
+                <h3 style="margin-top: 0; color: var(--primary-color);">📚 Oracle Database Modules Navigation</h3>
+                <div class="module-links">
+                    <a href="module-01-fundamentals.html" class="module-link active">Module 1: DB Fundamentals</a>
+                    <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+                    <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+                    <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+                    <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+                    <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+                    <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+                    <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+                    <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+                    <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+                    <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+                    <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+                    <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+                    <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+                    <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+                    <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+                    <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+                    <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+                    <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+                    <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+                    <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+                    <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+                    <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+                    <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+                    <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+                    <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+                </div>
+            </div>
+
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>📖 Learning Paths</h4>
+                    <ul>
+                        <li><a href="#">SQL Fundamentals</a></li>
+                        <li><a href="#">Database Administration</a></li>
+                        <li><a href="#">Performance Tuning</a></li>
+                        <li><a href="#">High Availability</a></li>
+                        <li><a href="#">Cloud Migration</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🔗 Official Resources</h4>
+                    <ul>
+                        <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+                        <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+                        <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+                        <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+                        <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🎓 Certifications</h4>
+                    <ul>
+                        <li><a href="#">OCA Exam Prep</a></li>
+                        <li><a href="#">OCP Exam Prep</a></li>
+                        <li><a href="#">Study Resources</a></li>
+                        <li><a href="#">Practice Exams</a></li>
+                        <li><a href="#">Certification Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>Oracle Database Knowledge Base | Module 1 of 26 | Last Updated: Dec 2025</p>
+                <p>📧 Contact | 💬 Feedback | 📱 Mobile Version | 🌍 Global</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            updateThemeButton();
+        }
+
+        function updateThemeButton() {
+            const btn = document.querySelector('.theme-toggle');
+            if (document.body.classList.contains('dark-mode')) {
+                btn.textContent = '☀️';
+            } else {
+                btn.textContent = '🌙';
+            }
+        }
+
+        // Load saved preference
+        window.addEventListener('load', function () {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+            updateThemeButton();
+        });
+    </script>
+</body>
+
+</html>

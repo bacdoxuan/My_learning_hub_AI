@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oracle Database Learning Platform - Enhanced Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 2px solid #f59e0b;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #fbbf24;
+        }
+
+        .subtitle {
+            font-size: 1em;
+            color: #cbd5e1;
+            margin-bottom: 15px;
+        }
+
+        .progress-header {
+            max-width: 800px;
+            margin: 15px auto 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .progress-bar-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            height: 24px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #10b981, #14b8a6);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            color: #94a3b8;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+
+        .controls-panel {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #334155;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 1em;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #f59e0b;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+        }
+
+        .filter-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .filter-group {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .filter-label {
+            color: #94a3b8;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+            font-size: 0.9em;
+        }
+
+        .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 6px 14px;
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid #f59e0b;
+            color: #fbbf24;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: rgba(245, 158, 11, 0.3);
+        }
+
+        .tag.active {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .difficulty-tag {
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .difficulty-tag.beginner {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+            color: #86efac;
+        }
+
+        .difficulty-tag.beginner.active {
+            background: #22c55e;
+            color: white;
+        }
+
+        .difficulty-tag.intermediate {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+            color: #93c5fd;
+        }
+
+        .difficulty-tag.intermediate.active {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .difficulty-tag.advanced {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+
+        .difficulty-tag.advanced.active {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b, #475569);
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .counter {
+            color: #94a3b8;
+            font-size: 0.95em;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .module-card {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .module-card.green {
+            border-left-color: #2ecc71;
+        }
+
+        .module-card.blue {
+            border-left-color: #3498db;
+        }
+
+        .module-card.purple {
+            border-left-color: #9b59b6;
+        }
+
+        .module-card.orange {
+            border-left-color: #e67e22;
+        }
+
+        .module-card.red {
+            border-left-color: #e74c3c;
+        }
+
+        .module-card.yellow {
+            border-left-color: #f39c12;
+        }
+
+        .module-card.teal {
+            border-left-color: #14b8a6;
+        }
+
+        .module-card.pink {
+            border-left-color: #ec4899;
+        }
+
+        .module-card.completed {
+            opacity: 0.7;
+            background: rgba(30, 41, 59, 0.3);
+        }
+
+        .module-card.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background: rgba(34, 197, 94, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: white;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .module-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: #10b981;
+            position: relative;
+            z-index: 2;
+        }
+
+        .module-badge {
+            font-size: 2em;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .module-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #f1f5f9;
+        }
+
+        .module-week {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(100, 116, 139, 0.3);
+            color: #cbd5e1;
+            border-radius: 4px;
+            font-size: 0.8em;
+            margin-bottom: 10px;
+        }
+
+        .module-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .module-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .module-tag {
+            padding: 4px 10px;
+            background: rgba(100, 116, 139, 0.3);
+            color: #cbd5e1;
+            border-radius: 4px;
+            font-size: 0.75em;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .difficulty-badge.beginner {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid #22c55e;
+        }
+
+        .difficulty-badge.intermediate {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid #3b82f6;
+        }
+
+        .difficulty-badge.advanced {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            border: 1px solid #ef4444;
+        }
+
+        .module-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .module-link {
+            display: inline-block;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .module-link:hover {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3), rgba(217, 119, 6, 0.2));
+            border-color: #f59e0b;
+        }
+
+        .note-btn {
+            padding: 8px 14px;
+            background: rgba(139, 92, 246, 0.2);
+            border: 1px solid #8b5cf6;
+            color: #c4b5fd;
+            border-radius: 6px;
+            font-size: 0.85em;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .note-btn:hover {
+            background: rgba(139, 92, 246, 0.3);
+        }
+
+        .note-btn.has-notes {
+            background: rgba(139, 92, 246, 0.4);
+            color: #a78bfa;
+        }
+
+        .notes-section {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .notes-section.active {
+            display: block;
+        }
+
+        .notes-section textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 0.9em;
+            resize: vertical;
+        }
+
+        .notes-section textarea:focus {
+            outline: none;
+            border-color: #8b5cf6;
+        }
+
+        .save-note-btn {
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: #8b5cf6;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+        }
+
+        .timeline-section,
+        .projects-section,
+        .resources-section {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid #334155;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            color: #f1f5f9;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timeline {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .timeline-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #f59e0b;
+        }
+
+        .timeline-week {
+            color: #f59e0b;
+            font-weight: 700;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .timeline-modules {
+            color: #cbd5e1;
+            font-size: 0.85em;
+            line-height: 1.6;
+        }
+
+        .projects-grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .project-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .project-card:nth-child(1) {
+            border-left-color: #2ecc71;
+        }
+
+        .project-card:nth-child(2) {
+            border-left-color: #3498db;
+        }
+
+        .project-card:nth-child(3) {
+            border-left-color: #9b59b6;
+        }
+
+        .project-card:nth-child(4) {
+            border-left-color: #e67e22;
+        }
+
+        .project-card:nth-child(5) {
+            border-left-color: #e74c3c;
+        }
+
+        .project-card:nth-child(6) {
+            border-left-color: #f39c12;
+        }
+
+        .project-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 10px;
+        }
+
+        .project-modules {
+            color: #94a3b8;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+
+        .project-desc {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-size: 0.95em;
+        }
+
+        .project-tasks {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .project-tasks li {
+            padding: 6px 0 6px 20px;
+            color: #94a3b8;
+            font-size: 0.9em;
+            position: relative;
+        }
+
+        .project-tasks li:before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: #f59e0b;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .resource-card {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .resource-card:hover {
+            border-color: #f59e0b;
+            transform: translateY(-3px);
+        }
+
+        .resource-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 10px;
+        }
+
+        .resource-desc {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+
+        .resource-link {
+            color: #f59e0b;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .resource-link:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: #64748b;
+            border-top: 1px solid #334155;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🔷 Oracle Database Learning Platform</h1>
+        <p class="subtitle">Master Oracle Database with Enhanced Tracking &amp; Interactive Features</p>
+        <div class="progress-header">
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="overallProgress" style="width: 0%;">0%</div>
+            </div>
+            <div class="progress-stats">
+                <span><span id="completedCount">0</span> / <span id="totalCount">26</span> Modules Completed</span>
+                <span>🎯 Keep Going!</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="controls-panel">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Search modules by title or description...">
+                <button class="btn" onclick="filterModules()">Search</button>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-group">
+                    <span class="filter-label">📊 Difficulty Level:</span>
+                    <div class="tags">
+                        <span class="tag difficulty-tag beginner" data-difficulty="beginner">🟢 Beginner</span>
+                        <span class="tag difficulty-tag intermediate" data-difficulty="intermediate">🔵
+                            Intermediate</span>
+                        <span class="tag difficulty-tag advanced" data-difficulty="advanced">🔴 Advanced</span>
+                    </div>
+                </div>
+
+                <div class="filter-group">
+                    <span class="filter-label">🏷️ Filter by Category:</span>
+                    <div class="tags" id="categoryTags">
+                        <span class="tag" data-tag="fundamentals">Fundamentals</span>
+                        <span class="tag" data-tag="sql">SQL</span>
+                        <span class="tag" data-tag="plsql">PL/SQL</span>
+                        <span class="tag" data-tag="performance">Performance</span>
+                        <span class="tag" data-tag="administration">Administration</span>
+                        <span class="tag" data-tag="architecture">Architecture</span>
+                        <span class="tag" data-tag="security">Security</span>
+                        <span class="tag" data-tag="cloud">Cloud</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="clearFilters()">🔄 Clear Filters</button>
+                <button class="btn btn-secondary" onclick="showAllModules()">👁️ Show All</button>
+                <button class="btn btn-secondary" onclick="exportProgress()">💾 Export Progress</button>
+                <button class="btn btn-reset" onclick="resetProgress()">🗑️ Reset Progress</button>
+            </div>
+
+            <div class="counter" id="moduleCounter">26 / 26 modules shown</div>
+        </div>
+
+        <div class="modules-grid" id="modulesGrid">
+            <!-- Module 1 -->
+            <div class="module-card green" data-tags="fundamentals" data-difficulty="beginner" data-module-id="1">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🏛️</span>
+                        <span class="module-week">Weeks 1-2</span>
+                        <span class="difficulty-badge beginner">Beginner</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">1. Oracle Database Fundamentals</h3>
+                <p class="module-description">Introduction to Oracle Database architecture, instance management, and
+                    core concepts including memory structures, processes, and storage.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Architecture</span>
+                    <span class="module-tag">SGA/PGA</span>
+                    <span class="module-tag">Instances</span>
+                    <span class="module-tag">Data Files</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-01-fundamentals.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 2 - NEW: Data Modeling -->
+            <div class="module-card green" data-tags="fundamentals" data-difficulty="beginner" data-module-id="2">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">📐</span>
+                        <span class="module-week">Weeks 2-3</span>
+                        <span class="difficulty-badge beginner">Beginner</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">2. Data Modeling &amp; Design Principles</h3>
+                <p class="module-description">Learn Entity-Relationship Diagrams (ERD), normalization (1NF-5NF),
+                    denormalization strategies, and database design patterns.</p>
+                <div class="module-tags">
+                    <span class="module-tag">ERD</span>
+                    <span class="module-tag">Normalization</span>
+                    <span class="module-tag">Design Patterns</span>
+                    <span class="module-tag">Best Practices</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-02-data-modeling.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 3 -->
+            <div class="module-card green" data-tags="fundamentals sql" data-difficulty="beginner" data-module-id="3">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">📊</span>
+                        <span class="module-week">Weeks 3-4</span>
+                        <span class="difficulty-badge beginner">Beginner</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">3. SQL Basics - DDL &amp; DML</h3>
+                <p class="module-description">Master Data Definition Language (CREATE, ALTER, DROP) and Data
+                    Manipulation Language (INSERT, UPDATE, DELETE) with transactions and COMMIT/ROLLBACK.</p>
+                <div class="module-tags">
+                    <span class="module-tag">DDL</span>
+                    <span class="module-tag">DML</span>
+                    <span class="module-tag">Constraints</span>
+                    <span class="module-tag">Transactions</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-03-sql-ddl-dml.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 4 - NEW: Advanced Data Types -->
+            <div class="module-card blue" data-tags="fundamentals sql" data-difficulty="intermediate"
+                data-module-id="4">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🔤</span>
+                        <span class="module-week">Weeks 4-5</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">4. Advanced Data Types</h3>
+                <p class="module-description">Work with JSON, XML, LOB (CLOB/BLOB), Collections (VARRAY, Nested Tables),
+                    and user-defined types for complex data structures.</p>
+                <div class="module-tags">
+                    <span class="module-tag">JSON</span>
+                    <span class="module-tag">XML</span>
+                    <span class="module-tag">LOB</span>
+                    <span class="module-tag">Collections</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-04-advanced-types.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 5 -->
+            <div class="module-card blue" data-tags="sql" data-difficulty="beginner" data-module-id="5">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🔍</span>
+                        <span class="module-week">Weeks 5-6</span>
+                        <span class="difficulty-badge beginner">Beginner</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">5. SELECT Queries &amp; JOINs</h3>
+                <p class="module-description">Learn SELECT statements, WHERE clauses, ORDER BY, and all types of JOINs
+                    (INNER, LEFT, RIGHT, FULL, CROSS).</p>
+                <div class="module-tags">
+                    <span class="module-tag">SELECT</span>
+                    <span class="module-tag">JOINs</span>
+                    <span class="module-tag">Filtering</span>
+                    <span class="module-tag">Sorting</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-05-select-joins.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 6 -->
+            <div class="module-card blue" data-tags="sql" data-difficulty="intermediate" data-module-id="6">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🎯</span>
+                        <span class="module-week">Weeks 7-8</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">6. Subqueries &amp; CTEs</h3>
+                <p class="module-description">Master subqueries (scalar, row, table), correlated subqueries, and Common
+                    Table Expressions (WITH clause) for complex queries.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Subqueries</span>
+                    <span class="module-tag">CTEs</span>
+                    <span class="module-tag">WITH Clause</span>
+                    <span class="module-tag">Nested Queries</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-06-subqueries-ctes.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 7 -->
+            <div class="module-card purple" data-tags="sql" data-difficulty="intermediate" data-module-id="7">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">📈</span>
+                        <span class="module-week">Weeks 9-10</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">7. Aggregation &amp; GROUP BY</h3>
+                <p class="module-description">Use aggregate functions (SUM, AVG, COUNT, MAX, MIN), GROUP BY, HAVING,
+                    ROLLUP, CUBE, and GROUPING SETS for data analysis.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Aggregation</span>
+                    <span class="module-tag">GROUP BY</span>
+                    <span class="module-tag">ROLLUP</span>
+                    <span class="module-tag">CUBE</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-07-aggregation-group.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 8 -->
+            <div class="module-card purple" data-tags="sql" data-difficulty="advanced" data-module-id="8">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🪟</span>
+                        <span class="module-week">Weeks 11-12</span>
+                        <span class="difficulty-badge advanced">Advanced</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">8. Window Functions &amp; Analytics</h3>
+                <p class="module-description">Advanced analytical functions including ROW_NUMBER, RANK, DENSE_RANK,
+                    LEAD, LAG, and window frames (ROWS/RANGE).</p>
+                <div class="module-tags">
+                    <span class="module-tag">Window Functions</span>
+                    <span class="module-tag">Ranking</span>
+                    <span class="module-tag">LEAD/LAG</span>
+                    <span class="module-tag">Analytics</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-08-window-functions.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 9 -->
+            <div class="module-card orange" data-tags="plsql" data-difficulty="intermediate" data-module-id="9">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">⚙️</span>
+                        <span class="module-week">Weeks 13-14</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">9. PL/SQL Basics</h3>
+                <p class="module-description">Introduction to PL/SQL blocks, variables, data types, control structures
+                    (IF, CASE, LOOP), and exception handling.</p>
+                <div class="module-tags">
+                    <span class="module-tag">PL/SQL Blocks</span>
+                    <span class="module-tag">Variables</span>
+                    <span class="module-tag">Control Flow</span>
+                    <span class="module-tag">Exceptions</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-09-plsql.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 10 -->
+            <div class="module-card orange" data-tags="plsql" data-difficulty="intermediate" data-module-id="10">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">📦</span>
+                        <span class="module-week">Weeks 15-16</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">10. Procedures, Functions &amp; Packages</h3>
+                <p class="module-description">Create and manage stored procedures, functions, packages, and understand
+                    parameter modes (IN, OUT, IN OUT).</p>
+                <div class="module-tags">
+                    <span class="module-tag">Procedures</span>
+                    <span class="module-tag">Functions</span>
+                    <span class="module-tag">Packages</span>
+                    <span class="module-tag">Parameters</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-10-procedures.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 11 -->
+            <div class="module-card orange" data-tags="plsql" data-difficulty="advanced" data-module-id="11">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">⚡</span>
+                        <span class="module-week">Weeks 17-18</span>
+                        <span class="difficulty-badge advanced">Advanced</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">11. Triggers &amp; Event Automation</h3>
+                <p class="module-description">Database triggers (BEFORE, AFTER, INSTEAD OF), DDL triggers, system
+                    triggers, and compound triggers for automation.</p>
+                <div class="module-tags">
+                    <span class="module-tag">DML Triggers</span>
+                    <span class="module-tag">DDL Triggers</span>
+                    <span class="module-tag">Compound Triggers</span>
+                    <span class="module-tag">Automation</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-11-triggers.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 12 - NEW: Scheduler & Jobs -->
+            <div class="module-card orange" data-tags="plsql administration" data-difficulty="intermediate"
+                data-module-id="12">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">⏰</span>
+                        <span class="module-week">Weeks 18-19</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">12. Oracle Scheduler &amp; Jobs</h3>
+                <p class="module-description">Schedule automated tasks using Oracle Scheduler, DBMS_SCHEDULER, job
+                    chains, and event-based scheduling.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Scheduler</span>
+                    <span class="module-tag">Jobs</span>
+                    <span class="module-tag">Automation</span>
+                    <span class="module-tag">Batch Processing</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-12-scheduler.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 13 -->
+            <div class="module-card red" data-tags="security administration" data-difficulty="intermediate"
+                data-module-id="13">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🔐</span>
+                        <span class="module-week">Weeks 19-20</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">13. Security &amp; User Management</h3>
+                <p class="module-description">Create users, roles, privileges (GRANT/REVOKE), profiles, password
+                    policies, and implement fine-grained access control.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Users</span>
+                    <span class="module-tag">Roles</span>
+                    <span class="module-tag">Privileges</span>
+                    <span class="module-tag">VPD</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-13-security.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 14 -->
+            <div class="module-card yellow" data-tags="performance" data-difficulty="intermediate" data-module-id="14">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">⚡</span>
+                        <span class="module-week">Weeks 21-22</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">14. Indexes &amp; Performance Tuning</h3>
+                <p class="module-description">Create and manage B-tree, bitmap, function-based indexes, understand index
+                    usage, and optimize query performance.</p>
+                <div class="module-tags">
+                    <span class="module-tag">B-tree Index</span>
+                    <span class="module-tag">Bitmap Index</span>
+                    <span class="module-tag">Function-based</span>
+                    <span class="module-tag">Optimization</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-14-indexes-performance.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 15 -->
+            <div class="module-card yellow" data-tags="performance" data-difficulty="advanced" data-module-id="15">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🔬</span>
+                        <span class="module-week">Weeks 23-24</span>
+                        <span class="difficulty-badge advanced">Advanced</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">15. Query Optimization &amp; Execution Plans</h3>
+                <p class="module-description">Analyze execution plans (EXPLAIN PLAN), use DBMS_XPLAN, optimizer hints,
+                    statistics, and advanced tuning techniques.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Execution Plans</span>
+                    <span class="module-tag">EXPLAIN PLAN</span>
+                    <span class="module-tag">Hints</span>
+                    <span class="module-tag">CBO</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-15-query-optimization.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 16 - NEW: Monitoring & Diagnostics -->
+            <div class="module-card yellow" data-tags="performance administration" data-difficulty="advanced"
+                data-module-id="16">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">📊</span>
+                        <span class="module-week">Weeks 24-25</span>
+                        <span class="difficulty-badge advanced">Advanced</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">16. Monitoring &amp; Diagnostics</h3>
+                <p class="module-description">Monitor database performance using AWR reports, ASH (Active Session
+                    History), ADDM (Automatic Database Diagnostic Monitor), and v$ views.</p>
+                <div class="module-tags">
+                    <span class="module-tag">AWR</span>
+                    <span class="module-tag">ASH</span>
+                    <span class="module-tag">ADDM</span>
+                    <span class="module-tag">Monitoring</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-16-monitoring.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 17 -->
+            <div class="module-card red" data-tags="administration" data-difficulty="intermediate" data-module-id="17">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">💾</span>
+                        <span class="module-week">Weeks 25-26</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">17. Backup &amp; Recovery (RMAN)</h3>
+                <p class="module-description">Implement backup strategies using RMAN, perform full/incremental backups,
+                    recovery procedures, and point-in-time recovery.</p>
+                <div class="module-tags">
+                    <span class="module-tag">RMAN</span>
+                    <span class="module-tag">Backup</span>
+                    <span class="module-tag">Recovery</span>
+                    <span class="module-tag">Flashback</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-17-backup-recovery.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 18 -->
+            <div class="module-card blue" data-tags="administration" data-difficulty="intermediate" data-module-id="18">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🗄️</span>
+                        <span class="module-week">Weeks 27-28</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">18. Tablespaces &amp; Storage Management</h3>
+                <p class="module-description">Manage tablespaces, data files, temp files, undo tablespaces, ASM
+                    (Automatic Storage Management), and space allocation.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Tablespaces</span>
+                    <span class="module-tag">Data Files</span>
+                    <span class="module-tag">ASM</span>
+                    <span class="module-tag">Storage</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-18-tablespaces-storage.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 19 - NEW: Data Integration & ETL -->
+            <div class="module-card teal" data-tags="administration" data-difficulty="intermediate" data-module-id="19">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🔄</span>
+                        <span class="module-week">Weeks 28-29</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">19. Data Integration &amp; ETL</h3>
+                <p class="module-description">Master Oracle Data Pump (expdp/impdp), External Tables, SQL*Loader, and
+                    data migration strategies for large datasets.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Data Pump</span>
+                    <span class="module-tag">External Tables</span>
+                    <span class="module-tag">SQL*Loader</span>
+                    <span class="module-tag">ETL</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-19-data-integration-etl.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 20 -->
+            <div class="module-card purple" data-tags="architecture" data-difficulty="advanced" data-module-id="20">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">📂</span>
+                        <span class="module-week">Weeks 29-30</span>
+                        <span class="difficulty-badge advanced">Advanced</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">20. Partitioning Strategies</h3>
+                <p class="module-description">Implement table and index partitioning (range, list, hash, composite) for
+                    managing large tables and improving query performance.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Range Partitioning</span>
+                    <span class="module-tag">List Partitioning</span>
+                    <span class="module-tag">Hash Partitioning</span>
+                    <span class="module-tag">Composite</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-20.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 21 -->
+            <div class="module-card purple" data-tags="architecture" data-difficulty="advanced" data-module-id="21">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🏢</span>
+                        <span class="module-week">Weeks 31-32</span>
+                        <span class="difficulty-badge advanced">Advanced</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">21. Multitenant Architecture (CDB/PDB)</h3>
+                <p class="module-description">Understand Container Databases (CDB) and Pluggable Databases (PDB),
+                    create/clone PDBs, and manage multitenant environments.</p>
+                <div class="module-tags">
+                    <span class="module-tag">CDB</span>
+                    <span class="module-tag">PDB</span>
+                    <span class="module-tag">Multitenant</span>
+                    <span class="module-tag">Cloning</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-21-multitenant-architecture.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 22 -->
+            <div class="module-card red" data-tags="architecture" data-difficulty="advanced" data-module-id="22">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🔄</span>
+                        <span class="module-week">Weeks 33-36</span>
+                        <span class="difficulty-badge advanced">Advanced</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">22. High Availability - Data Guard &amp; RAC</h3>
+                <p class="module-description">Implement Oracle Data Guard for disaster recovery, Real Application
+                    Clusters (RAC) for high availability and scalability.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Data Guard</span>
+                    <span class="module-tag">RAC</span>
+                    <span class="module-tag">Failover</span>
+                    <span class="module-tag">HA</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-22-high-availability.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 23 - NEW: Real-time Features -->
+            <div class="module-card pink" data-tags="architecture" data-difficulty="advanced" data-module-id="23">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">📡</span>
+                        <span class="module-week">Weeks 36-37</span>
+                        <span class="difficulty-badge advanced">Advanced</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">23. Real-time Data &amp; Messaging</h3>
+                <p class="module-description">Implement Oracle Streams, Advanced Queuing (AQ), and event-driven
+                    architectures for real-time data processing.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Streams</span>
+                    <span class="module-tag">Advanced Queuing</span>
+                    <span class="module-tag">Messaging</span>
+                    <span class="module-tag">Events</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-23-real-time-messaging.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 24 -->
+            <div class="module-card yellow" data-tags="cloud" data-difficulty="intermediate" data-module-id="24">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">☁️</span>
+                        <span class="module-week">Weeks 37-38</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">24. Oracle Cloud Infrastructure (OCI)</h3>
+                <p class="module-description">Introduction to Oracle Cloud, OCI console, networking, security, and cloud
+                    database services overview.</p>
+                <div class="module-tags">
+                    <span class="module-tag">OCI</span>
+                    <span class="module-tag">Cloud</span>
+                    <span class="module-tag">Infrastructure</span>
+                    <span class="module-tag">Networking</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-24-oci-cloud.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 25 -->
+            <div class="module-card yellow" data-tags="cloud" data-difficulty="advanced" data-module-id="25">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🤖</span>
+                        <span class="module-week">Weeks 39-40</span>
+                        <span class="difficulty-badge advanced">Advanced</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">25. Autonomous Database &amp; Cloud Migration</h3>
+                <p class="module-description">Deploy and manage Autonomous Database, automated operations, cloud
+                    migration strategies, and hybrid architectures.</p>
+                <div class="module-tags">
+                    <span class="module-tag">Autonomous DB</span>
+                    <span class="module-tag">Auto Patching</span>
+                    <span class="module-tag">Migration</span>
+                    <span class="module-tag">Hybrid</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-25-autonomous-migration.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+
+            <!-- Module 26 - NEW: Oracle Certification Prep -->
+            <div class="module-card green" data-tags="fundamentals" data-difficulty="intermediate" data-module-id="26">
+                <div class="module-header">
+                    <div>
+                        <span class="module-badge">🎓</span>
+                        <span class="module-week">Ongoing</span>
+                        <span class="difficulty-badge intermediate">Intermediate</span>
+                    </div>
+                    <input type="checkbox" class="module-checkbox" onchange="updateProgress()">
+                </div>
+                <h3 class="module-title">26. Oracle Certification Preparation</h3>
+                <p class="module-description">Prepare for OCA/OCP certifications with exam topics, practice questions,
+                    study strategies, and certification paths.</p>
+                <div class="module-tags">
+                    <span class="module-tag">OCA</span>
+                    <span class="module-tag">OCP</span>
+                    <span class="module-tag">Certification</span>
+                    <span class="module-tag">Practice Exams</span>
+                </div>
+                <div class="module-actions">
+                    <a href="module-26-certification.html" class="module-link">📖 Open Module</a>
+                    <button class="note-btn" onclick="toggleNotes(this)">📝 Notes</button>
+                </div>
+                <div class="notes-section">
+                    <textarea placeholder="Add your personal notes here..."></textarea>
+                    <button class="save-note-btn" onclick="saveNote(this)">Save Note</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Learning Timeline -->
+        <div class="timeline-section">
+            <h2>📅 Enhanced Learning Timeline (40 Weeks)</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 1-2</div>
+                    <div class="timeline-modules">🏛️ Fundamentals<br>Architecture<br>Memory Structures</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 2-3</div>
+                    <div class="timeline-modules">📐 Data Modeling<br>ERD<br>Normalization</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 3-4</div>
+                    <div class="timeline-modules">📊 SQL Basics<br>DDL/DML<br>Transactions</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 4-5</div>
+                    <div class="timeline-modules">🔤 Advanced Types<br>JSON/XML<br>LOB/Collections</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 5-6</div>
+                    <div class="timeline-modules">🔍 SELECT &amp; JOINs<br>Filtering<br>Sorting</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 7-8</div>
+                    <div class="timeline-modules">🎯 Subqueries<br>CTEs<br>Complex Queries</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 9-10</div>
+                    <div class="timeline-modules">📈 Aggregation<br>GROUP BY<br>ROLLUP/CUBE</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 11-12</div>
+                    <div class="timeline-modules">🪟 Window Functions<br>Analytics<br>Ranking</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 13-14</div>
+                    <div class="timeline-modules">⚙️ PL/SQL Basics<br>Blocks<br>Control Flow</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 15-16</div>
+                    <div class="timeline-modules">📦 Procedures<br>Functions<br>Packages</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 17-18</div>
+                    <div class="timeline-modules">⚡ Triggers<br>Automation<br>Events</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 18-19</div>
+                    <div class="timeline-modules">⏰ Scheduler<br>Jobs<br>Batch Tasks</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 19-20</div>
+                    <div class="timeline-modules">🔐 Security<br>Users<br>Privileges</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 21-22</div>
+                    <div class="timeline-modules">⚡ Indexes<br>Performance<br>Tuning</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 23-24</div>
+                    <div class="timeline-modules">🔬 Query Optimization<br>Execution Plans<br>Hints</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 24-25</div>
+                    <div class="timeline-modules">📊 Monitoring<br>AWR/ASH<br>ADDM</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 25-26</div>
+                    <div class="timeline-modules">💾 Backup<br>Recovery<br>RMAN</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 27-28</div>
+                    <div class="timeline-modules">🗄️ Tablespaces<br>Storage<br>ASM</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 28-29</div>
+                    <div class="timeline-modules">🔄 Data Integration<br>Data Pump<br>ETL</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 29-30</div>
+                    <div class="timeline-modules">📂 Partitioning<br>Range/List/Hash<br>Scaling</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 31-32</div>
+                    <div class="timeline-modules">🏢 Multitenant<br>CDB/PDB<br>Cloning</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 33-36</div>
+                    <div class="timeline-modules">🔄 High Availability<br>Data Guard<br>RAC</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 36-37</div>
+                    <div class="timeline-modules">📡 Real-time<br>Streams<br>AQ</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 37-38</div>
+                    <div class="timeline-modules">☁️ OCI<br>Cloud Setup<br>Infrastructure</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Weeks 39-40</div>
+                    <div class="timeline-modules">🤖 Autonomous DB<br>Migration<br>Hybrid</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Practice Projects -->
+        <div class="projects-section">
+            <h2>🎯 Hands-on Practice Projects</h2>
+            <div class="projects-grid">
+                <div class="project-card">
+                    <div class="project-title">Project 1: Employee Management System</div>
+                    <div class="project-modules">📚 Modules 1-5 | ⏱️ 2-3 weeks</div>
+                    <p class="project-desc">Build a comprehensive employee database with departments, salaries, and
+                        performance tracking using DDL, DML, and basic queries.</p>
+                    <ul class="project-tasks">
+                        <li>Design ERD with normalization</li>
+                        <li>Create tables with proper constraints and relationships</li>
+                        <li>Write complex JOINs to retrieve employee information</li>
+                        <li>Implement transaction management for salary updates</li>
+                        <li>Optimize queries with indexes</li>
+                    </ul>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">Project 2: Sales Analytics Dashboard</div>
+                    <div class="project-modules">📚 Modules 6-8 | ⏱️ 2-3 weeks</div>
+                    <p class="project-desc">Create analytical queries using subqueries, CTEs, and window functions to
+                        generate sales reports and KPIs.</p>
+                    <ul class="project-tasks">
+                        <li>Use CTEs for complex multi-step analysis</li>
+                        <li>Implement window functions for ranking and trends</li>
+                        <li>Build aggregation queries with ROLLUP and CUBE</li>
+                        <li>Create materialized views for performance</li>
+                        <li>Generate time-series reports</li>
+                    </ul>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">Project 3: Automated Business Logic</div>
+                    <div class="project-modules">📚 Modules 9-12 | ⏱️ 3-4 weeks</div>
+                    <p class="project-desc">Develop PL/SQL procedures, functions, and triggers to automate business
+                        processes and maintain data integrity.</p>
+                    <ul class="project-tasks">
+                        <li>Create stored procedures for complex business logic</li>
+                        <li>Build triggers to enforce business rules automatically</li>
+                        <li>Implement error handling and logging</li>
+                        <li>Package related procedures and functions</li>
+                        <li>Schedule automated jobs with Oracle Scheduler</li>
+                    </ul>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">Project 4: Enterprise Database Administration</div>
+                    <div class="project-modules">📚 Modules 13-19 | ⏱️ 4-5 weeks</div>
+                    <p class="project-desc">Manage user accounts, implement security policies, optimize performance, and
+                        establish backup/recovery strategies.</p>
+                    <ul class="project-tasks">
+                        <li>Create users and assign granular privileges</li>
+                        <li>Implement tablespace management and monitoring</li>
+                        <li>Set up RMAN backup and recovery procedures</li>
+                        <li>Analyze and tune slow-running queries</li>
+                        <li>Configure Data Pump for exports/imports</li>
+                    </ul>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">Project 5: Enterprise-Scale Architecture</div>
+                    <div class="project-modules">📚 Modules 20-23 | ⏱️ 5-6 weeks</div>
+                    <p class="project-desc">Design and implement advanced architecture including partitioning,
+                        multitenant setup, high availability, and real-time messaging.</p>
+                    <ul class="project-tasks">
+                        <li>Implement table partitioning for large datasets</li>
+                        <li>Set up multitenant architecture with CDB/PDB</li>
+                        <li>Configure Data Guard for disaster recovery</li>
+                        <li>Implement Oracle Streams for real-time data</li>
+                        <li>Design event-driven architecture with AQ</li>
+                    </ul>
+                </div>
+
+                <div class="project-card">
+                    <div class="project-title">Project 6: Cloud Migration &amp; Deployment</div>
+                    <div class="project-modules">📚 Modules 24-25 | ⏱️ 3-4 weeks</div>
+                    <p class="project-desc">Plan and execute migration to Oracle Cloud Infrastructure and deploy
+                        Autonomous Database.</p>
+                    <ul class="project-tasks">
+                        <li>Assess on-premise database for cloud readiness</li>
+                        <li>Plan and execute migration to Oracle Cloud</li>
+                        <li>Deploy and configure Autonomous Database</li>
+                        <li>Implement hybrid cloud architecture</li>
+                        <li>Monitor and optimize cloud performance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resources -->
+        <div class="resources-section">
+            <h2>📚 Learning Resources &amp; Tools</h2>
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <div class="resource-title">📖 Oracle Official Documentation</div>
+                    <p class="resource-desc">Complete API reference, guides, and tutorials for all Oracle Database
+                        versions and features.</p>
+                    <a href="https://docs.oracle.com/en/database/" class="resource-link" target="_blank">→
+                        docs.oracle.com/database</a>
+                </div>
+
+                <div class="resource-card">
+                    <div class="resource-title">💻 SQL Developer</div>
+                    <p class="resource-desc">Free IDE for SQL and PL/SQL development with visual tools for database
+                        management and debugging.</p>
+                    <a href="https://www.oracle.com/database/sqldeveloper/" class="resource-link" target="_blank">→
+                        oracle.com/sqldeveloper</a>
+                </div>
+
+                <div class="resource-card">
+                    <div class="resource-title">🌐 Oracle Live SQL</div>
+                    <p class="resource-desc">Free online environment to practice SQL and PL/SQL without installation.
+                        Perfect for beginners.</p>
+                    <a href="https://livesql.oracle.com/" class="resource-link" target="_blank">→ livesql.oracle.com</a>
+                </div>
+
+                <div class="resource-card">
+                    <div class="resource-title">🎓 Oracle Learning Library</div>
+                    <p class="resource-desc">Free training videos, tutorials, and courses for Oracle Database
+                        professionals at all levels.</p>
+                    <a href="https://www.oracle.com/learning/" class="resource-link" target="_blank">→
+                        oracle.com/learning</a>
+                </div>
+
+                <div class="resource-card">
+                    <div class="resource-title">☁️ Oracle Cloud Free Tier</div>
+                    <p class="resource-desc">Free Oracle Cloud account with Autonomous Database and other services for
+                        hands-on learning.</p>
+                    <a href="https://www.oracle.com/cloud/free/" class="resource-link" target="_blank">→
+                        oracle.com/cloud/free</a>
+                </div>
+
+                <div class="resource-card">
+                    <div class="resource-title">🏆 Oracle Certification</div>
+                    <p class="resource-desc">Official certification paths (OCA/OCP) and exam preparation resources for
+                        career advancement.</p>
+                    <a href="https://education.oracle.com/oracle-certification-path/pFamily_48" class="resource-link"
+                        target="_blank">→ Oracle Certifications</a>
+                </div>
+
+                <div class="resource-card">
+                    <div class="resource-title">💬 Oracle Community</div>
+                    <p class="resource-desc">Ask questions, share knowledge, and connect with Oracle experts and peers
+                        worldwide.</p>
+                    <a href="https://community.oracle.com/" class="resource-link" target="_blank">→
+                        community.oracle.com</a>
+                </div>
+
+                <div class="resource-card">
+                    <div class="resource-title">📺 AskTOM</div>
+                    <p class="resource-desc">Oracle's expert Q&amp;A platform with thousands of answered questions on
+                        database topics.</p>
+                    <a href="https://asktom.oracle.com/" class="resource-link" target="_blank">→ asktom.oracle.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>🔷 Oracle Database Learning Platform - Enhanced Edition v2.0</p>
+        <p>Progress auto-saves to browser localStorage | Updated Dec 2025</p>
+    </footer>
+
+    <script>
+        // LocalStorage keys
+        const STORAGE_KEY = 'oracle_learning_progress';
+        const NOTES_KEY = 'oracle_learning_notes';
+
+        // Load progress on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            loadProgress();
+            loadNotes();
+            updateProgress();
+            initializeFilters();
+        });
+
+        // Progress Management
+        function loadProgress() {
+            const savedProgress = localStorage.getItem(STORAGE_KEY);
+            if (savedProgress) {
+                const progress = JSON.parse(savedProgress);
+                document.querySelectorAll('.module-checkbox').forEach((checkbox, index) => {
+                    if (progress[index]) {
+                        checkbox.checked = true;
+                        checkbox.closest('.module-card').classList.add('completed');
+                    }
+                });
+            }
+        }
+
+        function saveProgress() {
+            const checkboxes = document.querySelectorAll('.module-checkbox');
+            const progress = Array.from(checkboxes).map(cb => cb.checked);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+        }
+
+        function updateProgress() {
+            const checkboxes = document.querySelectorAll('.module-checkbox');
+            const total = checkboxes.length;
+            const completed = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const percentage = Math.round((completed / total) * 100);
+
+            document.getElementById('overallProgress').style.width = percentage + '%';
+            document.getElementById('overallProgress').textContent = percentage + '%';
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('totalCount').textContent = total;
+
+            // Update completed cards styling
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    checkbox.closest('.module-card').classList.add('completed');
+                } else {
+                    checkbox.closest('.module-card').classList.remove('completed');
+                }
+            });
+
+            saveProgress();
+        }
+
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                document.querySelectorAll('.module-checkbox').forEach(cb => {
+                    cb.checked = false;
+                });
+                updateProgress();
+            }
+        }
+
+        function exportProgress() {
+            const checkboxes = document.querySelectorAll('.module-checkbox');
+            const notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+            const modules = [];
+
+            document.querySelectorAll('.module-card').forEach((card, index) => {
+                const moduleId = card.dataset.moduleId;
+                const title = card.querySelector('.module-title').textContent;
+                const completed = checkboxes[index].checked;
+                const note = notes[moduleId] || '';
+
+                modules.push({
+                    id: moduleId,
+                    title: title,
+                    completed: completed,
+                    note: note
+                });
+            });
+
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                totalModules: modules.length,
+                completedModules: modules.filter(m => m.completed).length,
+                modules: modules
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `oracle-learning-progress-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
+        // Notes Management
+        function loadNotes() {
+            const savedNotes = localStorage.getItem(NOTES_KEY);
+            if (savedNotes) {
+                const notes = JSON.parse(savedNotes);
+                document.querySelectorAll('.module-card').forEach(card => {
+                    const moduleId = card.dataset.moduleId;
+                    if (notes[moduleId]) {
+                        const textarea = card.querySelector('textarea');
+                        if (textarea) {
+                            textarea.value = notes[moduleId];
+                            card.querySelector('.note-btn').classList.add('has-notes');
+                        }
+                    }
+                });
+            }
+        }
+
+        function toggleNotes(button) {
+            const card = button.closest('.module-card');
+            const notesSection = card.querySelector('.notes-section');
+            notesSection.classList.toggle('active');
+        }
+
+        function saveNote(button) {
+            const card = button.closest('.module-card');
+            const moduleId = card.dataset.moduleId;
+            const textarea = card.querySelector('textarea');
+            const noteText = textarea.value.trim();
+
+            const notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+
+            if (noteText) {
+                notes[moduleId] = noteText;
+                card.querySelector('.note-btn').classList.add('has-notes');
+            } else {
+                delete notes[moduleId];
+                card.querySelector('.note-btn').classList.remove('has-notes');
+            }
+
+            localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+
+            // Show confirmation
+            button.textContent = '✓ Saved';
+            setTimeout(() => {
+                button.textContent = 'Save Note';
+            }, 2000);
+        }
+
+        // Filter Management
+        function initializeFilters() {
+            // Tag filters
+            document.querySelectorAll('.tag').forEach(tag => {
+                tag.addEventListener('click', function () {
+                    this.classList.toggle('active');
+                    filterModules();
+                });
+            });
+        }
+
+        function filterModules() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const activeTags = Array.from(document.querySelectorAll('#categoryTags .tag.active')).map(t => t.dataset.tag);
+            const activeDifficulties = Array.from(document.querySelectorAll('.difficulty-tag.active')).map(t => t.dataset.difficulty);
+
+            const cards = document.querySelectorAll('.module-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const title = card.querySelector('.module-title').textContent.toLowerCase();
+                const description = card.querySelector('.module-description').textContent.toLowerCase();
+                const cardTags = card.dataset.tags.split(' ');
+                const cardDifficulty = card.dataset.difficulty;
+
+                const matchesSearch = !searchTerm || title.includes(searchTerm) || description.includes(searchTerm);
+                const matchesTags = activeTags.length === 0 || activeTags.some(tag => cardTags.includes(tag));
+                const matchesDifficulty = activeDifficulties.length === 0 || activeDifficulties.includes(cardDifficulty);
+
+                if (matchesSearch && matchesTags && matchesDifficulty) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            document.getElementById('moduleCounter').textContent = `${visibleCount} / ${cards.length} modules shown`;
+        }
+
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.querySelectorAll('.tag.active').forEach(tag => tag.classList.remove('active'));
+            filterModules();
+        }
+
+        function showAllModules() {
+            clearFilters();
+            document.querySelectorAll('.module-card').forEach(card => {
+                card.style.display = 'block';
+            });
+            const totalCards = document.querySelectorAll('.module-card').length;
+            document.getElementById('moduleCounter').textContent = `${totalCards} / ${totalCards} modules shown`;
+        }
+
+        // Search on Enter key
+        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                filterModules();
+            }
+        });
+    </script>
+
+
+</body>
+
+</html>

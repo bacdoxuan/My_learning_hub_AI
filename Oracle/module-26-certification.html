@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 26: Oracle Certification Preparation - OCA/OCP Exam Paths</title>
+    <style>
+        :root {
+            --primary-color: #ff6b35;
+            --secondary-color: #dd5722;
+            --accent-color: #c64a1d;
+            --bg-light: #f5f7fa;
+            --bg-dark: #1a1a1a;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+            --border-color: #ddd;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(255, 107, 53, 0.2);
+        }
+
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.95;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: var(--bg-light);
+            padding: 2rem 1rem;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            overflow-y: auto;
+            border-right: 1px solid var(--border-color);
+        }
+
+        body.dark-mode .sidebar {
+            background: #2a2a2a;
+            border-right-color: #444;
+        }
+
+        .sidebar h3 {
+            color: var(--primary-color);
+            margin: 1rem 0 0.5rem 0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar ul {
+            list-style: none;
+        }
+
+        .sidebar li {
+            margin: 0.3rem 0;
+        }
+
+        .sidebar a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+            display: block;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        body.dark-mode .sidebar a {
+            color: var(--text-dark);
+        }
+
+        .sidebar a:hover {
+            background: var(--primary-color);
+            color: white;
+            padding-left: 1rem;
+        }
+
+        .theme-toggle {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--secondary-color);
+        }
+
+        main {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        section {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode section {
+            background: #2a2a2a;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background: var(--primary-color);
+            color: white;
+            padding: 0.8rem;
+            text-align: left;
+        }
+
+        td {
+            padding: 0.8rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        body.dark-mode td {
+            border-bottom-color: #444;
+        }
+
+        tr:nth-child(even) {
+            background: var(--bg-light);
+        }
+
+        body.dark-mode tr:nth-child(even) {
+            background: #333;
+        }
+
+        .code-block {
+            background: #f4f4f4;
+            border-left: 4px solid var(--primary-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .keyword {
+            color: #0078d4;
+            font-weight: bold;
+        }
+
+        .string {
+            color: #d14;
+        }
+
+        .number {
+            color: #098658;
+        }
+
+        .comment {
+            color: #6a737d;
+            font-style: italic;
+        }
+
+        .property {
+            color: #d14;
+        }
+
+        .function {
+            color: #6f42c1;
+        }
+
+        body.dark-mode .code-block {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+        }
+
+        .stat-card-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        ul,
+        ol {
+            margin-left: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        .highlight {
+            background: #ffe0b2;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+
+        body.dark-mode .highlight {
+            background: #664422;
+            color: #ffcc99;
+        }
+
+        .checklist {
+            background: var(--bg-light);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+        }
+
+        body.dark-mode .checklist {
+            background: #333;
+        }
+
+        .checklist h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .checklist-item {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .checklist-item input {
+            margin-right: 0.8rem;
+            cursor: pointer;
+        }
+
+        .cert-path {
+            background: linear-gradient(135deg, #f5f7fa, #e8eef5);
+            border: 2px solid var(--primary-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        body.dark-mode .cert-path {
+            background: linear-gradient(135deg, #333, #2a2a2a);
+        }
+
+        footer {
+            background: var(--primary-color);
+            color: white;
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .tip {
+            background: #d4edda;
+            border-left: 4px solid var(--success);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        body.dark-mode .tip {
+            background: #1e3a1f;
+            border-left-color: #28a745;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        body.dark-mode .warning {
+            background: #332701;
+            border-left-color: #ffc107;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th,
+            td {
+                padding: 0.6rem;
+            }
+        }
+
+        .module-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .module-link {
+            display: block;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .module-link:hover {
+            background: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .module-link.active {
+            background: white;
+            color: var(--primary-color);
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Footer Grid */
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            text-align: left;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-section h4 {
+            color: white;
+            margin-bottom: 1.2rem;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 0.5rem;
+            display: inline-block;
+        }
+
+        .footer-section ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .footer-section li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            display: inline-block;
+        }
+
+        .footer-section a:hover {
+            color: white;
+            transform: translateX(5px);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .module-links {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+                gap: 2rem;
+            }
+
+            .footer-section h4 {
+                border-bottom: none;
+                margin-top: 1rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .module-links {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>🎓 Module 26: Oracle Certification Preparation</h1>
+        <p>Complete Guide to OCA/OCP Certification Paths and Exam Preparation</p>
+    </header>
+
+    <div class="container">
+        <aside class="sidebar">
+            <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+            <h3>Topics</h3>
+            <ul>
+                <li><a href="#cert-overview">Certification Overview</a></li>
+                <li><a href="#oca-path">OCA Path</a></li>
+                <li><a href="#ocp-path">OCP Path</a></li>
+                <li><a href="#exam-topics">Exam Topics</a></li>
+                <li><a href="#study-plan">Study Plan</a></li>
+                <li><a href="#resources">Resources</a></li>
+                <li><a href="#best-practices">Best Practices</a></li>
+            </ul>
+        </aside>
+
+        <main>
+            <section id="cert-overview">
+                <h2>🏆 Oracle Certification Overview</h2>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Global Professionals</div>
+                        <div class="stat-card-number">500K+</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Career Boost</div>
+                        <div class="stat-card-number">+35%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Salary Premium</div>
+                        <div class="stat-card-number">$15K+</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Job Growth</div>
+                        <div class="stat-card-number">+12%</div>
+                    </div>
+                </div>
+
+                <h3>Certification Benefits</h3>
+                <ul>
+                    <li><strong>Career Advancement:</strong> Higher positions and leadership roles</li>
+                    <li><strong>Salary Increase:</strong> 15-35% higher compensation on average</li>
+                    <li><strong>Industry Recognition:</strong> Globally recognized credential</li>
+                    <li><strong>Job Security:</strong> Competitive edge in the job market</li>
+                    <li><strong>Skill Validation:</strong> Proof of expertise and knowledge</li>
+                </ul>
+            </section>
+
+            <section id="oca-path">
+                <h2>🌟 OCA Certification Path</h2>
+
+                <div class="cert-path">
+                    <h3>Oracle Certified Associate (OCA)</h3>
+                    <p><strong>Exam:</strong> 1Z0-071 (Oracle Database SQL Fundamentals)</p>
+                    <p><strong>Duration:</strong> 120 minutes</p>
+                    <p><strong>Questions:</strong> 65 Multiple Choice</p>
+                    <p><strong>Pass Score:</strong> 63% (41/65 questions)</p>
+                </div>
+
+                <h3>OCA Exam Topics</h3>
+                <table>
+                    <tr>
+                        <th>Topic Area</th>
+                        <th>Weight (%)</th>
+                        <th>Key Skills</th>
+                    </tr>
+                    <tr>
+                        <td>SELECT Statements</td>
+                        <td>20%</td>
+                        <td>WHERE, ORDER BY, DISTINCT, aliases</td>
+                    </tr>
+                    <tr>
+                        <td>Joins & Subqueries</td>
+                        <td>25%</td>
+                        <td>INNER/OUTER JOIN, correlated subqueries</td>
+                    </tr>
+                    <tr>
+                        <td>Aggregate Functions</td>
+                        <td>15%</td>
+                        <td>COUNT, SUM, AVG, GROUP BY, HAVING</td>
+                    </tr>
+                    <tr>
+                        <td>DML Operations</td>
+                        <td>20%</td>
+                        <td>INSERT, UPDATE, DELETE, transactions</td>
+                    </tr>
+                    <tr>
+                        <td>DDL & Schema</td>
+                        <td>20%</td>
+                        <td>CREATE, ALTER, DROP, constraints</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="ocp-path">
+                <h2>💎 OCP Certification Path</h2>
+
+                <div class="cert-path">
+                    <h3>Oracle Certified Professional (OCP)</h3>
+                    <p><strong>Prerequisites:</strong> Must hold current OCA certification</p>
+                    <p><strong>Exam:</strong> 1Z0-083 (Oracle Database Administration)</p>
+                    <p><strong>Duration:</strong> 120 minutes</p>
+                    <p><strong>Questions:</strong> 60 Multiple Choice</p>
+                    <p><strong>Pass Score:</strong> 65% (39/60 questions)</p>
+                </div>
+
+                <h3>OCP Exam Topics</h3>
+                <table>
+                    <tr>
+                        <th>Topic Area</th>
+                        <th>Weight (%)</th>
+                        <th>Key Skills</th>
+                    </tr>
+                    <tr>
+                        <td>Database Architecture</td>
+                        <td>12%</td>
+                        <td>Instance, memory structures, processes</td>
+                    </tr>
+                    <tr>
+                        <td>Storage Management</td>
+                        <td>18%</td>
+                        <td>Tablespaces, segments, extents</td>
+                    </tr>
+                    <tr>
+                        <td>Backup & Recovery</td>
+                        <td>16%</td>
+                        <td>RMAN, restoration, point-in-time recovery</td>
+                    </tr>
+                    <tr>
+                        <td>Performance Management</td>
+                        <td>20%</td>
+                        <td>Monitoring, tuning, execution plans</td>
+                    </tr>
+                    <tr>
+                        <td>Security</td>
+                        <td>14%</td>
+                        <td>Users, roles, privileges, audit</td>
+                    </tr>
+                    <tr>
+                        <td>High Availability</td>
+                        <td>20%</td>
+                        <td>Replication, failover, standby</td>
+                    </tr>
+                </table>
+            </section>
+
+            <section id="exam-topics">
+                <h2>📚 Detailed Exam Topics</h2>
+
+                <h3>Critical OCA Topics to Master</h3>
+                <div class="code-block">
+                    <pre><code><span class="keyword">Topic 1: SELECT Statement Mastery</span>
+- <span class="property">SELECT with</span>: WHERE, ORDER BY, DISTINCT
+- <span class="property">Column aliases and expressions</span>
+- <span class="property">LIMIT, OFFSET pagination</span>
+- <span class="property">BETWEEN, IN, LIKE operators</span>
+
+<span class="keyword">Topic 2: Advanced JOINs</span>
+- <span class="property">INNER JOIN, LEFT/RIGHT/FULL OUTER</span>
+- <span class="property">CROSS JOIN, Self JOIN</span>
+- <span class="property">Join conditions and filtering</span>
+- <span class="property">Multiple table joins</span> (3+ tables)
+
+<span class="keyword">Topic 3: Subqueries & Set Operations</span>
+- <span class="property">Single-row vs multi-row subqueries</span>
+- <span class="property">Correlated subqueries</span>
+- <span class="property">UNION, UNION ALL, INTERSECT, EXCEPT</span>
+- <span class="property">Nested subqueries</span></code></pre>
+                </div>
+
+                <h3>Critical OCP Topics to Master</h3>
+                <div class="code-block">
+                    <pre><code><span class="keyword">Topic 1: Database Architecture</span>
+- <span class="property">SGA (System Global Area) components</span>
+- <span class="property">PGA (Program Global Area)</span>
+- <span class="property">Database processes</span> (PMON, SMON, DBW0)
+- <span class="property">Redo log, data files, control files</span>
+
+<span class="keyword">Topic 2: RMAN & Backup Strategy</span>
+- <span class="property">RMAN architecture and components</span>
+- <span class="property">Full vs incremental backups</span>
+- <span class="property">Point-in-time recovery</span>
+- <span class="property">Backup validation and testing</span>
+
+<span class="keyword">Topic 3: Performance Tuning</span>
+- <span class="property">SQL execution plans</span>
+- <span class="property">Wait event analysis</span>
+- <span class="property">Index strategies</span>
+- <span class="property">Query optimization techniques</span></code></pre>
+                </div>
+            </section>
+
+            <section id="study-plan">
+                <h2>📅 4-Week Intensive Study Plan</h2>
+
+                <h3>Week 1: Foundations & SQL Basics</h3>
+                <table>
+                    <tr>
+                        <th>Day</th>
+                        <th>Focus Area</th>
+                        <th>Hours</th>
+                        <th>Activities</th>
+                    </tr>
+                    <tr>
+                        <td>1-2</td>
+                        <td>Basic SELECT & WHERE</td>
+                        <td>4 hrs</td>
+                        <td>Theory + 20 practice queries</td>
+                    </tr>
+                    <tr>
+                        <td>3-4</td>
+                        <td>Aggregate & GROUP BY</td>
+                        <td>4 hrs</td>
+                        <td>Exercises + sample questions</td>
+                    </tr>
+                    <tr>
+                        <td>5-7</td>
+                        <td>Review & Quiz</td>
+                        <td>6 hrs</td>
+                        <td>Practice exams + weak areas review</td>
+                    </tr>
+                </table>
+
+                <h3>Week 2: Advanced SQL</h3>
+                <ul>
+                    <li><strong>Days 1-2:</strong> INNER/OUTER JOINs (4 hrs) - Hands-on practice</li>
+                    <li><strong>Days 3-4:</strong> Subqueries & Correlated Queries (4 hrs) - Complex scenarios</li>
+                    <li><strong>Days 5-7:</strong> Set Operations & DML (6 hrs) - Full practice tests</li>
+                </ul>
+
+                <h3>Week 3: Database Administration (for OCP)</h3>
+                <ul>
+                    <li><strong>Days 1-2:</strong> Database Architecture (4 hrs) - Memory structures</li>
+                    <li><strong>Days 3-4:</strong> Storage & Tablespaces (4 hrs) - Practical labs</li>
+                    <li><strong>Days 5-7:</strong> Backup & Recovery (6 hrs) - RMAN scenarios</li>
+                </ul>
+
+                <h3>Week 4: Final Preparation & Mock Exams</h3>
+                <ul>
+                    <li><strong>Days 1-3:</strong> Full-length mock exams (9 hrs) - Timed under pressure</li>
+                    <li><strong>Days 4-5:</strong> Review incorrect answers (4 hrs) - Focus on weak areas</li>
+                    <li><strong>Days 6-7:</strong> Final review & exam day prep (2 hrs) - Light review</li>
+                </ul>
+            </section>
+
+            <section id="resources">
+                <h2>🎓 Study Resources</h2>
+
+                <h3>Official Oracle Resources</h3>
+                <ul>
+                    <li><strong>Oracle Learn:</strong> oracle.com/education - Official training materials</li>
+                    <li><strong>Oracle Documentation:</strong> docs.oracle.com - Complete reference</li>
+                    <li><strong>Oracle University:</strong> University courses and instructor-led training</li>
+                    <li><strong>Sample Exam:</strong> 40 free sample questions from Oracle</li>
+                </ul>
+
+                <h3>Third-Party Study Materials</h3>
+                <table>
+                    <tr>
+                        <th>Resource</th>
+                        <th>Type</th>
+                        <th>Best For</th>
+                    </tr>
+                    <tr>
+                        <td>Udemy Courses</td>
+                        <td>Video + Labs</td>
+                        <td>Beginner to intermediate</td>
+                    </tr>
+                    <tr>
+                        <td>A4Q Study Guides</td>
+                        <td>PDF Books</td>
+                        <td>Comprehensive reference</td>
+                    </tr>
+                    <tr>
+                        <td>Practice Exams</td>
+                        <td>Interactive Tests</td>
+                        <td>Exam simulation & assessment</td>
+                    </tr>
+                    <tr>
+                        <td>Oracle SQL Docs</td>
+                        <td>Reference</td>
+                        <td>Official specifications</td>
+                    </tr>
+                </table>
+
+                <h3>Hands-On Labs</h3>
+                <div class="tip">
+                    <strong>💡 Recommended:</strong> Oracle Database Express (XE) or Docker containers for practice
+                </div>
+            </section>
+
+            <section id="best-practices">
+                <h2>✅ Exam Success Best Practices</h2>
+
+                <h3>Before Exam Day</h3>
+                <ul>
+                    <li>Complete at least 3 full-length mock exams (90+ minutes each)</li>
+                    <li>Aim for 80%+ score on practice tests</li>
+                    <li>Review weak topic areas thoroughly</li>
+                    <li>Familiarize with test environment and interface</li>
+                    <li>Get proper sleep (7-8 hours) night before exam</li>
+                </ul>
+
+                <h3>During Exam</h3>
+                <ul>
+                    <li>Read questions carefully - avoid rushing</li>
+                    <li>Skip difficult questions, come back later</li>
+                    <li>Use remaining time to review all answers</li>
+                    <li>Don't second-guess yourself unnecessarily</li>
+                    <li>Manage time: aim for 1-2 minutes per question</li>
+                </ul>
+
+                <h3>After Exam</h3>
+                <ul>
+                    <li>If you pass: Celebrate! Prepare for next certification level</li>
+                    <li>If you don't pass: Analyze weak areas and retake within 30 days</li>
+                    <li>Schedule retake immediately if failed</li>
+                    <li>Review study materials focusing on failed domains</li>
+                </ul>
+
+                <div class="warning">
+                    <strong>⚠️ Remember:</strong> Exam focuses on practical, real-world scenarios. Study actual use
+                    cases!
+                </div>
+
+                <div class="checklist">
+                    <h4>✓ Final Exam Readiness Checklist</h4>
+                    <div class="checklist-item"><input type="checkbox"> Completed all 26 modules + resources</div>
+                    <div class="checklist-item"><input type="checkbox"> Scored 80%+ on 3 practice exams</div>
+                    <div class="checklist-item"><input type="checkbox"> Reviewed all weak topic areas</div>
+                    <div class="checklist-item"><input type="checkbox"> Practiced hands-on scenarios</div>
+                    <div class="checklist-item"><input type="checkbox"> Registered for exam date</div>
+                    <div class="checklist-item"><input type="checkbox"> Confirmed testing location/requirements</div>
+                    <div class="checklist-item"><input type="checkbox"> Arranged time off if needed</div>
+                    <div class="checklist-item"><input type="checkbox"> Got good sleep before exam</div>
+                    <div class="checklist-item"><input type="checkbox"> Arrived 15 minutes early</div>
+                    <div class="checklist-item"><input type="checkbox"> Brought required ID documents</div>
+                    <div class="checklist-item"><input type="checkbox"> Read exam instructions carefully</div>
+                    <div class="checklist-item"><input type="checkbox"> Reviewed all answers before submitting</div>
+                </div>
+            </section>
+
+            <section>
+                <h2>🎉 Certification Success Stories</h2>
+                <p style="text-align: center; font-size: 1.1rem; color: var(--primary-color); margin-top: 2rem;">
+                    <strong>Thousands of professionals have advanced their careers with Oracle certification.</strong>
+                </p>
+                <p style="text-align: center;">
+                    Join the community of certified database professionals and unlock new career opportunities! 🚀
+                </p>
+            </section>
+        </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Oracle Database Knowledge Hub. Module 26: Certification Preparation. All rights reserved.</p>
+        <p>Best of luck with your certification journey! 🎓</p>
+        <div class="module-links">
+            <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+            <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+            <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+            <a href="module-04-advanced-types.html" class="module-link">Module 4: Advanced Types</a>
+            <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+            <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+            <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+            <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+            <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+            <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+            <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+            <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+            <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+            <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+            <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+            <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+            <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+            <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+            <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+            <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+            <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+            <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+            <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+            <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+            <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+            <a href="module-26-certification.html" class="module-link active">Module 26: Certification</a>
+        </div>
+
+        <div class="footer-grid">
+            <div class="footer-section">
+                <h4>📖 Learning Paths</h4>
+                <ul>
+                    <li><a href="#">SQL Fundamentals</a></li>
+                    <li><a href="#">Database Administration</a></li>
+                    <li><a href="#">Performance Tuning</a></li>
+                    <li><a href="#">High Availability</a></li>
+                    <li><a href="#">Cloud Migration</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>🔗 Official Resources</h4>
+                <ul>
+                    <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+                    <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+                    <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+                    <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+                    <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>🎓 Certifications</h4>
+                <ul>
+                    <li><a href="#">OCA Exam Prep</a></li>
+                    <li><a href="#">OCP Exam Prep</a></li>
+                    <li><a href="#">Study Resources</a></li>
+                    <li><a href="#">Practice Exams</a></li>
+                    <li><a href="#">Certification Guide</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+        }
+
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+
+</html>

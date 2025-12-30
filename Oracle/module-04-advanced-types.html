@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Module 4: Advanced Data Types - JSON, XML, LOB, Collections, UDT</title>
+    <style>
+        :root {
+            --primary-color: #0078d4;
+            --secondary-color: #106ebe;
+            --accent-color: #0063b1;
+            --bg-light: #f5f7fa;
+            --bg-dark: #1a1a1a;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+            --border-color: #ddd;
+            --success: #28a745;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --code-bg: #f4f4f4;
+            --code-border: #e0e0e0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-light);
+            line-height: 1.6;
+            transition: all 0.3s ease;
+        }
+        body.dark-mode { background: var(--bg-dark); color: var(--text-dark); }
+        body.dark-mode .code-block { background: #2d2d2d; color: #f8f8f2; border-color: #444; }
+        body.dark-mode table { border-color: #444; background: #242424; }
+        body.dark-mode th, body.dark-mode td { border-color: #444; }
+        header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,120,212,0.2);
+        }
+        header h1 { font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700; }
+        header p { font-size: 1rem; opacity: 0.95; }
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover { background: var(--secondary-color); transform: scale(1.05); }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+        .stat-card { background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+        body.dark-mode .stat-card { background: #242424; border-color: #444; }
+        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,120,212,0.2); }
+        .stat-card .number { font-size: 2.5rem; font-weight: 700; color: var(--primary-color); margin-bottom: 0.5rem; }
+        .stat-card .label { font-size: 0.9rem; color: #666; text-transform: uppercase; letter-spacing: 1px; }
+        body.dark-mode .stat-card .label { color: #aaa; }
+        .content { background: white; border-radius: 8px; padding: 2rem; margin: 2rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        body.dark-mode .content { background: #242424; border: 1px solid #444; }
+        h2 { font-size: 1.8rem; margin: 2rem 0 1rem 0; color: var(--primary-color); border-bottom: 3px solid var(--primary-color); padding-bottom: 0.5rem; }
+        h3 { font-size: 1.3rem; margin: 1.5rem 0 0.8rem 0; color: var(--secondary-color); }
+        h4 { font-size: 1.1rem; margin: 1rem 0 0.5rem 0; color: var(--accent-color); }
+        p { margin-bottom: 1rem; line-height: 1.8; }
+        table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; background: white; border: 1px solid var(--border-color); border-radius: 6px; overflow: hidden; }
+        body.dark-mode table { background: #1a1a1a; }
+        th { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 1rem; text-align: left; font-weight: 600; border: 1px solid var(--primary-color); }
+        td { padding: 0.8rem 1rem; border: 1px solid var(--border-color); word-wrap: break-word; }
+        body.dark-mode td { border-color: #444; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        body.dark-mode tr:nth-child(even) { background: #1a1a1a; }
+        tr:hover { background: #f0f7ff; }
+        body.dark-mode tr:hover { background: #2a2a2a; }
+        .code-block { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 6px; padding: 1.5rem; overflow-x: auto; margin: 1.5rem 0; font-family: 'Courier New', Courier, monospace; font-size: 0.9rem; line-height: 1.5; color: #2c3e50; }
+        .code-block pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+        .code-block code { display: block; }
+        .keyword { color: #0078d4; font-weight: bold; }
+        .string { color: #c41a16; }
+        .number { color: #098658; }
+        .comment { color: #6a737d; font-style: italic; }
+        .function { color: #6f42c1; }
+        ul, ol { margin: 1rem 0 1.5rem 2rem; }
+        li { margin-bottom: 0.5rem; line-height: 1.8; }
+        .highlight { background: #fff3cd; border-left: 4px solid var(--warning); padding: 1rem; margin: 1.5rem 0; border-radius: 4px; }
+        body.dark-mode .highlight { background: rgba(255, 193, 7, 0.1); border-left-color: #ffc107; }
+        .highlight strong { color: var(--warning); }
+        .warning { background: #f8d7da; border-left: 4px solid var(--danger); padding: 1rem; margin: 1.5rem 0; border-radius: 4px; color: #721c24; }
+        body.dark-mode .warning { background: rgba(220, 53, 69, 0.1); color: #ff7675; }
+        .success { background: #d4edda; border-left: 4px solid var(--success); padding: 1rem; margin: 1.5rem 0; border-radius: 4px; color: #155724; }
+        body.dark-mode .success { background: rgba(40, 167, 69, 0.1); color: #52c41a; }
+        .checklist { background: #e7f3ff; border: 1px solid var(--primary-color); border-radius: 6px; padding: 1.5rem; margin: 2rem 0; }
+        body.dark-mode .checklist { background: rgba(0, 120, 212, 0.1); border-color: #0078d4; }
+        .checklist-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 1rem; color: var(--primary-color); }
+        .checklist-item { display: flex; align-items: flex-start; margin-bottom: 0.8rem; padding: 0.5rem 0; }
+        .checklist-item input[type="checkbox"] { margin-right: 0.8rem; margin-top: 0.3rem; cursor: pointer; width: 20px; height: 20px; }
+        .checklist-item label { cursor: pointer; flex: 1; }
+        footer { background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%); color: #e0e0e0; padding: 2rem; margin-top: 3rem; border-top: 3px solid var(--primary-color); }
+        .footer-content { max-width: 1200px; margin: 0 auto; }
+        .footer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+        .footer-section h4 { color: var(--primary-color); margin-bottom: 1rem; font-size: 1.1rem; }
+        .footer-section ul { list-style: none; margin: 0; padding: 0; }
+        .footer-section li { margin-bottom: 0.6rem; }
+        .footer-section a { color: #aaa; text-decoration: none; transition: color 0.3s ease; }
+        .footer-section a:hover { color: var(--primary-color); }
+        .module-nav { margin: 1.5rem 0; padding: 1rem; background: rgba(0, 120, 212, 0.05); border-radius: 6px; border-left: 4px solid var(--primary-color); }
+        .module-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.8rem; }
+        .module-link { display: inline-block; padding: 0.6rem 1rem; background: var(--primary-color); color: white; text-decoration: none; border-radius: 4px; transition: all 0.3s ease; font-size: 0.9rem; text-align: center; }
+        .module-link:hover { background: var(--secondary-color); transform: translateY(-2px); }
+        .module-link.active { background: var(--secondary-color); font-weight: 600; }
+        .footer-bottom { text-align: center; padding-top: 1.5rem; border-top: 1px solid #444; font-size: 0.9rem; }
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.5rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .container { padding: 1rem; }
+            .content { padding: 1rem; }
+            .theme-toggle { top: 10px; right: 10px; padding: 8px 12px; }
+        }
+        @media (max-width: 480px) {
+            header h1 { font-size: 1.2rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+            h2 { font-size: 1.4rem; }
+            h3 { font-size: 1.1rem; }
+            table { font-size: 0.85rem; }
+            th, td { padding: 0.6rem 0.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <button class="theme-toggle" onclick="toggleDarkMode()">🌙</button>
+
+    <header>
+        <h1>🔮 Module 4: Advanced Data Types</h1>
+        <p>JSON, XML, LOB (CLOB/BLOB), Collections (VARRAY/Nested Tables), User-Defined Types</p>
+    </header>
+
+    <div class="container">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number">JSON</div>
+                <div class="label">Document Format</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">XML</div>
+                <div class="label">Markup Format</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">LOB</div>
+                <div class="label">Large Objects</div>
+            </div>
+            <div class="stat-card">
+                <div class="number">UDT</div>
+                <div class="label">Custom Types</div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- SECTION 1: JSON -->
+            <h2>📄 JSON (JavaScript Object Notation)</h2>
+
+            <h3>Native JSON in Oracle</h3>
+            <p>Oracle supports JSON natively, allowing flexible storage of structured data:</p>
+
+            <div class="code-block">
+                <pre><code><span class="comment">-- Create table with JSON column</span>
+<span class="keyword">CREATE TABLE</span> employees (
+  employee_id <span class="keyword">NUMBER PRIMARY KEY</span>,
+  name <span class="keyword">VARCHAR2</span>(<span class="number">100</span>),
+  employee_data <span class="keyword">JSON</span>  <span class="comment">-- JSON data type</span>
+);
+
+<span class="comment">-- Insert JSON document</span>
+<span class="keyword">INSERT INTO</span> employees 
+<span class="keyword">VALUES</span> (
+  <span class="number">101</span>,
+  <span class="string">'John Smith'</span>,
+  <span class="string">'{"email":"john@company.com","department":"IT","salary":85000,"skills":["SQL","Java","Python"]}'</span>
+);
+
+<span class="comment">-- Query JSON data</span>
+<span class="keyword">SELECT</span> 
+  employee_id,
+  name,
+  employee_data.email,
+  employee_data.salary,
+  employee_data.skills[<span class="number">0</span>]
+<span class="keyword">FROM</span> employees;</code></pre>
+            </div>
+
+            <h3>JSON Functions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th>Purpose</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>JSON_VALUE</strong></td>
+                        <td>Extract scalar value</td>
+                        <td>JSON_VALUE(data, '$.email')</td>
+                    </tr>
+                    <tr>
+                        <td><strong>JSON_QUERY</strong></td>
+                        <td>Extract object/array</td>
+                        <td>JSON_QUERY(data, '$.skills')</td>
+                    </tr>
+                    <tr>
+                        <td><strong>JSON_TABLE</strong></td>
+                        <td>Convert JSON to table</td>
+                        <td>JSON_TABLE (for nested arrays)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>JSON_OBJECT</strong></td>
+                        <td>Create JSON from columns</td>
+                        <td>JSON_OBJECT('name' VALUE name, 'email' VALUE email)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>JSON_ARRAY</strong></td>
+                        <td>Create JSON array</td>
+                        <td>JSON_ARRAY(col1, col2, col3)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>JSON Path Expressions</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Access nested JSON with path notation</span>
+<span class="keyword">SELECT</span> 
+  JSON_VALUE(employee_data, <span class="string">'$.email'</span>) <span class="keyword">AS</span> email,
+  JSON_VALUE(employee_data, <span class="string">'$.department'</span>) <span class="keyword">AS</span> dept,
+  JSON_QUERY(employee_data, <span class="string">'$.skills'</span>) <span class="keyword">AS</span> all_skills
+<span class="keyword">FROM</span> employees;
+
+<span class="comment">-- Unnest JSON arrays with JSON_TABLE</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.name,
+  jt.skill
+<span class="keyword">FROM</span> employees e
+<span class="keyword">CROSS JOIN</span> JSON_TABLE(
+  e.employee_data,
+  <span class="string">'$.skills[*]'</span> <span class="keyword">COLUMNS</span> (skill <span class="keyword">VARCHAR2</span>(<span class="number">50</span>) <span class="keyword">PATH</span> <span class="string">'$'</span>)
+) jt;</code></pre>
+            </div>
+
+            <!-- SECTION 2: XML -->
+            <h2>📑 XML (Extensible Markup Language)</h2>
+
+            <h3>Storing XML Data</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Create table with XMLType column</span>
+<span class="keyword">CREATE TABLE</span> documents (
+  doc_id <span class="keyword">NUMBER PRIMARY KEY</span>,
+  doc_content <span class="keyword">XMLType</span>
+);
+
+<span class="comment">-- Insert XML document</span>
+<span class="keyword">INSERT INTO</span> documents 
+<span class="keyword">VALUES</span> (
+  <span class="number">1</span>,
+  XMLType(
+    <span class="string">'<?xml version="1.0"?>
+     <employee>
+       <id>101</id>
+       <name>John Smith</name>
+       <email>john@company.com</email>
+       <skills>
+         <skill>SQL</skill>
+         <skill>Java</skill>
+       </skills>
+     </employee>'</span>
+  )
+);
+
+<span class="comment">-- Query XML using XPath</span>
+<span class="keyword">SELECT</span> 
+  doc_id,
+  extractValue(doc_content, <span class="string">'/employee/name/text()'</span>) <span class="keyword">AS</span> name,
+  extractValue(doc_content, <span class="string">'/employee/email/text()'</span>) <span class="keyword">AS</span> email
+<span class="keyword">FROM</span> documents;</code></pre>
+            </div>
+
+            <h3>XML Functions</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th>Purpose</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>extractValue</strong></td>
+                        <td>Extract scalar value from XML path</td>
+                    </tr>
+                    <tr>
+                        <td><strong>extract</strong></td>
+                        <td>Extract XML fragment</td>
+                    </tr>
+                    <tr>
+                        <td><strong>existsNode</strong></td>
+                        <td>Check if XML node exists</td>
+                    </tr>
+                    <tr>
+                        <td><strong>XMLConcat</strong></td>
+                        <td>Concatenate XML fragments</td>
+                    </tr>
+                    <tr>
+                        <td><strong>XMLElement</strong></td>
+                        <td>Create XML element from columns</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 3: LOB -->
+            <h2>💾 LOB (Large Object) Data Types</h2>
+
+            <h3>LOB Types</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Max Size</th>
+                        <th>Content Type</th>
+                        <th>Use Case</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>CLOB</strong></td>
+                        <td>4GB</td>
+                        <td>Character (text)</td>
+                        <td>Large text, documents, code</td>
+                    </tr>
+                    <tr>
+                        <td><strong>BLOB</strong></td>
+                        <td>4GB</td>
+                        <td>Binary (images, files)</td>
+                        <td>Images, videos, binary files</td>
+                    </tr>
+                    <tr>
+                        <td><strong>NCLOB</strong></td>
+                        <td>4GB</td>
+                        <td>National character set</td>
+                        <td>Multi-language text</td>
+                    </tr>
+                    <tr>
+                        <td><strong>BFILE</strong></td>
+                        <td>4GB</td>
+                        <td>Binary (external file)</td>
+                        <td>Reference to OS files</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Working with LOBs</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Create table with LOB columns</span>
+<span class="keyword">CREATE TABLE</span> documents (
+  doc_id <span class="keyword">NUMBER PRIMARY KEY</span>,
+  doc_name <span class="keyword">VARCHAR2</span>(<span class="number">100</span>),
+  content <span class="keyword">CLOB</span>,        <span class="comment">-- Large text</span>
+  attachment <span class="keyword">BLOB</span>      <span class="comment">-- Binary file</span>
+);
+
+<span class="comment">-- Insert LOB data (small chunks)</span>
+<span class="keyword">INSERT INTO</span> documents (doc_id, doc_name, content)
+<span class="keyword">VALUES</span> (<span class="number">1</span>, <span class="string">'Report'</span>, <span class="string">'This is a large text document...'</span>);
+
+<span class="comment">-- Check LOB size</span>
+<span class="keyword">SELECT</span> 
+  doc_id,
+  DBMS_LOB.getlength(content) <span class="keyword">AS</span> content_size,
+  DBMS_LOB.getlength(attachment) <span class="keyword">AS</span> attachment_size
+<span class="keyword">FROM</span> documents;
+
+<span class="comment">-- Read LOB data</span>
+<span class="keyword">DECLARE</span>
+  v_content CLOB;
+  v_chunk <span class="keyword">VARCHAR2</span>(<span class="number">32767</span>);
+<span class="keyword">BEGIN</span>
+  <span class="keyword">SELECT</span> content <span class="keyword">INTO</span> v_content 
+  <span class="keyword">FROM</span> documents <span class="keyword">WHERE</span> doc_id = <span class="number">1</span>;
+  
+  <span class="function">DBMS_LOB</span>.read(v_content, <span class="number">1000</span>, <span class="number">1</span>, v_chunk);
+  <span class="function">DBMS_OUTPUT</span>.put_line(v_chunk);
+<span class="keyword">END</span>;</code></pre>
+            </div>
+
+            <div class="highlight">
+                <strong>💡 Tip:</strong> Use DBMS_LOB package for LOB manipulation. CLOB good for text, BLOB for binary. Use temporary LOBs for performance.
+            </div>
+
+            <!-- SECTION 4: Collections -->
+            <h2>📦 Collections (VARRAY & Nested Tables)</h2>
+
+            <h3>VARRAY (Variable-size Array)</h3>
+            <p>Fixed-size array with maximum element count</p>
+
+            <div class="code-block">
+                <pre><code><span class="comment">-- Define VARRAY type</span>
+<span class="keyword">CREATE TYPE</span> skills_array <span class="keyword">AS VARRAY</span>(<span class="number">10</span>) <span class="keyword">OF VARCHAR2</span>(<span class="number">50</span>);
+/
+
+<span class="comment">-- Use VARRAY in table</span>
+<span class="keyword">CREATE TABLE</span> employees (
+  employee_id <span class="keyword">NUMBER PRIMARY KEY</span>,
+  name <span class="keyword">VARCHAR2</span>(<span class="number">100</span>),
+  skills skills_array
+);
+
+<span class="comment">-- Insert VARRAY data</span>
+<span class="keyword">INSERT INTO</span> employees 
+<span class="keyword">VALUES</span> (
+  <span class="number">101</span>,
+  <span class="string">'John Smith'</span>,
+  skills_array(<span class="string">'SQL'</span>, <span class="string">'Java'</span>, <span class="string">'Python'</span>)
+);
+
+<span class="comment">-- Access VARRAY elements</span>
+<span class="keyword">SELECT</span> 
+  employee_id,
+  name,
+  skills(<span class="number">1</span>) <span class="keyword">AS</span> first_skill,
+  <span class="function">TABLE</span>(skills) <span class="keyword">AS</span> all_skills
+<span class="keyword">FROM</span> employees;</code></pre>
+            </div>
+
+            <h3>Nested Tables</h3>
+            <p>Variable-size collection without predefined maximum</p>
+
+            <div class="code-block">
+                <pre><code><span class="comment">-- Define Nested Table type</span>
+<span class="keyword">CREATE TYPE</span> projects_table <span class="keyword">AS TABLE OF VARCHAR2</span>(<span class="number">100</span>);
+/
+
+<span class="comment">-- Create table storage for nested table</span>
+<span class="keyword">CREATE TABLE</span> employees (
+  employee_id <span class="keyword">NUMBER PRIMARY KEY</span>,
+  name <span class="keyword">VARCHAR2</span>(<span class="number">100</span>),
+  projects projects_table
+)
+<span class="keyword">NESTED TABLE</span> projects <span class="keyword">STORE AS</span> projects_nt;
+
+<span class="comment">-- Insert nested table data</span>
+<span class="keyword">INSERT INTO</span> employees
+<span class="keyword">VALUES</span> (
+  <span class="number">101</span>,
+  <span class="string">'John Smith'</span>,
+  projects_table(<span class="string">'Project A'</span>, <span class="string">'Project B'</span>, <span class="string">'Project C'</span>)
+);
+
+<span class="comment">-- Query nested table</span>
+<span class="keyword">SELECT</span> 
+  e.employee_id,
+  e.name,
+  p.column_value <span class="keyword">AS</span> project
+<span class="keyword">FROM</span> employees e,
+<span class="keyword">TABLE</span>(e.projects) p;</code></pre>
+            </div>
+
+            <h3>VARRAY vs Nested Table</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>VARRAY</th>
+                        <th>Nested Table</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Max Size</strong></td>
+                        <td>Fixed limit</td>
+                        <td>Variable (unlimited)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Storage</strong></td>
+                        <td>Inline with parent</td>
+                        <td>Separate storage table</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ordering</strong></td>
+                        <td>Preserves order, indexed</td>
+                        <td>No inherent order</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Performance</strong></td>
+                        <td>Fast access by index</td>
+                        <td>Better for large sets</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Use Case</strong></td>
+                        <td>Fixed list (max 10 skills)</td>
+                        <td>Variable list (any projects)</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- SECTION 5: User-Defined Types -->
+            <h2>👤 User-Defined Types (UDT)</h2>
+
+            <h3>Object Types</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Define object type (like a class)</span>
+<span class="keyword">CREATE TYPE</span> address_type <span class="keyword">AS OBJECT</span> (
+  street <span class="keyword">VARCHAR2</span>(<span class="number">100</span>),
+  city <span class="keyword">VARCHAR2</span>(<span class="number">50</span>),
+  state <span class="keyword">VARCHAR2</span>(<span class="number">2</span>),
+  zip_code <span class="keyword">VARCHAR2</span>(<span class="number">10</span>)
+);
+/
+
+<span class="comment">-- Use object type in table</span>
+<span class="keyword">CREATE TABLE</span> customers (
+  customer_id <span class="keyword">NUMBER PRIMARY KEY</span>,
+  name <span class="keyword">VARCHAR2</span>(<span class="number">100</span>),
+  address address_type,
+  phone <span class="keyword">VARCHAR2</span>(<span class="number">20</span>)
+);
+
+<span class="comment">-- Insert object data</span>
+<span class="keyword">INSERT INTO</span> customers
+<span class="keyword">VALUES</span> (
+  <span class="number">1</span>,
+  <span class="string">'John Smith'</span>,
+  address_type(<span class="string">'123 Main St'</span>, <span class="string">'New York'</span>, <span class="string">'NY'</span>, <span class="string">'10001'</span>),
+  <span class="string">'555-1234'</span>
+);
+
+<span class="comment">-- Access object attributes</span>
+<span class="keyword">SELECT</span> 
+  customer_id,
+  name,
+  address.street,
+  address.city,
+  address.zip_code
+<span class="keyword">FROM</span> customers;</code></pre>
+            </div>
+
+            <h3>Method Definition in Object Type</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Define object type with methods</span>
+<span class="keyword">CREATE TYPE</span> employee_type <span class="keyword">AS OBJECT</span> (
+  emp_id <span class="keyword">NUMBER</span>,
+  name <span class="keyword">VARCHAR2</span>(<span class="number">100</span>),
+  salary <span class="keyword">NUMBER</span>,
+  <span class="keyword">MEMBER FUNCTION</span> get_annual_salary <span class="keyword">RETURN NUMBER</span>,
+  <span class="keyword">MEMBER FUNCTION</span> is_high_earner <span class="keyword">RETURN BOOLEAN</span>
+);
+/
+
+<span class="comment">-- Implement methods</span>
+<span class="keyword">CREATE TYPE BODY</span> employee_type <span class="keyword">AS</span>
+  <span class="keyword">MEMBER FUNCTION</span> get_annual_salary <span class="keyword">RETURN NUMBER</span> <span class="keyword">IS</span>
+  <span class="keyword">BEGIN</span>
+    <span class="keyword">RETURN</span> salary * <span class="number">12</span>;
+  <span class="keyword">END</span>;
+  
+  <span class="keyword">MEMBER FUNCTION</span> is_high_earner <span class="keyword">RETURN BOOLEAN</span> <span class="keyword">IS</span>
+  <span class="keyword">BEGIN</span>
+    <span class="keyword">RETURN</span> salary > <span class="number">10000</span>;
+  <span class="keyword">END</span>;
+<span class="keyword">END</span>;
+/</code></pre>
+            </div>
+
+            <!-- SECTION 6: Best Practices -->
+            <h2>✅ Best Practices for Advanced Types</h2>
+
+            <ul>
+                <li><strong>JSON vs XML:</strong> Use JSON for modern applications (simpler, better performance), XML for legacy systems</li>
+                <li><strong>LOB Management:</strong> Use DBMS_LOB package, enable LOB caching for frequently accessed data</li>
+                <li><strong>Collections:</strong> Use VARRAY for fixed, small collections; Nested Tables for variable, larger sets</li>
+                <li><strong>UDT Design:</strong> Keep types simple, avoid excessive nesting</li>
+                <li><strong>Indexing:</strong> Create function-based indexes on JSON/XML columns for faster queries</li>
+                <li><strong>Storage:</strong> Consider tablespace design for LOBs and nested tables</li>
+                <li><strong>Performance:</strong> Avoid LOBs in WHERE clause; use JSON_TABLE for better performance</li>
+            </ul>
+
+            <h3>JSON Performance Tips</h3>
+            <div class="code-block">
+                <pre><code><span class="comment">-- Create functional index on JSON field for performance</span>
+<span class="keyword">CREATE INDEX</span> emp_email_idx <span class="keyword">ON</span> employees(
+  JSON_VALUE(employee_data, <span class="string">'$.email'</span>)
+);
+
+<span class="comment">-- Use JSON_TABLE for better performance with large result sets</span>
+<span class="keyword">SELECT</span> *
+<span class="keyword">FROM</span> JSON_TABLE(
+  <span class="keyword">SELECT</span> employee_data <span class="keyword">FROM</span> employees,
+  <span class="string">'$[*]'</span> <span class="keyword">COLUMNS</span> (
+    email <span class="keyword">VARCHAR2</span>(<span class="number">100</span>) <span class="keyword">PATH</span> <span class="string">'$.email'</span>,
+    name <span class="keyword">VARCHAR2</span>(<span class="number">100</span>) <span class="keyword">PATH</span> <span class="string">'$.name'</span>,
+    salary <span class="keyword">NUMBER</span> <span class="keyword">PATH</span> <span class="string">'$.salary'</span>
+  )
+);</code></pre>
+            </div>
+
+            <!-- CHECKLIST -->
+            <div class="checklist">
+                <div class="checklist-title">✓ Learning Checklist - Module 4</div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check1">
+                    <label for="check1">Store and query JSON data</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check2">
+                    <label for="check2">Use JSON functions (JSON_VALUE, JSON_QUERY, JSON_TABLE)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check3">
+                    <label for="check3">Work with XML data and XPath expressions</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check4">
+                    <label for="check4">Store and retrieve LOB data (CLOB, BLOB)</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check5">
+                    <label for="check5">Use DBMS_LOB package for LOB operations</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check6">
+                    <label for="check6">Create and use VARRAY collections</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check7">
+                    <label for="check7">Create and use Nested Tables</label>
+                </div>
+                <div class="checklist-item">
+                    <input type="checkbox" id="check8">
+                    <label for="check8">Design and implement User-Defined Types (Objects)</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <div class="footer-content">
+            <div class="module-nav">
+                <h3 style="margin-top: 0; color: var(--primary-color);">📚 Oracle Database Modules Navigation</h3>
+                <div class="module-links">
+                    <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
+                    <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
+                    <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
+                    <a href="module-04-advanced-types.html" class="module-link active">Module 4: Advanced Types</a>
+                    <a href="module-05-select-joins.html" class="module-link">Module 5: SELECT & JOINs</a>
+                    <a href="module-06-subqueries-ctes.html" class="module-link">Module 6: Subqueries</a>
+                    <a href="module-07-aggregation-group.html" class="module-link">Module 7: Aggregation</a>
+                    <a href="module-08-window-functions.html" class="module-link">Module 8: Window Functions</a>
+                    <a href="module-09-plsql.html" class="module-link">Module 9: PL/SQL</a>
+                    <a href="module-10-procedures.html" class="module-link">Module 10: Procedures</a>
+                    <a href="module-11-triggers.html" class="module-link">Module 11: Triggers</a>
+                    <a href="module-12-scheduler.html" class="module-link">Module 12: Scheduler</a>
+                    <a href="module-13-security.html" class="module-link">Module 13: Security</a>
+                    <a href="module-14-indexes-performance.html" class="module-link">Module 14: Indexes</a>
+                    <a href="module-15-query-optimization.html" class="module-link">Module 15: Query Optimization</a>
+                    <a href="module-16-monitoring.html" class="module-link">Module 16: Monitoring</a>
+                    <a href="module-17-backup-recovery.html" class="module-link">Module 17: Backup & Recovery</a>
+                    <a href="module-18-tablespaces-storage.html" class="module-link">Module 18: Tablespaces</a>
+                    <a href="module-19-data-integration-etl.html" class="module-link">Module 19: Data Integration</a>
+                    <a href="module-20.html" class="module-link">Module 20: Partitioning</a>
+                    <a href="module-21-multitenant-architecture.html" class="module-link">Module 21: Multitenant</a>
+                    <a href="module-22-high-availability.html" class="module-link">Module 22: High Availability</a>
+                    <a href="module-23-real-time-messaging.html" class="module-link">Module 23: Real-time Data</a>
+                    <a href="module-24-oci-cloud.html" class="module-link">Module 24: OCI Cloud</a>
+                    <a href="module-25-autonomous-migration.html" class="module-link">Module 25: Autonomous DB</a>
+                    <a href="module-26-certification.html" class="module-link">Module 26: Certification</a>
+                </div>
+            </div>
+
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h4>📖 Learning Paths</h4>
+                    <ul>
+                        <li><a href="#">SQL Fundamentals</a></li>
+                        <li><a href="#">Database Administration</a></li>
+                        <li><a href="#">Performance Tuning</a></li>
+                        <li><a href="#">High Availability</a></li>
+                        <li><a href="#">Cloud Migration</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🔗 Official Resources</h4>
+                    <ul>
+                        <li><a href="https://docs.oracle.com/database/" target="_blank">Oracle Docs</a></li>
+                        <li><a href="https://livesql.oracle.com" target="_blank">Live SQL</a></li>
+                        <li><a href="https://oracle.com/learning" target="_blank">Learning Hub</a></li>
+                        <li><a href="https://community.oracle.com" target="_blank">Community Forums</a></li>
+                        <li><a href="https://asktom.oracle.com" target="_blank">Ask Tom</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>🎓 Certifications</h4>
+                    <ul>
+                        <li><a href="#">OCA Exam Prep</a></li>
+                        <li><a href="#">OCP Exam Prep</a></li>
+                        <li><a href="#">Study Resources</a></li>
+                        <li><a href="#">Practice Exams</a></li>
+                        <li><a href="#">Certification Guide</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>Oracle Database Knowledge Base | Module 4 of 26 | Last Updated: Dec 2025</p>
+                <p>📧 Contact | 💬 Feedback | 📱 Mobile Version | 🌍 Global</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            updateThemeButton();
+        }
+        function updateThemeButton() {
+            const btn = document.querySelector('.theme-toggle');
+            if (document.body.classList.contains('dark-mode')) {
+                btn.textContent = '☀️';
+            } else {
+                btn.textContent = '🌙';
+            }
+        }
+        window.addEventListener('load', function() {
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+            }
+            updateThemeButton();
+        });
+    </script>
+</body>
+</html>
