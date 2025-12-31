@@ -300,32 +300,68 @@
         }
 
         footer {
-            background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
-            color: #e0e0e0;
-            padding: 2rem;
-            margin-top: 3rem;
-            border-top: 3px solid var(--primary-color);
+            background: #1a1a1a;
+            color: white;
+            padding: 4rem 2rem 2rem;
+            margin-top: 5rem;
         }
 
-        .footer-content {
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
             max-width: 1200px;
-            margin: 0 auto;
+            margin: 0 auto 3rem;
+        }
+
+        .footer-section h3 {
+            color: white !important;
+            margin-bottom: 1.5rem;
+            border-bottom: none !important;
+            padding-bottom: 0 !important;
+        }
+
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: #aaa;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer-links a:hover {
+            color: white;
         }
 
         .module-nav {
-            margin: 1.5rem 0;
-            padding: 1rem;
-            background: rgba(0, 120, 212, 0.05);
-            border-radius: 6px;
-            border-left: 4px solid var(--primary-color);
+            margin-top: 3rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .module-nav h3 {
+            color: white !important;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            padding-bottom: 0.5rem !important;
         }
 
         .module-links {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 1rem;
-            margin: 2rem 0;
-            text-align: center;
+            margin-top: 1rem;
         }
 
         .module-link {
@@ -338,83 +374,25 @@
             transition: all 0.3s ease;
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
         }
 
         .module-link:hover {
             background: white;
-            color: var(--primary-color);
+            color: #2c3e50;
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
 
         .module-link.active {
-            background: white;
-            color: var(--primary-color);
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Footer Grid */
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            text-align: left;
-            margin-top: 3rem;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .footer-section h4 {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
             color: white;
-            margin-bottom: 1.2rem;
-            font-size: 1.1rem;
-            letter-spacing: 0.5px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-            padding-bottom: 0.5rem;
-            display: inline-block;
         }
 
-        .footer-section ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .footer-section li {
-            margin-bottom: 0.8rem;
-        }
-
-        .footer-section a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: all 0.2s;
-            font-size: 0.95rem;
-            display: inline-block;
-        }
-
-        .footer-section a:hover {
-            color: white;
-            transform: translateX(5px);
-        }
-
-        /* Responsive */
         @media (max-width: 900px) {
             .module-links {
                 grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .footer-grid {
-                grid-template-columns: 1fr;
-                text-align: center;
-                gap: 2rem;
-            }
-
-            .footer-section h4 {
-                border-bottom: none;
-                margin-top: 1rem;
             }
         }
 
@@ -422,13 +400,11 @@
             .module-links {
                 grid-template-columns: 1fr;
             }
-        }
 
-        .footer-bottom {
-            text-align: center;
-            padding-top: 1.5rem;
-            border-top: 1px solid #444;
-            font-size: 0.9rem;
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
         }
     </style>
 </head>
@@ -677,10 +653,35 @@
     </div>
 
     <footer>
-        <div class="footer-content">
-            <div class="module-nav">
-                <h3 style="margin-top: 0; color: var(--primary-color);">📚 Module Navigation</h3>
-                <div class="module-links">
+        <div class="footer-grid">
+            <div class="footer-section">
+                <h3>Oracle Database Learning Hub</h3>
+                <p>A comprehensive guide to mastering Oracle Database development, from fundamentals to advanced
+                    optimization.</p>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul class="footer-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="module-01-fundamentals.html">Fundamentals</a></li>
+                    <li><a href="module-09-plsql.html">PL/SQL</a></li>
+                    <li><a href="module-17-backup-recovery.html">Backup & Recovery</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Resources</h3>
+                <ul class="footer-links">
+                    <li><a href="https://docs.oracle.com/en/database/oracle/oracle-database/index.html">Oracle
+                            Documentation</a></li>
+                    <li><a href="#">SQL Best Practices</a></li>
+                    <li><a href="#">Sample Database</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="module-nav">
+            <h3>📚 Oracle Database Curriculum</h3>
+            <div class="module-links">
                     <a href="module-01-fundamentals.html" class="module-link">Module 1: DB Fundamentals</a>
                     <a href="module-02-data-modeling.html" class="module-link">Module 2: Data Modeling</a>
                     <a href="module-03-sql-ddl-dml.html" class="module-link">Module 3: SQL DDL/DML</a>
