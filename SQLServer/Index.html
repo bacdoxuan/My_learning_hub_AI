@@ -61,6 +61,60 @@
         .module-link { display: inline-block; margin-top: 10px; padding: 10px 16px; background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1)); border: 1px solid rgba(59, 130, 246, 0.3); color: #60a5fa; text-decoration: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; transition: all 0.2s ease; }
         .module-link:hover { background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(37, 99, 235, 0.2)); border-color: #3b82f6; }
         
+        /* Progress Tracking Styles */
+        .progress-header {
+            max-width: 800px;
+            margin: 15px auto 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .progress-bar-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            height: 24px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #10b981, #14b8a6);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+            color: #94a3b8;
+        }
+
+        .module-checkbox {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            accent-color: #10b981;
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 10;
+        }
+
+        .module-card.completed {
+            opacity: 0.8;
+            background: rgba(30, 41, 59, 0.4);
+            border-left-color: #10b981 !important;
+        }
+
         .timeline-section { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 30px; margin-bottom: 50px; border: 1px solid #334155; }
         .timeline-section h2 { font-size: 1.8em; color: #f1f5f9; margin-bottom: 25px; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; }
         .timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
@@ -105,6 +159,15 @@
     <header>
         <h1>🔵 SQL Server Cheat Sheets</h1>
         <p class="subtitle">Master SQL Server with 21 comprehensive modules covering Foundations, Advanced T-SQL, Performance Tuning, In-Memory OLTP, Security, Backup/Restore, Always On, and Monitoring</p>
+        <div class="progress-header">
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="overallProgress" style="width: 0%;">0%</div>
+            </div>
+            <div class="progress-stats">
+                <span><span id="completedCount">0</span> / <span id="totalCount">0</span> Modules Completed</span>
+                <span>🎯 Keep Going!</span>
+            </div>
+        </div>
     </header>
     
     <div class="container">
@@ -113,6 +176,8 @@
                 <input type="text" id="searchInput" placeholder="Search modules by name, tags, or keywords...">
                 <button class="btn" onclick="performSearch()">Search</button>
                 <button class="btn btn-secondary" onclick="openFiltered()">Open Filtered (Multi-Tab)</button>
+                <button onclick="exportProgress()" class="btn" style="background: linear-gradient(135deg, #10b981, #059669);">💾 Export</button>
+                <button onclick="resetProgress()" class="btn" style="background: linear-gradient(135deg, #ef4444, #dc2626);">🗑️ Reset</button>
             </div>
             
             <div class="tag-section">
@@ -440,14 +505,101 @@
         
         let activeFilters = new Set();
         
+        // Progress Tracking Logic
+        const STORAGE_KEY = 'sqlserver_learning_progress';
+
+        function loadProgress() {
+            const savedProgress = localStorage.getItem(STORAGE_KEY);
+            return savedProgress ? JSON.parse(savedProgress) : {};
+        }
+
+        function saveProgress() {
+            const checkboxes = document.querySelectorAll('.module-checkbox');
+            const progress = loadProgress();
+
+            checkboxes.forEach(cb => {
+                const id = cb.dataset.id;
+                if (cb.checked) {
+                    progress[id] = true;
+                } else {
+                    delete progress[id];
+                }
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
+        }
+
+        function updateProgress() {
+            saveProgress();
+            const progress = loadProgress();
+            const total = modules.length;
+            const completed = modules.filter(m => progress[m.id]).length;
+            const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+            const progressBar = document.getElementById('overallProgress');
+            const completedCount = document.getElementById('completedCount');
+            const totalCount = document.getElementById('totalCount');
+
+            if (progressBar) {
+                progressBar.style.width = percentage + '%';
+                progressBar.textContent = percentage + '%';
+            }
+            if (completedCount) completedCount.textContent = completed;
+            if (totalCount) totalCount.textContent = total;
+
+            document.querySelectorAll('.module-checkbox').forEach(checkbox => {
+                const card = checkbox.closest('.module-card');
+                if (card) {
+                    if (checkbox.checked) {
+                        card.classList.add('completed');
+                    } else {
+                        card.classList.remove('completed');
+                    }
+                }
+            });
+        }
+
+        function resetProgress() {
+            if (confirm('Are you sure you want to reset all progress? This cannot be undone.')) {
+                localStorage.removeItem(STORAGE_KEY);
+                renderModules();
+                updateProgress();
+            }
+        }
+
+        function exportProgress() {
+            const progress = loadProgress();
+            const exportData = {
+                exportDate: new Date().toISOString(),
+                totalModules: modules.length,
+                completedModules: Object.keys(progress).length,
+                modules: modules.map(m => ({
+                    id: m.id,
+                    title: m.title,
+                    completed: !!progress[m.id]
+                }))
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sqlserver-learning-progress-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+        }
+
         function renderModules(modsToShow = modules) {
             const container = document.getElementById('modulesContainer');
             container.innerHTML = '';
+            const progress = loadProgress();
             
             modsToShow.forEach(mod => {
+                const isCompleted = !!progress[mod.id];
                 const card = document.createElement('div');
-                card.className = `module-card ${mod.color}`;
+                card.className = `module-card ${mod.color} ${isCompleted ? 'completed' : ''}`;
                 card.innerHTML = `
+                    <input type="checkbox" class="module-checkbox" data-id="${mod.id}"
+                           ${isCompleted ? 'checked' : ''}
+                           onchange="updateProgress(); event.stopPropagation();">
                     <div class="module-badge">${mod.emoji}</div>
                     <div class="module-title">${mod.title}</div>
                     <div class="module-description">${mod.description}</div>
@@ -460,6 +612,19 @@
             });
             
             updateCounter(modsToShow.length);
+
+            // Initial stats update
+            const total = modules.length;
+            const completed = modules.filter(m => progress[m.id]).length;
+            const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
+
+            const progressBar = document.getElementById('overallProgress');
+            if (progressBar) {
+                progressBar.style.width = percentage + '%';
+                progressBar.textContent = percentage + '%';
+            }
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('totalCount').textContent = total;
         }
         
         function renderTags() {
