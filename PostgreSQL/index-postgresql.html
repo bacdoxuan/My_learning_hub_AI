@@ -112,6 +112,24 @@
             border-left-color: #10b981 !important;
         }
 
+        .module-card.completed::after {
+            content: '✓';
+            position: absolute;
+            top: 50px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            color: #10b981;
+            font-weight: bold;
+            pointer-events: none;
+        }
+
         .timeline-section { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 30px; margin-bottom: 50px; border: 1px solid #334155; }
         .timeline-section h2 { font-size: 1.8em; color: #f1f5f9; margin-bottom: 25px; border-bottom: 2px solid #3b82f6; padding-bottom: 15px; }
         .timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
@@ -408,7 +426,6 @@
         }
 
         function updateProgress() {
-            saveProgress();
             const progress = loadProgress();
             const total = modules.length;
             const completed = modules.filter(m => progress[m.id]).length;
@@ -424,6 +441,8 @@
             }
             if (completedCount) completedCount.textContent = completed;
             if (totalCount) totalCount.textContent = total;
+
+            saveProgress();
 
             document.querySelectorAll('.module-checkbox').forEach(checkbox => {
                 const card = checkbox.closest('.module-card');
