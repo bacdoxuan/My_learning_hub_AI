@@ -812,6 +812,9 @@
                 <a class="link" href="${s.file}" download>
                   Download
                 </a>
+                <input type="checkbox" class="module-checkbox" data-id="${s.n}"
+                       ${isCompleted ? 'checked' : ''}
+                       onchange="updateProgress(); event.stopPropagation();" title="Mark as completed">
               </div>
             </div>
             <div class="small" style="margin-top:10px;">
