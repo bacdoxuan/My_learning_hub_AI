@@ -550,6 +550,12 @@
                 <span>🎯 Keep Going!</span>
             </div>
         </div>
+        <div style="justify-content: center; display: flex; gap: 8px;">
+            <button onclick="exportProgress()" class="btn"
+                style="background: linear-gradient(135deg, #10b981, #059669);">💾 Export</button>
+            <button onclick="resetProgress()" class="btn"
+                style="background: linear-gradient(135deg, #ef4444, #dc2626);">🗑️ Reset</button>
+        </div>
     </header>
 
     <div class="container">
@@ -558,10 +564,7 @@
                 <input type="text" id="searchInput" placeholder="Search modules by name, tags, or keywords...">
                 <button class="btn" onclick="performSearch()">Search</button>
                 <button class="btn btn-secondary" onclick="openFiltered()">Open Filtered (Multi-Tab)</button>
-                <button onclick="exportProgress()" class="btn"
-                    style="background: linear-gradient(135deg, #10b981, #059669);">💾 Export</button>
-                <button onclick="resetProgress()" class="btn"
-                    style="background: linear-gradient(135deg, #ef4444, #dc2626);">🗑️ Reset</button>
+
             </div>
 
             <div class="tag-section">

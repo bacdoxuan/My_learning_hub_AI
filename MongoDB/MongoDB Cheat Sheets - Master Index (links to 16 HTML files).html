@@ -430,6 +430,12 @@
           <span><span id="completedCount">0</span> / <span id="totalCount">0</span> Modules Completed</span>
           <span>🎯 Keep Going!</span>
         </div>
+        <div style="justify-content: center; display: flex; gap: 8px;">
+          <button onclick="exportProgress()" class="btn"
+            style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981;">💾 Export</button>
+          <button onclick="resetProgress()" class="btn"
+            style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">🗑️ Reset</button>
+        </div>
       </div>
 
 
@@ -443,10 +449,7 @@
           <button id="clear" class="btn" type="button">Clear</button>
           <button id="openAll" class="btn" type="button"
             title="Trình duyệt có thể chặn pop-up nếu mở quá nhiều tab">Open filtered (tabs)</button>
-          <button onclick="exportProgress()" class="btn"
-            style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981;">💾 Export</button>
-          <button onclick="resetProgress()" class="btn"
-            style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">🗑️ Reset</button>
+
         </div>
 
         <div class="chips" id="chips">

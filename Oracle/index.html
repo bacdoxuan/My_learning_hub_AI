@@ -674,6 +674,12 @@
                 <span>🎯 Keep Going!</span>
             </div>
         </div>
+        <div style="justify-content: center; display: flex; gap: 8px;">
+            <button onclick="exportProgress()" class="btn"
+                style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981;">💾 Export</button>
+            <button onclick="resetProgress()" class="btn"
+                style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">🗑️ Reset</button>
+        </div>
     </header>
 
     <div class="container">
@@ -712,8 +718,6 @@
             <div class="action-buttons">
                 <button class="btn btn-secondary" onclick="clearFilters()">🔄 Clear Filters</button>
                 <button class="btn btn-secondary" onclick="showAllModules()">👁️ Show All</button>
-                <button class="btn btn-secondary" onclick="exportProgress()">💾 Export Progress</button>
-                <button class="btn btn-reset" onclick="resetProgress()">🗑️ Reset Progress</button>
             </div>
 
             <div class="counter" id="moduleCounter">26 / 26 modules shown</div>

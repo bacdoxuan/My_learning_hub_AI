@@ -95,6 +95,7 @@
             z-index: 30;
             background: #0f172a;
             /* Match body background to prevent transparency */
+            padding: 20px;
         }
 
         h1 {
@@ -375,6 +376,8 @@
                     <span>🎯 Keep Going!</span>
                 </div>
             </div>
+            <button onclick="exportProgress()" style="background: #10b981; padding: 10px;">💾 Export</button>
+            <button onclick="resetProgress()" style="background: #ef4444; padding: 10px;">🗑️ Reset</button>
         </header>
 
         <div class="search-section">
@@ -382,8 +385,6 @@
             <div class="button-group">
                 <button onclick="openFiltered()">📂 Open Filtered</button>
                 <button onclick="clearFilters()">✕ Clear</button>
-                <button onclick="exportProgress()" style="background: #10b981;">💾 Export</button>
-                <button onclick="resetProgress()" style="background: #ef4444;">🗑️ Reset</button>
             </div>
         </div>
 

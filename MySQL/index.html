@@ -542,7 +542,12 @@
           <span>🎯 Keep Going!</span>
         </div>
       </div>
-
+      <div style="justify-content: center; display: flex; gap: 8px;">
+        <button onclick="exportProgress()" class="btn"
+          style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981;">💾 Export</button>
+        <button onclick="resetProgress()" class="btn"
+          style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">🗑️ Reset</button>
+      </div>
     </header>
 
     <main>
@@ -553,10 +558,6 @@
           <button id="clear" class="btn" type="button">Clear</button>
           <button id="openAll" class="btn" type="button" title="Browser may block popups if opening too many tabs">Open
             Filtered (tabs)</button>
-          <button onclick="exportProgress()" class="btn"
-            style="background: rgba(16, 185, 129, 0.2); border-color: #10b981; color: #10b981;">💾 Export</button>
-          <button onclick="resetProgress()" class="btn"
-            style="background: rgba(239, 68, 68, 0.2); border-color: #ef4444; color: #ef4444;">🗑️ Reset</button>
         </div>
 
         <div class="chips" id="chips">

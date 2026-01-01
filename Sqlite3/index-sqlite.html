@@ -527,6 +527,12 @@
                 <span>🎯 Keep Going!</span>
             </div>
         </div>
+        <div style="justify-content: center; display: flex; gap: 8px;">
+            <button onclick="exportProgress()" class="btn"
+                style="background: linear-gradient(135deg, #10b981, #059669);">💾 Export</button>
+            <button onclick="resetProgress()" class="btn"
+                style="background: linear-gradient(135deg, #ef4444, #dc2626);">🗑️ Reset</button>
+        </div>
     </header>
 
     <div class="container">
@@ -535,10 +541,6 @@
                 <input type="text" id="searchInput" placeholder="Tìm kiếm modules theo tên, tags, hoặc từ khóa...">
                 <button class="btn" onclick="performSearch()">Tìm kiếm</button>
                 <button class="btn btn-secondary" onclick="openFiltered()">Mở tất cả (Multi-Tab)</button>
-                <button onclick="exportProgress()" class="btn"
-                    style="background: linear-gradient(135deg, #10b981, #059669);">💾 Export</button>
-                <button onclick="resetProgress()" class="btn"
-                    style="background: linear-gradient(135deg, #ef4444, #dc2626);">🗑️ Reset</button>
             </div>
 
             <div class="tag-section">
