@@ -941,12 +941,26 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
         }
 
+        /**
+         * Updates the progress bar immediately based on current checkbox states
+         * This function:
+         * 1. Saves current checkbox states to localStorage first
+         * 2. Loads the fresh data
+         * 3. Calculates and updates the UI
+         */
         function updateProgress() {
+            // IMPORTANT: Save current state FIRST before calculating
+            saveProgress();
+
+            // Now load the fresh progress data
             const progress = loadProgress();
+
+            // Calculate statistics based on fresh data
             const total = modules.length;
             const completed = modules.filter(m => progress[m.id]).length;
             const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
 
+            // Update progress bar UI
             const progressBar = document.getElementById('overallProgress');
             const completedCount = document.getElementById('completedCount');
             const totalCount = document.getElementById('totalCount');
@@ -958,8 +972,7 @@
             if (completedCount) completedCount.textContent = completed;
             if (totalCount) totalCount.textContent = total;
 
-            saveProgress();
-
+            // Update visual styles for module cards
             document.querySelectorAll('.module-checkbox').forEach(checkbox => {
                 const card = checkbox.closest('.module-card');
                 if (card) {
