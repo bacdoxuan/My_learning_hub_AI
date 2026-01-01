@@ -63,6 +63,10 @@
       border-radius: 16px;
       padding: 18px 18px 14px;
       box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: #0f172a;
     }
 
     .title-row {
@@ -539,6 +543,9 @@
         </div>
       </div>
 
+    </header>
+
+    <main>
       <div class="controls">
         <div class="searchbar">
           <input id="q" class="input" type="search"
@@ -561,9 +568,7 @@
           sheets below. If you rename files, simply update the <em>href</em> field in the list.
         </div>
       </div>
-    </header>
 
-    <main>
       <div class="grid" id="grid"></div>
 
       <!-- Learning Timeline Section -->

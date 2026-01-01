@@ -62,6 +62,10 @@
       border-radius: 16px;
       padding: 18px 18px 14px;
       box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: #0f172a;
     }
 
     .title-row {
@@ -428,6 +432,10 @@
         </div>
       </div>
 
+
+    </header>
+
+    <main>
       <div class="controls">
         <div class="searchbar">
           <input id="q" class="input" type="search"
@@ -450,9 +458,6 @@
           Nếu bạn đổi tên file, chỉ cần sửa lại trường <em>href</em> trong danh sách.
         </div>
       </div>
-    </header>
-
-    <main>
       <div class="grid" id="grid"></div>
 
       <div class="footer">
