@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Firestore Cheat Sheets - Master Index</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
     <style>
         /* Progress Tracking Styles */
         .progress-header {
@@ -55,31 +57,15 @@
         }
 
         .module-card {
-            position: relative; /* Ensure absolute positioning works for checkbox */
+            position: relative;
+            /* Ensure absolute positioning works for checkbox */
         }
 
         .module-card.completed {
             opacity: 0.8;
             background: rgba(30, 41, 59, 0.4);
-            border: 1px solid #10b981 !important; /* Override existing border */
-        }
-
-        .module-card.completed::after {
-            content: '✓';
-            position: absolute;
-            top: 50px;
-            right: 15px;
-            width: 30px;
-            height: 30px;
-            background: rgba(16, 185, 129, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            color: #10b981;
-            font-weight: bold;
-            pointer-events: none;
+            border: 1px solid #10b981 !important;
+            /* Override existing border */
         }
 
         * {
@@ -369,6 +355,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -460,15 +447,18 @@
             <div style="display: grid; gap: 15px; margin-top: 20px;">
                 <div style="padding: 15px; background: #0f172a; border-radius: 4px;">
                     <strong style="color: #e2e8f0;">📚 Official Documentation</strong><br>
-                    <a href="https://firebase.google.com/docs/firestore" style="color: #667eea; text-decoration: none;">firebase.google.com/docs/firestore</a>
+                    <a href="https://firebase.google.com/docs/firestore"
+                        style="color: #667eea; text-decoration: none;">firebase.google.com/docs/firestore</a>
                 </div>
                 <div style="padding: 15px; background: #0f172a; border-radius: 4px;">
                     <strong style="color: #e2e8f0;">☁️ Google Cloud Firestore</strong><br>
-                    <a href="https://cloud.google.com/firestore" style="color: #667eea; text-decoration: none;">cloud.google.com/firestore</a>
+                    <a href="https://cloud.google.com/firestore"
+                        style="color: #667eea; text-decoration: none;">cloud.google.com/firestore</a>
                 </div>
                 <div style="padding: 15px; background: #0f172a; border-radius: 4px;">
                     <strong style="color: #e2e8f0;">🎓 Firebase Codelabs</strong><br>
-                    <a href="https://firebase.google.com/codelabs" style="color: #667eea; text-decoration: none;">firebase.google.com/codelabs</a>
+                    <a href="https://firebase.google.com/codelabs"
+                        style="color: #667eea; text-decoration: none;">firebase.google.com/codelabs</a>
                 </div>
             </div>
         </div>
@@ -563,16 +553,26 @@
             localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
         }
 
+        /**
+         * Updates the progress bar immediately based on current checkbox states
+         * This function: 
+         * 1. Saves current checkbox states to localStorage first
+         * 2. Loads the fresh data
+         * 3. Calculates and updates the UI
+         */
         function updateProgress() {
+            // IMPORTANT: Save current state FIRST before calculating
+            saveProgress();
+
+            // Now load the fresh progress data
             const progress = loadProgress();
 
-            // Render logic handles checkboxes, here we update stats
-            // We need to count based on the 'modules' array as source of truth
+            // Calculate statistics based on fresh data
             const total = modules.length;
             const completed = modules.filter(m => progress[m.num]).length;
-
             const percentage = total === 0 ? 0 : Math.round((completed / total) * 100);
 
+            // Update progress bar UI
             const progressBar = document.getElementById('overallProgress');
             const completedCount = document.getElementById('completedCount');
             const totalCount = document.getElementById('totalCount');
@@ -584,10 +584,8 @@
             if (completedCount) completedCount.textContent = completed;
             if (totalCount) totalCount.textContent = total;
 
-            saveProgress(); // Ensure current view state is saved (though primarily done on change)
-
-            // Update styles for current view
-             document.querySelectorAll('.module-checkbox').forEach(checkbox => {
+            // Update visual styles for module cards
+            document.querySelectorAll('.module-checkbox').forEach(checkbox => {
                 const card = checkbox.closest('.module-card');
                 if (card) {
                     if (checkbox.checked) {
@@ -634,7 +632,7 @@
             const progress = loadProgress();
 
             let filtered = modules.filter(m => {
-                const matchesSearch = searchTerm === "" || 
+                const matchesSearch = searchTerm === "" ||
                     m.title.toLowerCase().includes(searchTerm) ||
                     m.desc.toLowerCase().includes(searchTerm) ||
                     m.tags.some(tag => tag.toLowerCase().includes(searchTerm));
@@ -710,7 +708,7 @@
 
         function openFiltered() {
             const filtered = modules.filter(m => {
-                const matchesSearch = searchTerm === "" || 
+                const matchesSearch = searchTerm === "" ||
                     m.title.toLowerCase().includes(searchTerm) ||
                     m.desc.toLowerCase().includes(searchTerm) ||
                     m.tags.some(tag => tag.toLowerCase().includes(searchTerm));
@@ -729,4 +727,5 @@
         renderModules();
     </script>
 </body>
+
 </html>

@@ -1,62 +1,279 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQLite3 Knowledge Base - Master Index</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📖</text></svg>">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #e2e8f0; min-height: 100vh; }
-        
-        header { background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%); padding: 40px 20px; text-align: center; border-bottom: 2px solid #00d9ff; }
-        h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; color: #00d9ff; }
-        .subtitle { font-size: 1.1em; color: #cbd5e1; margin-bottom: 20px; }
-        
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-        
-        .search-section { background: rgba(30, 41, 59, 0.6); border-radius: 12px; padding: 30px; margin-bottom: 40px; border: 1px solid #334155; }
-        .search-box { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        input[type="text"] { flex: 1; min-width: 250px; padding: 12px 16px; background: rgba(0, 0, 0, 0.3); border: 1px solid #334155; border-radius: 8px; color: #e2e8f0; font-size: 1em; }
-        input[type="text"]:focus { outline: none; border-color: #00d9ff; box-shadow: 0 0 10px rgba(0, 217, 255, 0.3); }
-        .btn { padding: 12px 24px; background: linear-gradient(135deg, #00d9ff, #0099cc); color: #1a1a2e; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s ease; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0, 217, 255, 0.3); }
-        .btn-secondary { background: linear-gradient(135deg, #64748b, #475569); color: white; }
-        .btn-secondary:hover { box-shadow: 0 10px 20px rgba(100, 116, 139, 0.3); }
-        
-        .tag-section { margin-bottom: 15px; }
-        .tag-label { color: #94a3b8; font-weight: 600; margin-bottom: 10px; display: block; }
-        .tags { display: flex; gap: 8px; flex-wrap: wrap; }
-        .tag { padding: 6px 14px; background: rgba(0, 217, 255, 0.2); border: 1px solid #00d9ff; color: #00d9ff; border-radius: 20px; cursor: pointer; font-size: 0.9em; transition: all 0.2s ease; }
-        .tag:hover { background: rgba(0, 217, 255, 0.3); }
-        .tag.active { background: #00d9ff; color: #1a1a2e; }
-        .clear-btn { padding: 8px 16px; background: rgba(239, 68, 68, 0.2); border: 1px solid #ef4444; color: #fca5a5; border-radius: 6px; cursor: pointer; font-size: 0.85em; margin-top: 10px; }
-        .clear-btn:hover { background: rgba(239, 68, 68, 0.3); }
-        
-        .counter { color: #94a3b8; font-size: 0.95em; margin-top: 15px; }
-        
-        .modules-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; margin-bottom: 50px; }
-        
-        .module-card { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 25px; border-left: 5px solid; transition: all 0.3s ease; cursor: pointer; position: relative; overflow: hidden; }
-        .module-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3); }
-        .module-card::before { content: ''; position: absolute; top: 0; right: -40px; width: 80px; height: 80px; background: rgba(255, 255, 255, 0.02); border-radius: 50%; }
-        
-        .module-card.cyan { border-left-color: #00d9ff; }
-        .module-card.blue { border-left-color: #3b82f6; }
-        .module-card.purple { border-left-color: #a855f7; }
-        .module-card.green { border-left-color: #10b981; }
-        .module-card.orange { border-left-color: #f59e0b; }
-        .module-card.red { border-left-color: #ef4444; }
-        
-        .module-badge { display: inline-block; font-size: 1.8em; margin-bottom: 10px; }
-        .module-title { font-size: 1.4em; font-weight: 700; margin-bottom: 10px; color: #f1f5f9; }
-        .module-description { color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; font-size: 0.95em; }
-        .module-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
-        .module-tag { padding: 4px 10px; background: rgba(100, 116, 139, 0.3); color: #cbd5e1; border-radius: 4px; font-size: 0.8em; }
-        
-        .module-link { display: inline-block; margin-top: 10px; padding: 10px 16px; background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(0, 153, 204, 0.1)); border: 1px solid rgba(0, 217, 255, 0.3); color: #00d9ff; text-decoration: none; border-radius: 6px; font-size: 0.9em; font-weight: 600; transition: all 0.2s ease; }
-        .module-link:hover { background: linear-gradient(135deg, rgba(0, 217, 255, 0.3), rgba(0, 153, 204, 0.2)); border-color: #00d9ff; }
-        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0f3460 0%, #1a1a2e 100%);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 2px solid #00d9ff;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #00d9ff;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #cbd5e1;
+            margin-bottom: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .search-section {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            border: 1px solid #334155;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: #e2e8f0;
+            font-size: 1em;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #00d9ff;
+            box-shadow: 0 0 10px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #00d9ff, #0099cc);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            box-shadow: 0 10px 20px rgba(100, 116, 139, 0.3);
+        }
+
+        .tag-section {
+            margin-bottom: 15px;
+        }
+
+        .tag-label {
+            color: #94a3b8;
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            padding: 6px 14px;
+            background: rgba(0, 217, 255, 0.2);
+            border: 1px solid #00d9ff;
+            color: #00d9ff;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .tag:hover {
+            background: rgba(0, 217, 255, 0.3);
+        }
+
+        .tag.active {
+            background: #00d9ff;
+            color: #1a1a2e;
+        }
+
+        .clear-btn {
+            padding: 8px 16px;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+
+        .clear-btn:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .counter {
+            color: #94a3b8;
+            font-size: 0.95em;
+            margin-top: 15px;
+        }
+
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 50px;
+        }
+
+        .module-card {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 5px solid;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+
+        .module-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -40px;
+            width: 80px;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 50%;
+        }
+
+        .module-card.cyan {
+            border-left-color: #00d9ff;
+        }
+
+        .module-card.blue {
+            border-left-color: #3b82f6;
+        }
+
+        .module-card.purple {
+            border-left-color: #a855f7;
+        }
+
+        .module-card.green {
+            border-left-color: #10b981;
+        }
+
+        .module-card.orange {
+            border-left-color: #f59e0b;
+        }
+
+        .module-card.red {
+            border-left-color: #ef4444;
+        }
+
+        .module-badge {
+            display: inline-block;
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        .module-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #f1f5f9;
+        }
+
+        .module-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            font-size: 0.95em;
+        }
+
+        .module-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        .module-tag {
+            padding: 4px 10px;
+            background: rgba(100, 116, 139, 0.3);
+            color: #cbd5e1;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+
+        .module-link {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 10px 16px;
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(0, 153, 204, 0.1));
+            border: 1px solid rgba(0, 217, 255, 0.3);
+            color: #00d9ff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .module-link:hover {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.3), rgba(0, 153, 204, 0.2));
+            border-color: #00d9ff;
+        }
+
         /* Progress Tracking Styles */
         .progress-header {
             max-width: 800px;
@@ -111,61 +328,188 @@
             border-left-color: #10b981 !important;
         }
 
-        .module-card.completed::after {
-            content: '✓';
-            position: absolute;
-            top: 50px;
-            right: 15px;
-            width: 30px;
-            height: 30px;
-            background: rgba(16, 185, 129, 0.2);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2em;
-            color: #10b981;
-            font-weight: bold;
-            pointer-events: none;
+
+        .timeline-section {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 50px;
+            border: 1px solid #334155;
         }
 
-        .timeline-section { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 30px; margin-bottom: 50px; border: 1px solid #334155; }
-        .timeline-section h2 { font-size: 1.8em; color: #f1f5f9; margin-bottom: 25px; border-bottom: 2px solid #00d9ff; padding-bottom: 15px; }
-        .timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
-        .timeline-item { background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(0, 153, 204, 0.05)); border: 1px solid #334155; border-radius: 8px; padding: 15px; text-align: center; }
-        .timeline-week { color: #00d9ff; font-weight: 700; font-size: 1.1em; }
-        .timeline-content { color: #cbd5e1; font-size: 0.9em; margin-top: 8px; line-height: 1.4; }
-        
-        .features-section { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 30px; margin-bottom: 50px; border: 1px solid #334155; }
-        .features-section h2 { font-size: 1.8em; color: #f1f5f9; margin-bottom: 25px; border-bottom: 2px solid #10b981; padding-bottom: 15px; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .feature-card { background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05)); border: 1px solid #334155; border-radius: 8px; padding: 20px; }
-        .feature-icon { font-size: 2em; margin-bottom: 10px; }
-        .feature-title { font-size: 1.1em; font-weight: 700; color: #a7f3d0; margin-bottom: 8px; }
-        .feature-desc { color: #cbd5e1; font-size: 0.9em; line-height: 1.5; }
-        
-        .resources-section { background: rgba(30, 41, 59, 0.5); border-radius: 12px; padding: 30px; border: 1px solid #334155; }
-        .resources-section h2 { font-size: 1.8em; color: #f1f5f9; margin-bottom: 25px; border-bottom: 2px solid #f59e0b; padding-bottom: 15px; }
-        .resources-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
-        .resource-item { background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05)); border: 1px solid #334155; border-radius: 8px; padding: 18px; }
-        .resource-title { font-size: 1.1em; font-weight: 700; color: #fcd34d; margin-bottom: 8px; }
-        .resource-desc { color: #cbd5e1; font-size: 0.9em; line-height: 1.5; }
-        .resource-link { display: inline-block; margin-top: 10px; color: #f59e0b; text-decoration: none; font-weight: 600; font-size: 0.9em; }
-        .resource-link:hover { text-decoration: underline; }
-        
-        footer { background: #0f172a; border-top: 1px solid #334155; padding: 30px 20px; text-align: center; color: #64748b; margin-top: 60px; }
-        
-        .hidden { display: none !important; }
-        
+        .timeline-section h2 {
+            font-size: 1.8em;
+            color: #f1f5f9;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #00d9ff;
+            padding-bottom: 15px;
+        }
+
+        .timeline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+
+        .timeline-item {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.1), rgba(0, 153, 204, 0.05));
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .timeline-week {
+            color: #00d9ff;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .timeline-content {
+            color: #cbd5e1;
+            font-size: 0.9em;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .features-section {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 50px;
+            border: 1px solid #334155;
+        }
+
+        .features-section h2 {
+            font-size: 1.8em;
+            color: #f1f5f9;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 15px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .feature-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #a7f3d0;
+            margin-bottom: 8px;
+        }
+
+        .feature-desc {
+            color: #cbd5e1;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .resources-section {
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid #334155;
+        }
+
+        .resources-section h2 {
+            font-size: 1.8em;
+            color: #f1f5f9;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #f59e0b;
+            padding-bottom: 15px;
+        }
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .resource-item {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .resource-title {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #fcd34d;
+            margin-bottom: 8px;
+        }
+
+        .resource-desc {
+            color: #cbd5e1;
+            font-size: 0.9em;
+            line-height: 1.5;
+        }
+
+        .resource-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: #f59e0b;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .resource-link:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            background: #0f172a;
+            border-top: 1px solid #334155;
+            padding: 30px 20px;
+            text-align: center;
+            color: #64748b;
+            margin-top: 60px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
         @media (max-width: 768px) {
-            h1 { font-size: 1.8em; }
-            .modules-grid { grid-template-columns: 1fr; }
-            .search-box { flex-direction: column; }
-            input[type="text"] { min-width: 100%; }
-            .timeline { grid-template-columns: repeat(2, 1fr); }
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            input[type="text"] {
+                min-width: 100%;
+            }
+
+            .timeline {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
+
 <body>
     <header>
         <h1>🪶 SQLite3 Knowledge Base</h1>
@@ -180,30 +524,32 @@
             </div>
         </div>
     </header>
-    
+
     <div class="container">
         <div class="search-section">
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Tìm kiếm modules theo tên, tags, hoặc từ khóa...">
                 <button class="btn" onclick="performSearch()">Tìm kiếm</button>
                 <button class="btn btn-secondary" onclick="openFiltered()">Mở tất cả (Multi-Tab)</button>
-                <button onclick="exportProgress()" class="btn" style="background: linear-gradient(135deg, #10b981, #059669);">💾 Export</button>
-                <button onclick="resetProgress()" class="btn" style="background: linear-gradient(135deg, #ef4444, #dc2626);">🗑️ Reset</button>
+                <button onclick="exportProgress()" class="btn"
+                    style="background: linear-gradient(135deg, #10b981, #059669);">💾 Export</button>
+                <button onclick="resetProgress()" class="btn"
+                    style="background: linear-gradient(135deg, #ef4444, #dc2626);">🗑️ Reset</button>
             </div>
-            
+
             <div class="tag-section">
                 <span class="tag-label">Lọc theo Tags:</span>
                 <div class="tags" id="tagContainer"></div>
                 <button class="clear-btn" onclick="clearFilters()">Xóa bộ lọc</button>
             </div>
-            
+
             <div class="counter">
                 <span id="counter">6 / 6 modules hiển thị</span>
             </div>
         </div>
-        
+
         <div class="modules-grid" id="modulesContainer"></div>
-        
+
         <div class="timeline-section">
             <h2>📅 Lộ Trình Học Tập (12 Tuần)</h2>
             <div class="timeline">
@@ -233,24 +579,27 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="features-section">
             <h2>✨ Tại Sao Chọn SQLite?</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">🚀</div>
                     <div class="feature-title">Zero Configuration</div>
-                    <div class="feature-desc">Không cần cài đặt server, không cần cấu hình phức tạp. Chỉ cần một file duy nhất.</div>
+                    <div class="feature-desc">Không cần cài đặt server, không cần cấu hình phức tạp. Chỉ cần một file
+                        duy nhất.</div>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">📦</div>
                     <div class="feature-title">Self-Contained</div>
-                    <div class="feature-desc">Toàn bộ database nằm trong một file duy nhất, dễ dàng backup và di chuyển.</div>
+                    <div class="feature-desc">Toàn bộ database nằm trong một file duy nhất, dễ dàng backup và di chuyển.
+                    </div>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">⚡</div>
                     <div class="feature-title">Hiệu Năng Cao</div>
-                    <div class="feature-desc">Nhanh hơn client/server databases cho hầu hết các use cases thông thường.</div>
+                    <div class="feature-desc">Nhanh hơn client/server databases cho hầu hết các use cases thông thường.
+                    </div>
                 </div>
                 <div class="feature-card">
                     <div class="feature-icon">🔒</div>
@@ -265,18 +614,20 @@
                 <div class="feature-card">
                     <div class="feature-icon">📱</div>
                     <div class="feature-title">Embedded Database</div>
-                    <div class="feature-desc">Lý tưởng cho mobile apps, desktop apps, IoT devices, và embedded systems.</div>
+                    <div class="feature-desc">Lý tưởng cho mobile apps, desktop apps, IoT devices, và embedded systems.
+                    </div>
                 </div>
             </div>
         </div>
-        
+
         <div class="resources-section">
             <h2>📚 Tài Nguyên & Công Cụ</h2>
             <div class="resources-grid">
                 <div class="resource-item">
                     <div class="resource-title">SQLite Official Docs</div>
                     <div class="resource-desc">Tài liệu chính thức với đầy đủ SQL syntax và API reference.</div>
-                    <a href="https://www.sqlite.org/docs.html" target="_blank" class="resource-link">→ sqlite.org/docs</a>
+                    <a href="https://www.sqlite.org/docs.html" target="_blank" class="resource-link">→
+                        sqlite.org/docs</a>
                 </div>
                 <div class="resource-item">
                     <div class="resource-title">DB Browser for SQLite</div>
@@ -286,17 +637,20 @@
                 <div class="resource-item">
                     <div class="resource-title">SQLite Tutorial</div>
                     <div class="resource-desc">Hướng dẫn từng bước với ví dụ thực tế.</div>
-                    <a href="https://www.sqlitetutorial.net/" target="_blank" class="resource-link">→ sqlitetutorial.net</a>
+                    <a href="https://www.sqlitetutorial.net/" target="_blank" class="resource-link">→
+                        sqlitetutorial.net</a>
                 </div>
                 <div class="resource-item">
                     <div class="resource-title">Python sqlite3</div>
                     <div class="resource-desc">Module built-in của Python để làm việc với SQLite.</div>
-                    <a href="https://docs.python.org/3/library/sqlite3.html" target="_blank" class="resource-link">→ Python Docs</a>
+                    <a href="https://docs.python.org/3/library/sqlite3.html" target="_blank" class="resource-link">→
+                        Python Docs</a>
                 </div>
                 <div class="resource-item">
                     <div class="resource-title">better-sqlite3</div>
                     <div class="resource-desc">Thư viện Node.js nhanh nhất cho SQLite.</div>
-                    <a href="https://github.com/WiseLibs/better-sqlite3" target="_blank" class="resource-link">→ GitHub</a>
+                    <a href="https://github.com/WiseLibs/better-sqlite3" target="_blank" class="resource-link">→
+                        GitHub</a>
                 </div>
                 <div class="resource-item">
                     <div class="resource-title">SQLCipher</div>
@@ -306,11 +660,11 @@
             </div>
         </div>
     </div>
-    
+
     <footer>
         <p>SQLite3 Knowledge Base © 2024 | Tài liệu học tập toàn diện cho SQLite</p>
     </footer>
-    
+
     <script>
         const modules = [
             {
@@ -368,9 +722,9 @@
                 file: "6-SQLite-Administration-Integration.html"
             }
         ];
-        
+
         let activeFilters = new Set();
-        
+
         // Progress Tracking Logic
         const STORAGE_KEY = 'sqlite_learning_progress';
 
@@ -458,7 +812,7 @@
             const container = document.getElementById('modulesContainer');
             container.innerHTML = '';
             const progress = loadProgress();
-            
+
             modsToShow.forEach(mod => {
                 const isCompleted = !!progress[mod.id];
                 const card = document.createElement('div');
@@ -477,7 +831,7 @@
                 `;
                 container.appendChild(card);
             });
-            
+
             updateCounter(modsToShow.length);
 
             // Initial stats update
@@ -493,14 +847,14 @@
             document.getElementById('completedCount').textContent = completed;
             document.getElementById('totalCount').textContent = total;
         }
-        
+
         function renderTags() {
             const allTags = new Set();
             modules.forEach(mod => mod.tags.forEach(tag => allTags.add(tag)));
-            
+
             const tagContainer = document.getElementById('tagContainer');
             tagContainer.innerHTML = '';
-            
+
             Array.from(allTags).sort().forEach(tag => {
                 const tagEl = document.createElement('span');
                 tagEl.className = 'tag';
@@ -509,7 +863,7 @@
                 tagContainer.appendChild(tagEl);
             });
         }
-        
+
         function toggleFilter(tag, el) {
             if (activeFilters.has(tag)) {
                 activeFilters.delete(tag);
@@ -520,7 +874,7 @@
             }
             filterModules();
         }
-        
+
         function filterModules() {
             if (activeFilters.size === 0) {
                 renderModules(modules);
@@ -533,14 +887,14 @@
                 renderModules(filtered);
             }
         }
-        
+
         function performSearch() {
             const query = document.getElementById('searchInput').value.toLowerCase();
             if (!query) {
                 renderModules(modules);
                 return;
             }
-            
+
             const filtered = modules.filter(mod =>
                 mod.title.toLowerCase().includes(query) ||
                 mod.description.toLowerCase().includes(query) ||
@@ -548,14 +902,14 @@
             );
             renderModules(filtered);
         }
-        
+
         function clearFilters() {
             activeFilters.clear();
             document.getElementById('searchInput').value = '';
             document.querySelectorAll('.tag').forEach(tag => tag.classList.remove('active'));
             renderModules(modules);
         }
-        
+
         function openFiltered() {
             const modsToOpen = activeFilters.size === 0 ? modules : modules.filter(mod =>
                 Array.from(activeFilters).every(filter =>
@@ -564,19 +918,20 @@
             );
             modsToOpen.forEach(mod => window.open(mod.file, '_blank'));
         }
-        
+
         function updateCounter(shown) {
             document.getElementById('counter').textContent = `${shown} / 6 modules hiển thị`;
         }
-        
+
         document.addEventListener('DOMContentLoaded', () => {
             renderTags();
             renderModules();
-            
+
             document.getElementById('searchInput').addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') performSearch();
             });
         });
     </script>
 </body>
+
 </html>
