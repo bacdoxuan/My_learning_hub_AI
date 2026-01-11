@@ -517,7 +517,7 @@
 <body>
     <header>
         <h1>🪶 SQLite3 Knowledge Base</h1>
-        <p class="subtitle">Từ cơ bản đến nâng cao - 6 modules bao quát toàn bộ kiến thức SQLite3</p>
+        <p class="subtitle">Từ cơ bản đến nâng cao - 12 modules bao quát toàn diện SQLite3</p>
         <div class="progress-header">
             <div class="progress-bar-container">
                 <div class="progress-bar" id="overallProgress" style="width: 0%;">0%</div>
@@ -550,7 +550,7 @@
             </div>
 
             <div class="counter">
-                <span id="counter">6 / 6 modules hiển thị</span>
+                <span id="counter">12 / 12 modules hiển thị</span>
             </div>
         </div>
 
@@ -560,28 +560,54 @@
             <h2>📅 Lộ Trình Học Tập (12 Tuần)</h2>
             <div class="timeline">
                 <div class="timeline-item">
-                    <div class="timeline-week">Tuần 1-2</div>
-                    <div class="timeline-content">Foundations<br>Data Types<br>DDL/DML cơ bản</div>
+                    <div class="timeline-week">Tuần 1</div>
+                    <div class="timeline-content">Module 1<br>Foundations & Data Types<br>DDL/DML cơ bản</div>
                 </div>
                 <div class="timeline-item">
-                    <div class="timeline-week">Tuần 3-4</div>
-                    <div class="timeline-content">Advanced Queries<br>JOINs, CTEs<br>Window Functions</div>
+                    <div class="timeline-week">Tuần 2</div>
+                    <div class="timeline-content">Module 2<br>Advanced Querying<br>JOINs, CTEs, Subqueries</div>
                 </div>
                 <div class="timeline-item">
-                    <div class="timeline-week">Tuần 5-6</div>
-                    <div class="timeline-content">Indexing<br>EXPLAIN<br>Optimization</div>
+                    <div class="timeline-week">Tuần 3</div>
+                    <div class="timeline-content">Module 3<br>Indexing & Performance<br>EXPLAIN, Optimization</div>
                 </div>
                 <div class="timeline-item">
-                    <div class="timeline-week">Tuần 7-8</div>
-                    <div class="timeline-content">JSON Functions<br>FTS5<br>Virtual Tables</div>
+                    <div class="timeline-week">Tuần 4</div>
+                    <div class="timeline-content">Module 4<br>Advanced Features<br>JSON, FTS5, Virtual Tables</div>
                 </div>
                 <div class="timeline-item">
-                    <div class="timeline-week">Tuần 9-10</div>
-                    <div class="timeline-content">Transactions<br>Concurrency<br>Locking</div>
+                    <div class="timeline-week">Tuần 5</div>
+                    <div class="timeline-content">Module 5<br>Transactions & Concurrency<br>Locking, Isolation</div>
                 </div>
                 <div class="timeline-item">
-                    <div class="timeline-week">Tuần 11-12</div>
-                    <div class="timeline-content">Administration<br>Integration<br>Security</div>
+                    <div class="timeline-week">Tuần 6</div>
+                    <div class="timeline-content">Module 6<br>Administration & Integration<br>Backup, Security,
+                        Encryption</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Tuần 7</div>
+                    <div class="timeline-content">Module 7<br>String Functions<br>Manipulation, Formatting</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Tuần 8</div>
+                    <div class="timeline-content">Module 8<br>DateTime Functions<br>Time Operations, Formatting</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Tuần 9</div>
+                    <div class="timeline-content">Module 9<br>Triggers<br>Automation, Auditing</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Tuần 10</div>
+                    <div class="timeline-content">Module 10<br>Views<br>Virtual Tables, Abstraction</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Tuần 11</div>
+                    <div class="timeline-content">Module 11<br>Programming Languages<br>Python, Java, Go, Node.js...
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-week">Tuần 12</div>
+                    <div class="timeline-content">Module 12<br>Window Functions<br>Analytics, Ranking</div>
                 </div>
             </div>
         </div>
@@ -726,6 +752,60 @@
                 color: "red",
                 tags: ["administration", "security", "python", "nodejs", "backup", "advanced"],
                 file: "6-SQLite-Administration-Integration.html"
+            },
+            {
+                id: 7,
+                title: "String Functions",
+                emoji: "🟡",
+                description: "String manipulation, concatenation (|| operator, concat), case conversion (upper, lower), trimming (trim, ltrim, rtrim), substring (substr), search (instr), replacement (replace), formatting (printf), and advanced utilities (hex, quote, soundex).",
+                color: "yellow",
+                tags: ["strings", "functions", "text-processing", "intermediate", "manipulation"],
+                file: "7-SQLite-String-Functions.html"
+            },
+            {
+                id: 8,
+                title: "DateTime Functions",
+                emoji: "⚫",
+                description: "Date and time manipulation, datetime(), date(), time(), julianday(), strftime() formatting, date arithmetic, timezone handling, Unix timestamps, and real-world datetime operations.",
+                color: "dark",
+                tags: ["datetime", "functions", "time", "intermediate", "formatting"],
+                file: "8-SQLite-DateTime-Functions.html"
+            },
+            {
+                id: 9,
+                title: "Triggers",
+                emoji: "🟣",
+                description: "Database triggers (BEFORE, AFTER, INSTEAD OF), automatic actions on INSERT/UPDATE/DELETE, OLD/NEW values, auditing, validation, cascade updates, soft deletes, best practices, and troubleshooting.",
+                color: "purple",
+                tags: ["triggers", "automation", "events", "advanced", "auditing"],
+                file: "9-SQLite-Triggers.html"
+            },
+            {
+                id: 10,
+                title: "Views",
+                emoji: "🟢",
+                description: "Virtual tables, CREATE VIEW syntax, join-based views, aggregated views, security filtering, updatable views with INSTEAD OF triggers, materialized views pattern, performance optimization, and view management.",
+                color: "green",
+                tags: ["views", "virtual-tables", "abstraction", "intermediate", "security"],
+                file: "10-SQLite-Views.html"
+            },
+            {
+                id: 11,
+                title: "Programming Languages",
+                emoji: "💻",
+                description: "SQLite integration with Python, JavaScript/Node.js, Java, Go, VBA, C#, PHP, Ruby, Rust. Connection examples, CRUD operations, best practices, transaction handling, and production-ready patterns for each language.",
+                color: "cyan",
+                tags: ["python", "javascript", "nodejs", "java", "go", "vba", "csharp", "php", "ruby", "rust", "integration"],
+                file: "11-SQLite-Programming-Languages.html"
+            },
+            {
+                id: 12,
+                title: "Window Functions",
+                emoji: "📊",
+                description: "Advanced analytics with window functions: partitions (PARTITION BY), ordering, framing, ranking functions (ROW_NUMBER, RANK, DENSE_RANK), aggregate window functions, offset functions (LAG, LEAD), function chaining, and best practices for data analysis.",
+                color: "indigo",
+                tags: ["window-functions", "analytics", "ranking", "lag", "lead", "partitions", "advanced", "analysis"],
+                file: "12-SQLite-Window-Functions.html"
             }
         ];
 
@@ -939,7 +1019,7 @@
         }
 
         function updateCounter(shown) {
-            document.getElementById('counter').textContent = `${shown} / 6 modules hiển thị`;
+            document.getElementById('counter').textContent = `${shown} / 12 modules hiển thị`;
         }
 
         document.addEventListener('DOMContentLoaded', () => {

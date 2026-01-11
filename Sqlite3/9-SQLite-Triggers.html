@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #9 - Triggers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .concept-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid #8b5cf6;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .concept-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.2);
+        }
+
+        .concept-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #8b5cf6;
+            margin-bottom: 12px;
+        }
+
+        .concept-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a8d5ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+            white-space: pre;
+        }
+
+        .code-block code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+            display: block;
+            font-size: 0.9em;
+            line-height: 1.6;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+        }
+
+        .code-keyword {
+            color: #ff7675;
+        }
+
+        .code-string {
+            color: #55efc4;
+        }
+
+        .code-function {
+            color: #74b9ff;
+        }
+
+        .code-comment {
+            color: #636e72;
+        }
+
+        .code-number {
+            color: #ffeaa7;
+        }
+
+        h2 {
+            font-size: 2em;
+            color: #f1f5f9;
+            margin: 40px 0 20px 0;
+            border-bottom: 2px solid #8b5cf6;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.3em;
+            color: #cbd5e1;
+            margin: 25px 0 15px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.2));
+            color: #8b5cf6;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #8b5cf6;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+
+        tr:hover {
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .highlight-box {
+            background: rgba(139, 92, 246, 0.1);
+            border-left: 4px solid #8b5cf6;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #85c1e9;
+        }
+
+        .warning-box {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #f1948a;
+        }
+
+        .success-box {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #7dcea0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #8b5cf6;
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hero">
+        <h1>⚡ SQLite3 Triggers</h1>
+        <p>Automate Actions with Database Triggers & Event Handling</p>
+    </div>
+
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module covers SQLite triggers—automated actions that fire in response to INSERT, UPDATE, or DELETE
+            events. You'll learn trigger syntax, timing (BEFORE/AFTER), access to OLD/NEW values, practical use cases
+            like auditing and validation, best practices for performance and maintainability, troubleshooting
+            techniques, and how to avoid common pitfalls like infinite loops and cascading changes.
+        </p>
+
+        <h2>🛠️ Trigger Fundamentals</h2>
+
+        <div class="concept-box">
+            <div class="concept-title">What are Triggers?</div>
+            <div class="concept-description">
+                Triggers are database objects that automatically execute SQL statements when specific events (INSERT,
+                UPDATE, DELETE) occur on a table. They enforce business rules, maintain data integrity, and automate
+                repetitive tasks without application-level code.
+            </div>
+        </div>
+
+        <h3>Basic Trigger Syntax</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Basic CREATE TRIGGER syntax</span>
+<span class="code-keyword">CREATE TRIGGER</span> trigger_name
+  [<span class="code-keyword">BEFORE</span> | <span class="code-keyword">AFTER</span>] [<span class="code-keyword">INSERT</span> | <span class="code-keyword">UPDATE</span> | <span class="code-keyword">DELETE</span>]
+  <span class="code-keyword">ON</span> table_name
+  [<span class="code-keyword">FOR EACH ROW</span>]
+  [<span class="code-keyword">WHEN</span> condition]
+<span class="code-keyword">BEGIN</span>
+  <span class="code-comment">-- trigger statements</span>
+<span class="code-keyword">END</span>;</code>
+        </div>
+
+        <h3>Trigger Timing</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Timing</th>
+                    <th>Description</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>BEFORE</code></td>
+                    <td>Executes before the triggering event</td>
+                    <td>Validation, data modification</td>
+                </tr>
+                <tr>
+                    <td><code>AFTER</code></td>
+                    <td>Executes after the triggering event</td>
+                    <td>Auditing, cascade updates</td>
+                </tr>
+                <tr>
+                    <td><code>INSTEAD OF</code></td>
+                    <td>Replaces the triggering event (views only)</td>
+                    <td>Make views updatable</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>🎯 Trigger Types & Examples</h2>
+
+        <h3>INSERT Triggers</h3>
+        <div class="concept-box">
+            <div class="concept-title">Auto-Generate Timestamps</div>
+            <div class="concept-description">
+                Automatically set created_at timestamp when a new row is inserted.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Create users table</span>
+<span class="code-keyword">CREATE TABLE</span> users (
+    id <span class="code-keyword">INTEGER PRIMARY KEY</span>,
+    username <span class="code-keyword">TEXT NOT NULL</span>,
+    email <span class="code-keyword">TEXT UNIQUE</span>,
+    created_at <span class="code-keyword">TEXT</span>,
+    updated_at <span class="code-keyword">TEXT</span>
+);
+
+<span class="code-comment">-- Trigger to set created_at on INSERT</span>
+<span class="code-keyword">CREATE TRIGGER</span> set_user_created_at
+  <span class="code-keyword">AFTER INSERT ON</span> users
+<span class="code-keyword">BEGIN</span>
+  <span class="code-keyword">UPDATE</span> users 
+  <span class="code-keyword">SET</span> created_at = <span class="code-function">datetime</span>(<span class="code-string">'now'</span>),
+      updated_at = <span class="code-function">datetime</span>(<span class="code-string">'now'</span>)
+  <span class="code-keyword">WHERE</span> id = <span class="code-keyword">NEW</span>.id;
+<span class="code-keyword">END</span>;</code>
+        </div>
+
+        <h3>UPDATE Triggers</h3>
+        <div class="concept-box">
+            <div class="concept-title">Track Last Modified Time</div>
+            <div class="concept-description">
+                Update the updated_at column whenever a row is modified.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Trigger to update updated_at on UPDATE</span>
+<span class="code-keyword">CREATE TRIGGER</span> set_user_updated_at
+  <span class="code-keyword">AFTER UPDATE ON</span> users
+<span class="code-keyword">BEGIN</span>
+  <span class="code-keyword">UPDATE</span> users 
+  <span class="code-keyword">SET</span> updated_at = <span class="code-function">datetime</span>(<span class="code-string">'now'</span>)
+  <span class="code-keyword">WHERE</span> id = <span class="code-keyword">NEW</span>.id;
+<span class="code-keyword">END</span>;</code>
+        </div>
+
+        <h3>DELETE Triggers</h3>
+        <div class="concept-box">
+            <div class="concept-title">Audit Trail</div>
+            <div class="concept-description">
+                Log deletions to an audit table before removing data.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Create audit table</span>
+<span class="code-keyword">CREATE TABLE</span> user_audit (
+    audit_id <span class="code-keyword">INTEGER PRIMARY KEY AUTOINCREMENT</span>,
+    user_id <span class="code-keyword">INTEGER</span>,
+    username <span class="code-keyword">TEXT</span>,
+    action <span class="code-keyword">TEXT</span>,
+    deleted_at <span class="code-keyword">TEXT</span>
+);
+
+<span class="code-comment">-- Trigger to log deletions</span>
+<span class="code-keyword">CREATE TRIGGER</span> log_user_deletion
+  <span class="code-keyword">BEFORE DELETE ON</span> users
+<span class="code-keyword">BEGIN</span>
+  <span class="code-keyword">INSERT INTO</span> user_audit (user_id, username, action, deleted_at)
+  <span class="code-keyword">VALUES</span> (<span class="code-keyword">OLD</span>.id, <span class="code-keyword">OLD</span>.username, <span class="code-string">'DELETE'</span>, <span class="code-function">datetime</span>(<span class="code-string">'now'</span>));
+<span class="code-keyword">END</span>;</code>
+        </div>
+
+        <h2>🔍 OLD and NEW Values</h2>
+
+        <div class="info-box">
+            <strong>Understanding Context Variables:</strong><br>
+            • <code>NEW</code>: Available in INSERT and UPDATE triggers, contains the new row values<br>
+            • <code>OLD</code>: Available in UPDATE and DELETE triggers, contains the old row values<br>
+            • Access columns with <code>NEW.column_name</code> or <code>OLD.column_name</code>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Track specific column changes</span>
+<span class="code-keyword">CREATE TABLE</span> price_history (
+    id <span class="code-keyword">INTEGER PRIMARY KEY AUTOINCREMENT</span>,
+    product_id <span class="code-keyword">INTEGER</span>,
+    old_price <span class="code-keyword">REAL</span>,
+    new_price <span class="code-keyword">REAL</span>,
+    changed_at <span class="code-keyword">TEXT</span>
+);
+
+<span class="code-keyword">CREATE TRIGGER</span> track_price_changes
+  <span class="code-keyword">AFTER UPDATE OF</span> price <span class="code-keyword">ON</span> products
+  <span class="code-keyword">WHEN</span> <span class="code-keyword">OLD</span>.price != <span class="code-keyword">NEW</span>.price
+<span class="code-keyword">BEGIN</span>
+  <span class="code-keyword">INSERT INTO</span> price_history (product_id, old_price, new_price, changed_at)
+  <span class="code-keyword">VALUES</span> (<span class="code-keyword">NEW</span>.id, <span class="code-keyword">OLD</span>.price, <span class="code-keyword">NEW</span>.price, <span class="code-function">datetime</span>(<span class="code-string">'now'</span>));
+<span class="code-keyword">END</span>;</code>
+        </div>
+
+        <h2>🎯 Real-World Use Cases</h2>
+
+        <h3>Use Case 1: Data Validation</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Prevent negative inventory</span>
+<span class="code-keyword">CREATE TRIGGER</span> prevent_negative_inventory
+  <span class="code-keyword">BEFORE UPDATE OF</span> quantity <span class="code-keyword">ON</span> inventory
+  <span class="code-keyword">WHEN</span> <span class="code-keyword">NEW</span>.quantity < <span class="code-number">0</span>
+<span class="code-keyword">BEGIN</span>
+  <span class="code-keyword">SELECT RAISE</span>(<span class="code-keyword">ABORT</span>, <span class="code-string">'Inventory quantity cannot be negative'</span>);
+<span class="code-keyword">END</span>;</code>
+        </div>
+
+        <h3>Use Case 2: Cascade Updates</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Update order totals when items change</span>
+<span class="code-keyword">CREATE TRIGGER</span> update_order_total
+  <span class="code-keyword">AFTER INSERT ON</span> order_items
+<span class="code-keyword">BEGIN</span>
+  <span class="code-keyword">UPDATE</span> orders
+  <span class="code-keyword">SET</span> total_amount = (
+    <span class="code-keyword">SELECT SUM</span>(price * quantity) 
+    <span class="code-keyword">FROM</span> order_items 
+    <span class="code-keyword">WHERE</span> order_id = <span class="code-keyword">NEW</span>.order_id
+  )
+  <span class="code-keyword">WHERE</span> id = <span class="code-keyword">NEW</span>.order_id;
+<span class="code-keyword">END</span>;</code>
+        </div>
+
+        <h3>Use Case 3: Soft Deletes</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Implement soft delete pattern</span>
+<span class="code-keyword">CREATE TRIGGER</span> soft_delete_user
+  <span class="code-keyword">INSTEAD OF DELETE ON</span> users_view
+<span class="code-keyword">BEGIN</span>
+  <span class="code-keyword">UPDATE</span> users 
+  <span class="code-keyword">SET</span> deleted_at = <span class="code-function">datetime</span>(<span class="code-string">'now'</span>),
+      is_active = <span class="code-number">0</span>
+  <span class="code-keyword">WHERE</span> id = <span class="code-keyword">OLD</span>.id;
+<span class="code-keyword">END</span>;</code>
+        </div>
+
+        <h2>🔧 Managing Triggers</h2>
+
+        <h3>List All Triggers</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- View all triggers in database</span>
+<span class="code-keyword">SELECT</span> name, tbl_name, sql 
+<span class="code-keyword">FROM</span> sqlite_master 
+<span class="code-keyword">WHERE</span> type = <span class="code-string">'trigger'</span>;</code>
+        </div>
+
+        <h3>Drop Triggers</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Remove a trigger</span>
+<span class="code-keyword">DROP TRIGGER IF EXISTS</span> trigger_name;</code>
+        </div>
+
+        <h3>Disable/Enable Triggers</h3>
+        <div class="warning-box">
+            <strong>Note:</strong> SQLite doesn't have built-in DISABLE/ENABLE commands. To temporarily disable
+            triggers, you must DROP and recreate them, or use conditional logic within the trigger.
+        </div>
+
+        <h2>✅ Best Practices & Optimizations</h2>
+
+        <div class="success-box">
+            <strong>✅ Key Recommendations:</strong><br>
+            • Keep triggers simple: Complex logic should be in application code or stored procedures<br>
+            • Use WHEN clause: Filter trigger execution for better performance<br>
+            • Avoid recursive triggers: SQLite doesn't support recursive triggers by default<br>
+            • Document thoroughly: Comment trigger purpose and logic clearly<br>
+            • Test edge cases: Verify behavior with NULL values, constraints, transactions<br>
+            • Consider performance: Triggers fire for every row; optimize for bulk operations<br>
+            • Use specific columns: <code>UPDATE OF column</code> is more efficient than general UPDATE
+        </div>
+
+        <h2>⚠️ Troubleshooting</h2>
+
+        <div class="warning-box">
+            <strong>Common Issues:</strong><br>
+            • Infinite loops: Ensure triggers don't modify the same table in ways that retrigger themselves<br>
+            • Transaction conflicts: Triggers run within the same transaction—failures roll back everything<br>
+            • OLD/NEW access: Remember OLD is not available for INSERT, NEW not available for DELETE<br>
+            • RAISE() errors: Use <code>SELECT RAISE(ABORT, 'message')</code> to stop execution with error<br>
+            • Performance: Too many triggers or complex logic can slow down DML operations<br>
+            • Debugging: Use audit tables or temporary logging to trace trigger execution
+        </div>
+
+        <h2>📊 Trigger Best Practices Table</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Practice</th>
+                    <th>Do</th>
+                    <th>Don't</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Purpose</td>
+                    <td>Enforce constraints, audit, timestamps</td>
+                    <td>Complex business logic, external calls</td>
+                </tr>
+                <tr>
+                    <td>Performance</td>
+                    <td>Use WHEN conditions, specific UPDATE OF</td>
+                    <td>Triggers on high-volume tables without filtering</td>
+                </tr>
+                <tr>
+                    <td>Maintenance</td>
+                    <td>Clear naming, documentation</td>
+                    <td>Hidden dependencies, undocumented behavior</td>
+                </tr>
+                <tr>
+                    <td>Testing</td>
+                    <td>Test with edge cases, bulk operations</td>
+                    <td>Assume triggers always work correctly</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Understand trigger syntax and timing (BEFORE/AFTER)</li>
+            <li>Use OLD and NEW values correctly</li>
+            <li>Implement common patterns: timestamps, auditing, validation</li>
+            <li>Apply WHEN conditions for performance</li>
+            <li>Manage triggers: list, drop, test</li>
+            <li>Avoid common pitfalls: infinite loops, performance issues</li>
+            <li>Follow best practices for maintainable triggers</li>
+        </ul>
+
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> Combine triggers with Views (Module 10) for powerful data automation and
+            abstraction layers.
+        </div>
+
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+
+</html>

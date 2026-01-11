@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #11 - Programming Languages Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #00d9ff 0%, #0099cc 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .concept-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid #00d9ff;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .concept-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 217, 255, 0.2);
+        }
+
+        .concept-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #00d9ff;
+            margin-bottom: 12px;
+        }
+
+        .concept-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a8d5ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+            white-space: pre;
+        }
+
+        .code-block code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+            display: block;
+            font-size: 0.9em;
+            line-height: 1.6;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+        }
+
+        .code-keyword {
+            color: #ff7675;
+        }
+
+        .code-string {
+            color: #55efc4;
+        }
+
+        .code-function {
+            color: #74b9ff;
+        }
+
+        .code-comment {
+            color: #636e72;
+        }
+
+        .code-number {
+            color: #ffeaa7;
+        }
+
+        h2 {
+            font-size: 2em;
+            color: #f1f5f9;
+            margin: 40px 0 20px 0;
+            border-bottom: 2px solid #00d9ff;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.3em;
+            color: #cbd5e1;
+            margin: 25px 0 15px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(0, 217, 255, 0.2), rgba(0, 153, 204, 0.2));
+            color: #00d9ff;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #00d9ff;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+
+        tr:hover {
+            background: rgba(0, 217, 255, 0.1);
+        }
+
+        .highlight-box {
+            background: rgba(0, 217, 255, 0.1);
+            border-left: 4px solid #00d9ff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #85c1e9;
+        }
+
+        .warning-box {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #f1948a;
+        }
+
+        .success-box {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #7dcea0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #00d9ff;
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #00d9ff, #0099cc);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 217, 255, 0.3);
+        }
+
+        .language-section {
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid #334155;
+        }
+
+        .language-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #00d9ff, #0099cc);
+            color: white;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hero">
+        <h1>💻 SQLite with Programming Languages</h1>
+        <p>Integrate SQLite with Python, JavaScript, Java, Go, VBA & More</p>
+    </div>
+
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module provides comprehensive coverage of using SQLite across different programming languages. You'll
+            learn how to connect, perform CRUD operations, handle transactions, and implement best practices in Python,
+            JavaScript/Node.js, Java, Go, VBA, C#, PHP, Ruby, and Rust. Each section includes installation
+            instructions, connection examples, practical code samples, and production-ready patterns.
+        </p>
+
+        <h2>🐍 Python</h2>
+
+        <div class="language-section">
+            <div class="language-badge">🐍 Python - Built-in Support</div>
+
+            <h3>Installation & Setup</h3>
+            <div class="code-block">
+                <code><span class="code-comment"># Python comes with sqlite3 built-in (no installation needed)</span>
+<span class="code-keyword">import</span> sqlite3
+print(sqlite3.version)  <span class="code-comment"># Check version</span></code>
+            </div>
+
+            <h3>Basic Connection & CRUD</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">import</span> sqlite3
+
+<span class="code-comment"># Connect to database (creates if doesn't exist)</span>
+conn = sqlite3.connect(<span class="code-string">'app.db'</span>)
+cursor = conn.cursor()
+
+<span class="code-comment"># Create table</span>
+cursor.execute(<span class="code-string">'''
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+'''</span>)
+
+<span class="code-comment"># INSERT</span>
+cursor.execute(<span class="code-string">'INSERT INTO users (username, email) VALUES (?, ?)'</span>,
+               (<span class="code-string">'alice'</span>, <span class="code-string">'alice@example.com'</span>))
+conn.commit()
+
+<span class="code-comment"># SELECT</span>
+cursor.execute(<span class="code-string">'SELECT * FROM users WHERE username = ?'</span>, (<span class="code-string">'alice'</span>,))
+user = cursor.fetchone()
+print(user)
+
+<span class="code-comment"># UPDATE</span>
+cursor.execute(<span class="code-string">'UPDATE users SET email = ? WHERE username = ?'</span>,
+               (<span class="code-string">'newemail@example.com'</span>, <span class="code-string">'alice'</span>))
+conn.commit()
+
+<span class="code-comment"># DELETE</span>
+cursor.execute(<span class="code-string">'DELETE FROM users WHERE username = ?'</span>, (<span class="code-string">'alice'</span>,))
+conn.commit()
+
+<span class="code-comment"># Close connection</span>
+conn.close()</code>
+            </div>
+
+            <h3>Best Practices (Python)</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">import</span> sqlite3
+<span class="code-keyword">from</span> contextlib <span class="code-keyword">import</span> closing
+
+<span class="code-comment"># Use context manager for auto-commit/rollback</span>
+<span class="code-keyword">with</span> sqlite3.connect(<span class="code-string">'app.db'</span>) <span class="code-keyword">as</span> conn:
+    conn.row_factory = sqlite3.Row  <span class="code-comment"># Dict-like access</span>
+    cursor = conn.cursor()
+    
+    <span class="code-comment"># Batch insert with executemany</span>
+    users = [
+        (<span class="code-string">'bob'</span>, <span class="code-string">'bob@example.com'</span>),
+        (<span class="code-string">'charlie'</span>, <span class="code-string">'charlie@example.com'</span>)
+    ]
+    cursor.executemany(<span class="code-string">'INSERT INTO users (username, email) VALUES (?, ?)'</span>, users)
+    
+    <span class="code-comment"># Transaction handling</span>
+    <span class="code-keyword">try</span>:
+        cursor.execute(<span class="code-string">'UPDATE users SET email = ? WHERE id = ?'</span>, (<span class="code-string">'new@example.com'</span>, <span class="code-number">1</span>))
+        conn.commit()
+    <span class="code-keyword">except</span> sqlite3.Error <span class="code-keyword">as</span> e:
+        conn.rollback()
+        print(<span class="code-string">f'Error: {e}'</span>)
+    
+    <span class="code-comment"># Access rows as dicts</span>
+    cursor.execute(<span class="code-string">'SELECT * FROM users'</span>)
+    <span class="code-keyword">for</span> row <span class="code-keyword">in</span> cursor.fetchall():
+        print(row[<span class="code-string">'username'</span>], row[<span class="code-string">'email'</span>])</code>
+            </div>
+        </div>
+
+        <h2>📦 JavaScript / Node.js</h2>
+
+        <div class="language-section">
+            <div class="language-badge">📦 Node.js - better-sqlite3 (Recommended)</div>
+
+            <h3>Installation</h3>
+            <div class="code-block">
+                <code><span class="code-comment"># Install better-sqlite3 (fastest, synchronous)</span>
+npm install better-sqlite3
+
+<span class="code-comment"># Or install sqlite3 (async, callback-based)</span>
+npm install sqlite3</code>
+            </div>
+
+            <h3>Basic Connection & CRUD (better-sqlite3)</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
+
+<span class="code-comment">// Connect to database</span>
+<span class="code-keyword">const</span> db = <span class="code-keyword">new</span> Database(<span class="code-string">'app.db'</span>);
+
+<span class="code-comment">// Create table</span>
+db.exec(<span class="code-string">`
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL
+    )
+`</span>);
+
+<span class="code-comment">// INSERT</span>
+<span class="code-keyword">const</span> insert = db.prepare(<span class="code-string">'INSERT INTO users (username, email) VALUES (?, ?)'</span>);
+insert.run(<span class="code-string">'alice'</span>, <span class="code-string">'alice@example.com'</span>);
+
+<span class="code-comment">// SELECT</span>
+<span class="code-keyword">const</span> selectOne = db.prepare(<span class="code-string">'SELECT * FROM users WHERE username = ?'</span>);
+<span class="code-keyword">const</span> user = selectOne.get(<span class="code-string">'alice'</span>);
+console.log(user);
+
+<span class="code-comment">// SELECT ALL</span>
+<span class="code-keyword">const</span> selectAll = db.prepare(<span class="code-string">'SELECT * FROM users'</span>);
+<span class="code-keyword">const</span> users = selectAll.all();
+console.log(users);
+
+<span class="code-comment">// UPDATE</span>
+<span class="code-keyword">const</span> update = db.prepare(<span class="code-string">'UPDATE users SET email = ? WHERE username = ?'</span>);
+update.run(<span class="code-string">'newemail@example.com'</span>, <span class="code-string">'alice'</span>);
+
+<span class="code-comment">// DELETE</span>
+<span class="code-keyword">const</span> del = db.prepare(<span class="code-string">'DELETE FROM users WHERE username = ?'</span>);
+del.run(<span class="code-string">'alice'</span>);
+
+<span class="code-comment">// Close database</span>
+db.close();</code>
+            </div>
+
+            <h3>Best Practices (Node.js)</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
+
+<span class="code-keyword">class</span> <span class="code-function">UserRepository</span> {
+    <span class="code-function">constructor</span>(dbPath) {
+        <span class="code-keyword">this</span>.db = <span class="code-keyword">new</span> Database(dbPath);
+        <span class="code-keyword">this</span>.initTables();
+    }
+    
+    <span class="code-function">initTables</span>() {
+        <span class="code-keyword">this</span>.db.exec(<span class="code-string">`
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                email TEXT NOT NULL
+            )
+        `</span>);
+    }
+    
+    <span class="code-function">create</span>(username, email) {
+        <span class="code-keyword">const</span> stmt = <span class="code-keyword">this</span>.db.prepare(
+            <span class="code-string">'INSERT INTO users (username, email) VALUES (?, ?)'</span>
+        );
+        <span class="code-keyword">return</span> stmt.run(username, email).lastInsertRowid;
+    }
+    
+    <span class="code-function">findById</span>(id) {
+        <span class="code-keyword">const</span> stmt = <span class="code-keyword">this</span>.db.prepare(<span class="code-string">'SELECT * FROM users WHERE id = ?'</span>);
+        <span class="code-keyword">return</span> stmt.get(id);
+    }
+    
+    <span class="code-comment">// Transaction example</span>
+    <span class="code-function">batchCreate</span>(users) {
+        <span class="code-keyword">const</span> insert = <span class="code-keyword">this</span>.db.prepare(
+            <span class="code-string">'INSERT INTO users (username, email) VALUES (?, ?)'</span>
+        );
+        
+        <span class="code-keyword">const</span> insertMany = <span class="code-keyword">this</span>.db.transaction((users) => {
+            <span class="code-keyword">for</span> (<span class="code-keyword">const</span> user <span class="code-keyword">of</span> users) {
+                insert.run(user.username, user.email);
+            }
+        });
+        
+        insertMany(users);
+    }
+    
+    <span class="code-function">close</span>() {
+        <span class="code-keyword">this</span>.db.close();
+    }
+}
+
+<span class="code-comment">// Usage</span>
+<span class="code-keyword">const</span> repo = <span class="code-keyword">new</span> UserRepository(<span class="code-string">'app.db'</span>);
+<span class="code-keyword">const</span> userId = repo.create(<span class="code-string">'bob'</span>, <span class="code-string">'bob@example.com'</span>);
+console.log(repo.findById(userId));</code>
+            </div>
+        </div>
+
+        <h2>☕ Java</h2>
+
+        <div class="language-section">
+            <div class="language-badge">☕ Java - JDBC Driver</div>
+
+            <h3>Installation (Maven)</h3>
+            <div class="code-block">
+                <code><span class="code-comment">&lt;!-- Add to pom.xml --&gt;</span>
+<span class="code-keyword">&lt;dependency&gt;</span>
+    <span class="code-keyword">&lt;groupId&gt;</span>org.xerial<span class="code-keyword">&lt;/groupId&gt;</span>
+    <span class="code-keyword">&lt;artifactId&gt;</span>sqlite-jdbc<span class="code-keyword">&lt;/artifactId&gt;</span>
+    <span class="code-keyword">&lt;version&gt;</span>3.44.1.0<span class="code-keyword">&lt;/version&gt;</span>
+<span class="code-keyword">&lt;/dependency&gt;</span></code>
+            </div>
+
+            <h3>Basic Connection & CRUD</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">import</span> java.sql.*;
+
+<span class="code-keyword">public class</span> <span class="code-function">SQLiteExample</span> {
+    <span class="code-keyword">public static void</span> <span class="code-function">main</span>(String[] args) {
+        String url = <span class="code-string">"jdbc:sqlite:app.db"</span>;
+        
+        <span class="code-keyword">try</span> (Connection conn = DriverManager.getConnection(url)) {
+            <span class="code-comment">// Create table</span>
+            String createTable = <span class="code-string">"CREATE TABLE IF NOT EXISTS users ("</span> +
+                                 <span class="code-string">"id INTEGER PRIMARY KEY AUTOINCREMENT, "</span> +
+                                 <span class="code-string">"username TEXT NOT NULL, "</span> +
+                                 <span class="code-string">"email TEXT NOT NULL)"</span>;
+            Statement stmt = conn.createStatement();
+            stmt.execute(createTable);
+            
+            <span class="code-comment">// INSERT with PreparedStatement</span>
+            String insert = <span class="code-string">"INSERT INTO users (username, email) VALUES (?, ?)"</span>;
+            PreparedStatement pstmt = conn.prepareStatement(insert);
+            pstmt.setString(<span class="code-number">1</span>, <span class="code-string">"alice"</span>);
+            pstmt.setString(<span class="code-number">2</span>, <span class="code-string">"alice@example.com"</span>);
+            pstmt.executeUpdate();
+            
+            <span class="code-comment">// SELECT</span>
+            String select = <span class="code-string">"SELECT * FROM users WHERE username = ?"</span>;
+            pstmt = conn.prepareStatement(select);
+            pstmt.setString(<span class="code-number">1</span>, <span class="code-string">"alice"</span>);
+            ResultSet rs = pstmt.executeQuery();
+            
+            <span class="code-keyword">while</span> (rs.next()) {
+                System.out.println(<span class="code-string">"ID: "</span> + rs.getInt(<span class="code-string">"id"</span>));
+                System.out.println(<span class="code-string">"Username: "</span> + rs.getString(<span class="code-string">"username"</span>));
+                System.out.println(<span class="code-string">"Email: "</span> + rs.getString(<span class="code-string">"email"</span>));
+            }
+            
+        } <span class="code-keyword">catch</span> (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+}</code>
+            </div>
+
+            <h3>Best Practices (Java)</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">import</span> java.sql.*;
+
+<span class="code-keyword">public class</span> <span class="code-function">UserRepository</span> {
+    <span class="code-keyword">private final</span> String dbUrl;
+    
+    <span class="code-keyword">public</span> <span class="code-function">UserRepository</span>(String dbPath) {
+        <span class="code-keyword">this</span>.dbUrl = <span class="code-string">"jdbc:sqlite:"</span> + dbPath;
+        initDatabase();
+    }
+    
+    <span class="code-keyword">private void</span> <span class="code-function">initDatabase</span>() {
+        <span class="code-keyword">try</span> (Connection conn = getConnection()) {
+            String sql = <span class="code-string">"CREATE TABLE IF NOT EXISTS users ("</span> +
+                        <span class="code-string">"id INTEGER PRIMARY KEY AUTOINCREMENT, "</span> +
+                        <span class="code-string">"username TEXT NOT NULL UNIQUE, "</span> +
+                        <span class="code-string">"email TEXT NOT NULL)"</span>;
+            conn.createStatement().execute(sql);
+        } <span class="code-keyword">catch</span> (SQLException e) {
+            <span class="code-keyword">throw new</span> RuntimeException(<span class="code-string">"Failed to initialize database"</span>, e);
+        }
+    }
+    
+    <span class="code-keyword">private</span> Connection <span class="code-function">getConnection</span>() <span class="code-keyword">throws</span> SQLException {
+        <span class="code-keyword">return</span> DriverManager.getConnection(dbUrl);
+    }
+    
+    <span class="code-keyword">public void</span> <span class="code-function">create</span>(String username, String email) {
+        String sql = <span class="code-string">"INSERT INTO users (username, email) VALUES (?, ?)"</span>;
+        
+        <span class="code-keyword">try</span> (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setString(<span class="code-number">1</span>, username);
+            pstmt.setString(<span class="code-number">2</span>, email);
+            pstmt.executeUpdate();
+            
+        } <span class="code-keyword">catch</span> (SQLException e) {
+            <span class="code-keyword">throw new</span> RuntimeException(<span class="code-string">"Failed to create user"</span>, e);
+        }
+    }
+    
+    <span class="code-keyword">public</span> User <span class="code-function">findById</span>(<span class="code-keyword">int</span> id) {
+        String sql = <span class="code-string">"SELECT * FROM users WHERE id = ?"</span>;
+        
+        <span class="code-keyword">try</span> (Connection conn = getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            
+            pstmt.setInt(<span class="code-number">1</span>, id);
+            ResultSet rs = pstmt.executeQuery();
+            
+            <span class="code-keyword">if</span> (rs.next()) {
+                <span class="code-keyword">return new</span> User(
+                    rs.getInt(<span class="code-string">"id"</span>),
+                    rs.getString(<span class="code-string">"username"</span>),
+                    rs.getString(<span class="code-string">"email"</span>)
+                );
+            }
+            <span class="code-keyword">return null</span>;
+            
+        } <span class="code-keyword">catch</span> (SQLException e) {
+            <span class="code-keyword">throw new</span> RuntimeException(<span class="code-string">"Failed to find user"</span>, e);
+        }
+    }
+}</code>
+            </div>
+        </div>
+
+        <h2>🐹 Go (Golang)</h2>
+
+        <div class="language-section">
+            <div class="language-badge">🐹 Go - mattn/go-sqlite3</div>
+
+            <h3>Installation</h3>
+            <div class="code-block">
+                <code><span class="code-comment"># Install go-sqlite3 driver</span>
+go get github.com/mattn/go-sqlite3</code>
+            </div>
+
+            <h3>Basic Connection & CRUD</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">package</span> main
+
+<span class="code-keyword">import</span> (
+    <span class="code-string">"database/sql"</span>
+    <span class="code-string">"fmt"</span>
+    <span class="code-string">"log"</span>
+    _ <span class="code-string">"github.com/mattn/go-sqlite3"</span>
+)
+
+<span class="code-keyword">type</span> User <span class="code-keyword">struct</span> {
+    ID       <span class="code-keyword">int</span>
+    Username <span class="code-keyword">string</span>
+    Email    <span class="code-keyword">string</span>
+}
+
+<span class="code-keyword">func</span> <span class="code-function">main</span>() {
+    <span class="code-comment">// Connect to database</span>
+    db, err := sql.Open(<span class="code-string">"sqlite3"</span>, <span class="code-string">"app.db"</span>)
+    <span class="code-keyword">if</span> err != <span class="code-keyword">nil</span> {
+        log.Fatal(err)
+    }
+    <span class="code-keyword">defer</span> db.Close()
+    
+    <span class="code-comment">// Create table</span>
+    createTable := <span class="code-string">`CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL
+    )`</span>
+    _, err = db.Exec(createTable)
+    <span class="code-keyword">if</span> err != <span class="code-keyword">nil</span> {
+        log.Fatal(err)
+    }
+    
+    <span class="code-comment">// INSERT</span>
+    stmt, err := db.Prepare(<span class="code-string">"INSERT INTO users (username, email) VALUES (?, ?)"</span>)
+    <span class="code-keyword">if</span> err != <span class="code-keyword">nil</span> {
+        log.Fatal(err)
+    }
+    result, err := stmt.Exec(<span class="code-string">"alice"</span>, <span class="code-string">"alice@example.com"</span>)
+    <span class="code-keyword">if</span> err != <span class="code-keyword">nil</span> {
+        log.Fatal(err)
+    }
+    
+    id, _ := result.LastInsertId()
+    fmt.Printf(<span class="code-string">"Inserted user ID: %d\n"</span>, id)
+    
+    <span class="code-comment">// SELECT</span>
+    <span class="code-keyword">var</span> user User
+    row := db.QueryRow(<span class="code-string">"SELECT id, username, email FROM users WHERE username = ?"</span>, <span class="code-string">"alice"</span>)
+    err = row.Scan(&user.ID, &user.Username, &user.Email)
+    <span class="code-keyword">if</span> err != <span class="code-keyword">nil</span> {
+        log.Fatal(err)
+    }
+    
+    fmt.Printf(<span class="code-string">"User: %+v\n"</span>, user)
+}</code>
+            </div>
+
+            <h3>Best Practices (Go)</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">package</span> main
+
+<span class="code-keyword">import</span> (
+    <span class="code-string">"database/sql"</span>
+    <span class="code-string">"fmt"</span>
+    _ <span class="code-string">"github.com/mattn/go-sqlite3"</span>
+)
+
+<span class="code-keyword">type</span> UserRepository <span class="code-keyword">struct</span> {
+    db *sql.DB
+}
+
+<span class="code-keyword">func</span> <span class="code-function">NewUserRepository</span>(dbPath <span class="code-keyword">string</span>) (*UserRepository, error) {
+    db, err := sql.Open(<span class="code-string">"sqlite3"</span>, dbPath)
+    <span class="code-keyword">if</span> err != <span class="code-keyword">nil</span> {
+        <span class="code-keyword">return nil</span>, err
+    }
+    
+    repo := &UserRepository{db: db}
+    <span class="code-keyword">if</span> err := repo.init(); err != <span class="code-keyword">nil</span> {
+        <span class="code-keyword">return nil</span>, err
+    }
+    
+    <span class="code-keyword">return</span> repo, <span class="code-keyword">nil</span>
+}
+
+<span class="code-keyword">func</span> (r *UserRepository) <span class="code-function">init</span>() error {
+    query := <span class="code-string">`CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL
+    )`</span>
+    _, err := r.db.Exec(query)
+    <span class="code-keyword">return</span> err
+}
+
+<span class="code-keyword">func</span> (r *UserRepository) <span class="code-function">Create</span>(username, email <span class="code-keyword">string</span>) (<span class="code-keyword">int64</span>, error) {
+    result, err := r.db.Exec(
+        <span class="code-string">"INSERT INTO users (username, email) VALUES (?, ?)"</span>,
+        username, email,
+    )
+    <span class="code-keyword">if</span> err != <span class="code-keyword">nil</span> {
+        <span class="code-keyword">return</span> <span class="code-number">0</span>, err
+    }
+    <span class="code-keyword">return</span> result.LastInsertId()
+}
+
+<span class="code-keyword">func</span> (r *UserRepository) <span class="code-function">FindByID</span>(id <span class="code-keyword">int64</span>) (*User, error) {
+    <span class="code-keyword">var</span> user User
+    err := r.db.QueryRow(
+        <span class="code-string">"SELECT id, username, email FROM users WHERE id = ?"</span>, id,
+    ).Scan(&user.ID, &user.Username, &user.Email)
+    
+    <span class="code-keyword">if</span> err == sql.ErrNoRows {
+        <span class="code-keyword">return nil</span>, <span class="code-keyword">nil</span>
+    }
+    <span class="code-keyword">if</span> err != <span class="code-keyword">nil</span> {
+        <span class="code-keyword">return nil</span>, err
+    }
+    
+    <span class="code-keyword">return</span> &user, <span class="code-keyword">nil</span>
+}
+
+<span class="code-keyword">func</span> (r *UserRepository) <span class="code-function">Close</span>() error {
+    <span class="code-keyword">return</span> r.db.Close()
+}</code>
+            </div>
+        </div>
+
+        <h2>📊 VBA (Excel)</h2>
+
+        <div class="language-section">
+            <div class="language-badge">📊 VBA - ADO Connection</div>
+
+            <h3>Setup Requirements</h3>
+            <div class="info-box">
+                <strong>Prerequisites:</strong><br>
+                • Download SQLite ODBC driver from http://www.ch-werner.de/sqliteodbc/<br>
+                • Install the driver (32-bit or 64-bit matching your Excel version)<br>
+                • Enable "Microsoft ActiveX Data Objects" reference in VBA Editor
+            </div>
+
+            <h3>Basic Connection & CRUD</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">Sub</span> <span class="code-function">SQLiteExample</span>()
+    <span class="code-keyword">Dim</span> conn <span class="code-keyword">As</span> <span class="code-keyword">Object</span>
+    <span class="code-keyword">Dim</span> rs <span class="code-keyword">As</span> <span class="code-keyword">Object</span>
+    <span class="code-keyword">Dim</span> dbPath <span class="code-keyword">As</span> <span class="code-keyword">String</span>
+    
+    <span class="code-comment">' Database path</span>
+    dbPath = ThisWorkbook.Path & <span class="code-string">"\app.db"</span>
+    
+    <span class="code-comment">' Create connection</span>
+    <span class="code-keyword">Set</span> conn = CreateObject(<span class="code-string">"ADODB.Connection"</span>)
+    conn.Open <span class="code-string">"Driver=SQLite3 ODBC Driver;Database="</span> & dbPath
+    
+    <span class="code-comment">' Create table</span>
+    conn.Execute <span class="code-string">"CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, email TEXT)"</span>
+    
+    <span class="code-comment">' INSERT</span>
+    conn.Execute <span class="code-string">"INSERT INTO users (username, email) VALUES ('alice', 'alice@example.com')"</span>
+    
+    <span class="code-comment">' SELECT</span>
+    <span class="code-keyword">Set</span> rs = CreateObject(<span class="code-string">"ADODB.Recordset"</span>)
+    rs.Open <span class="code-string">"SELECT * FROM users"</span>, conn
+    
+    <span class="code-comment">' Loop through results</span>
+    <span class="code-keyword">Do While Not</span> rs.EOF
+        Debug.Print rs(<span class="code-string">"username"</span>) & <span class="code-string">" - "</span> & rs(<span class="code-string">"email"</span>)
+        rs.MoveNext
+    <span class="code-keyword">Loop</span>
+    
+    <span class="code-comment">' Close</span>
+    rs.Close
+    conn.Close
+    <span class="code-keyword">Set</span> rs = <span class="code-keyword">Nothing</span>
+    <span class="code-keyword">Set</span> conn = <span class="code-keyword">Nothing</span>
+<span class="code-keyword">End Sub</span></code>
+            </div>
+
+            <h3>Export Excel to SQLite (VBA)</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">Sub</span> <span class="code-function">ExportToSQLite</span>()
+    <span class="code-keyword">Dim</span> conn <span class="code-keyword">As</span> <span class="code-keyword">Object</span>
+    <span class="code-keyword">Dim</span> ws <span class="code-keyword">As</span> Worksheet
+    <span class="code-keyword">Dim</span> lastRow <span class="code-keyword">As</span> <span class="code-keyword">Long</span>
+    <span class="code-keyword">Dim</span> i <span class="code-keyword">As</span> <span class="code-keyword">Long</span>
+    
+    <span class="code-keyword">Set</span> ws = ThisWorkbook.Sheets(<span class="code-string">"Sheet1"</span>)
+    lastRow = ws.Cells(ws.Rows.Count, <span class="code-string">"A"</span>).End(xlUp).Row
+    
+    <span class="code-comment">' Connect</span>
+    <span class="code-keyword">Set</span> conn = CreateObject(<span class="code-string">"ADODB.Connection"</span>)
+    conn.Open <span class="code-string">"Driver=SQLite3 ODBC Driver;Database="</span> & ThisWorkbook.Path & <span class="code-string">"\data.db"</span>
+    
+    <span class="code-comment">' Loop through rows (skip header)</span>
+    <span class="code-keyword">For</span> i = <span class="code-number">2</span> <span class="code-keyword">To</span> lastRow
+        <span class="code-keyword">Dim</span> sql <span class="code-keyword">As</span> <span class="code-keyword">String</span>
+        sql = <span class="code-string">"INSERT INTO users (username, email) VALUES ('"</span> & _
+              ws.Cells(i, <span class="code-number">1</span>).Value & <span class="code-string">"', '"</span> & _
+              ws.Cells(i, <span class="code-number">2</span>).Value & <span class="code-string">"')"</span>
+        conn.Execute sql
+    <span class="code-keyword">Next</span> i
+    
+    conn.Close
+    MsgBox <span class="code-string">"Data exported successfully!"</span>
+<span class="code-keyword">End Sub</span></code>
+            </div>
+        </div>
+
+        <h2>🔷 C# (.NET)</h2>
+
+        <div class="language-section">
+            <div class="language-badge">🔷 C# - System.Data.SQLite</div>
+
+            <h3>Installation (NuGet)</h3>
+            <div class="code-block">
+                <code><span class="code-comment"># Install via NuGet Package Manager</span>
+Install-Package System.Data.SQLite</code>
+            </div>
+
+            <h3>Basic Connection & CRUD</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">using</span> System;
+<span class="code-keyword">using</span> System.Data.SQLite;
+
+<span class="code-keyword">class</span> <span class="code-function">Program</span>
+{
+    <span class="code-keyword">static void</span> <span class="code-function">Main</span>()
+    {
+        <span class="code-keyword">string</span> connectionString = <span class="code-string">"Data Source=app.db;Version=3;"</span>;
+        
+        <span class="code-keyword">using</span> (<span class="code-keyword">var</span> conn = <span class="code-keyword">new</span> SQLiteConnection(connectionString))
+        {
+            conn.Open();
+            
+            <span class="code-comment">// Create table</span>
+            <span class="code-keyword">string</span> createTable = <span class="code-string">@"CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL,
+                email TEXT NOT NULL
+            )"</span>;
+            
+            <span class="code-keyword">using</span> (<span class="code-keyword">var</span> cmd = <span class="code-keyword">new</span> SQLiteCommand(createTable, conn))
+            {
+                cmd.ExecuteNonQuery();
+            }
+            
+            <span class="code-comment">// INSERT</span>
+            <span class="code-keyword">using</span> (<span class="code-keyword">var</span> cmd = <span class="code-keyword">new</span> SQLiteCommand(conn))
+            {
+                cmd.CommandText = <span class="code-string">"INSERT INTO users (username, email) VALUES (@username, @email)"</span>;
+                cmd.Parameters.AddWithValue(<span class="code-string">"@username"</span>, <span class="code-string">"alice"</span>);
+                cmd.Parameters.AddWithValue(<span class="code-string">"@email"</span>, <span class="code-string">"alice@example.com"</span>);
+                cmd.ExecuteNonQuery();
+            }
+            
+            <span class="code-comment">// SELECT</span>
+            <span class="code-keyword">using</span> (<span class="code-keyword">var</span> cmd = <span class="code-keyword">new</span> SQLiteCommand(<span class="code-string">"SELECT * FROM users"</span>, conn))
+            <span class="code-keyword">using</span> (<span class="code-keyword">var</span> reader = cmd.ExecuteReader())
+            {
+                <span class="code-keyword">while</span> (reader.Read())
+                {
+                    Console.WriteLine(<span class="code-string">$"{reader["username"]} - {reader["email"]}"</span>);
+                }
+            }
+        }
+    }
+}</code>
+            </div>
+        </div>
+
+        <h2>🐘 PHP</h2>
+
+        <div class="language-section">
+            <div class="language-badge">🐘 PHP - PDO SQLite</div>
+
+            <h3>Basic Connection & CRUD</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">&lt;?php</span>
+
+<span class="code-keyword">try</span> {
+    <span class="code-comment">// Connect to database</span>
+    $pdo = <span class="code-keyword">new</span> PDO(<span class="code-string">'sqlite:app.db'</span>);
+    $pdo-&gt;setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    
+    <span class="code-comment">// Create table</span>
+    $pdo-&gt;exec(<span class="code-string">"CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        email TEXT NOT NULL
+    )"</span>);
+    
+    <span class="code-comment">// INSERT</span>
+    $stmt = $pdo-&gt;prepare(<span class="code-string">"INSERT INTO users (username, email) VALUES (?, ?)"</span>);
+    $stmt-&gt;execute([<span class="code-string">'alice'</span>, <span class="code-string">'alice@example.com'</span>]);
+    
+    <span class="code-comment">// SELECT</span>
+    $stmt = $pdo-&gt;query(<span class="code-string">"SELECT * FROM users"</span>);
+    <span class="code-keyword">while</span> ($row = $stmt-&gt;fetch(PDO::FETCH_ASSOC)) {
+        echo <span class="code-string">"{$row['username']} - {$row['email']}\n"</span>;
+    }
+    
+} <span class="code-keyword">catch</span> (PDOException $e) {
+    echo <span class="code-string">"Error: "</span> . $e-&gt;getMessage();
+}
+<span class="code-keyword">?&gt;</span></code>
+            </div>
+        </div>
+
+        <h2>💎 Ruby</h2>
+
+        <div class="language-section">
+            <div class="language-badge">💎 Ruby - sqlite3 gem</div>
+
+            <h3>Installation</h3>
+            <div class="code-block">
+                <code><span class="code-comment"># Install sqlite3 gem</span>
+gem install sqlite3</code>
+            </div>
+
+            <h3>Basic Connection & CRUD</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">require</span> <span class="code-string">'sqlite3'</span>
+
+<span class="code-comment"># Connect to database</span>
+db = SQLite3::Database.new <span class="code-string">'app.db'</span>
+
+<span class="code-comment"># Create table</span>
+db.execute <span class="code-string">&lt;&lt;-SQL
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    email TEXT NOT NULL
+  )
+SQL</span>
+
+<span class="code-comment"># INSERT</span>
+db.execute <span class="code-string">"INSERT INTO users (username, email) VALUES (?, ?)"</span>,
+           [<span class="code-string">'alice'</span>, <span class="code-string">'alice@example.com'</span>]
+
+<span class="code-comment"># SELECT</span>
+db.execute(<span class="code-string">"SELECT * FROM users"</span>) <span class="code-keyword">do</span> |row|
+  puts <span class="code-string">"#{row[1]} - #{row[2]}"</span>
+<span class="code-keyword">end</span>
+
+db.close</code>
+            </div>
+        </div>
+
+        <h2>🦀 Rust</h2>
+
+        <div class="language-section">
+            <div class="language-badge">🦀 Rust - rusqlite</div>
+
+            <h3>Installation (Cargo.toml)</h3>
+            <div class="code-block">
+                <code>[dependencies]
+rusqlite = <span class="code-string">"0.30"</span></code>
+            </div>
+
+            <h3>Basic Connection & CRUD</h3>
+            <div class="code-block">
+                <code><span class="code-keyword">use</span> rusqlite::{Connection, Result};
+
+<span class="code-keyword">struct</span> User {
+    id: i32,
+    username: String,
+    email: String,
+}
+
+<span class="code-keyword">fn</span> <span class="code-function">main</span>() -&gt; Result&lt;()&gt; {
+    <span class="code-comment">// Connect to database</span>
+    <span class="code-keyword">let</span> conn = Connection::open(<span class="code-string">"app.db"</span>)?;
+    
+    <span class="code-comment">// Create table</span>
+    conn.execute(
+        <span class="code-string">"CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY,
+            username TEXT NOT NULL,
+            email TEXT NOT NULL
+        )"</span>,
+        [],
+    )?;
+    
+    <span class="code-comment">// INSERT</span>
+    conn.execute(
+        <span class="code-string">"INSERT INTO users (username, email) VALUES (?1, ?2)"</span>,
+        &[<span class="code-string">&"alice"</span>, <span class="code-string">&"alice@example.com"</span>],
+    )?;
+    
+    <span class="code-comment">// SELECT</span>
+    <span class="code-keyword">let mut</span> stmt = conn.prepare(<span class="code-string">"SELECT id, username, email FROM users"</span>)?;
+    <span class="code-keyword">let</span> users = stmt.query_map([], |row| {
+        Ok(User {
+            id: row.get(<span class="code-number">0</span>)?,
+            username: row.get(<span class="code-number">1</span>)?,
+            email: row.get(<span class="code-number">2</span>)?,
+        })
+    })?;
+    
+    <span class="code-keyword">for</span> user <span class="code-keyword">in</span> users {
+        println!(<span class="code-string">"{:?}"</span>, user?);
+    }
+    
+    Ok(())
+}</code>
+            </div>
+        </div>
+
+        <h2>📊 Language Comparison</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Language</th>
+                    <th>Driver/Library</th>
+                    <th>Performance</th>
+                    <th>Ease of Use</th>
+                    <th>Best For</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Python</td>
+                    <td>sqlite3 (built-in)</td>
+                    <td>Good</td>
+                    <td>Excellent</td>
+                    <td>Data analysis, scripting</td>
+                </tr>
+                <tr>
+                    <td>Node.js</td>
+                    <td>better-sqlite3</td>
+                    <td>Excellent</td>
+                    <td>Excellent</td>
+                    <td>Web apps, APIs</td>
+                </tr>
+                <tr>
+                    <td>Java</td>
+                    <td>sqlite-jdbc</td>
+                    <td>Good</td>
+                    <td>Good</td>
+                    <td>Enterprise apps</td>
+                </tr>
+                <tr>
+                    <td>Go</td>
+                    <td>go-sqlite3</td>
+                    <td>Excellent</td>
+                    <td>Good</td>
+                    <td>High-performance services</td>
+                </tr>
+                <tr>
+                    <td>VBA</td>
+                    <td>ADO + ODBC</td>
+                    <td>Fair</td>
+                    <td>Moderate</td>
+                    <td>Excel automation</td>
+                </tr>
+                <tr>
+                    <td>C#</td>
+                    <td>System.Data.SQLite</td>
+                    <td>Excellent</td>
+                    <td>Good</td>
+                    <td>Windows desktop apps</td>
+                </tr>
+                <tr>
+                    <td>PHP</td>
+                    <td>PDO SQLite</td>
+                    <td>Good</td>
+                    <td>Excellent</td>
+                    <td>Web applications</td>
+                </tr>
+                <tr>
+                    <td>Ruby</td>
+                    <td>sqlite3 gem</td>
+                    <td>Good</td>
+                    <td>Excellent</td>
+                    <td>Web apps (Rails)</td>
+                </tr>
+                <tr>
+                    <td>Rust</td>
+                    <td>rusqlite</td>
+                    <td>Excellent</td>
+                    <td>Moderate</td>
+                    <td>System programming</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>✅ Universal Best Practices</h2>
+
+        <div class="success-box">
+            <strong>✅ Best Practices for All Languages:</strong><br>
+            • Always use parameterized queries to prevent SQL injection<br>
+            • Use connection pooling for multi-threaded applications<br>
+            • Enable WAL mode for better concurrency<br>
+            • Close connections properly (use try-finally or RAII patterns)<br>
+            • Use transactions for batch operations<br>
+            • Handle errors gracefully with proper exception handling<br>
+            • Set pragmas for performance (foreign_keys, journal_mode, synchronous)<br>
+            • Use prepared statements for repeated queries<br>
+            • Avoid SELECT * in production code<br>
+            • Implement proper logging for debugging
+        </div>
+
+        <h2>⚠️ Common Pitfalls</h2>
+
+        <div class="warning-box">
+            <strong>Common Mistakes Across Languages:</strong><br>
+            • String concatenation for SQL (SQL injection vulnerability)<br>
+            • Not closing database connections (resource leaks)<br>
+            • Missing error handling (silent failures)<br>
+            • Running in auto-commit mode for batch operations (slow performance)<br>
+            • Not using indexes for frequently queried columns<br>
+            • Ignoring SQLITE_BUSY errors in multi-threaded apps<br>
+            • Not setting busy_timeout pragma for concurrent access<br>
+            • Forgetting to enable foreign keys (disabled by default)
+        </div>
+
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Understand how to connect to SQLite from your preferred language</li>
+            <li>Implement basic CRUD operations with parameterized queries</li>
+            <li>Use language-specific best practices (context managers, RAII, etc.)</li>
+            <li>Handle transactions properly for data integrity</li>
+            <li>Implement error handling and resource cleanup</li>
+            <li>Apply security best practices (prevent SQL injection)</li>
+            <li>Use connection pooling where applicable</li>
+            <li>Understand performance considerations for your language</li>
+        </ul>
+
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> Choose the language best suited for your project and build a complete
+            application using the patterns shown in this module. Combine with previous modules on Triggers (Module 9)
+            and Views (Module 10) for advanced database features.
+        </div>
+
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+
+</html>

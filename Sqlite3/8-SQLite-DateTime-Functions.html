@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #8 - Date & Time Functions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .concept-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid #f1c40f;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .concept-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(241, 196, 15, 0.2);
+        }
+
+        .concept-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #f1c40f;
+            margin-bottom: 12px;
+        }
+
+        .concept-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a8d5ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+            white-space: pre;
+        }
+
+        .code-block code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+            display: block;
+            font-size: 0.9em;
+            line-height: 1.6;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+        }
+
+        .code-keyword {
+            color: #ff7675;
+        }
+
+        .code-string {
+            color: #55efc4;
+        }
+
+        .code-function {
+            color: #74b9ff;
+        }
+
+        .code-comment {
+            color: #636e72;
+        }
+
+        .code-number {
+            color: #ffeaa7;
+        }
+
+        h2 {
+            font-size: 2em;
+            color: #f1f5f9;
+            margin: 40px 0 20px 0;
+            border-bottom: 2px solid #f1c40f;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.3em;
+            color: #cbd5e1;
+            margin: 25px 0 15px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(241, 196, 15, 0.2), rgba(243, 156, 18, 0.2));
+            color: #f1c40f;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #f1c40f;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+
+        tr:hover {
+            background: rgba(241, 196, 15, 0.1);
+        }
+
+        .highlight-box {
+            background: rgba(241, 196, 15, 0.1);
+            border-left: 4px solid #f1c40f;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #85c1e9;
+        }
+
+        .warning-box {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #f1948a;
+        }
+
+        .success-box {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #7dcea0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #f1c40f;
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #f1c40f, #f39c12);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(241, 196, 15, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hero">
+        <h1>📅 SQLite3 Date & Time Functions</h1>
+        <p>Master Time Strings, Modifiers, Computations & Best Practices</p>
+    </div>
+
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module provides an in-depth exploration of SQLite's date and time functions based on the official
+            documentation. You'll learn about storage options, the seven scalar functions (date, time, datetime,
+            julianday, unixepoch, strftime, timediff), supported time string formats, modifiers for precise adjustments,
+            real-world code examples, use cases across applications, best practices for performance and reliability, and
+            troubleshooting for common issues like timezones and invalid inputs.
+        </p>
+
+        <h2>💾 Storage Options for Dates and Times</h2>
+
+        <div class="concept-box">
+            <div class="concept-title">Choosing the Right Storage Format</div>
+            <div class="concept-description">
+                SQLite does not have a dedicated DATE or DATETIME type. Instead, use type affinity to store temporal
+                data as TEXT, REAL, or INTEGER. Each format has trade-offs in readability, precision, and performance.
+                Choose based on your application's needs for sorting, arithmetic, or human readability.
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Storage Class</th>
+                    <th>Format</th>
+                    <th>Pros</th>
+                    <th>Cons</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>TEXT</strong></td>
+                    <td>ISO 8601 (e.g., '2026-01-05 12:34:56')</td>
+                    <td>Human-readable, sortable as strings, supports timezones</td>
+                    <td>Slower arithmetic, larger storage</td>
+                    <td>Logs, user-facing dates, when readability matters</td>
+                </tr>
+                <tr>
+                    <td><strong>REAL</strong></td>
+                    <td>Julian day number (e.g., 2460825.5 for noon on 2026-01-05)</td>
+                    <td>High precision (fractional days), easy date differences</td>
+                    <td>Not human-readable, floating-point precision issues</td>
+                    <td>Scientific calculations, historical dates</td>
+                </tr>
+                <tr>
+                    <td><strong>INTEGER</strong></td>
+                    <td>Unix timestamp (seconds since 1970-01-01 UTC)</td>
+                    <td>Compact, fast arithmetic and comparisons, efficient indexing</td>
+                    <td>Limited to post-1970 accurately, no subsecond precision natively</td>
+                    <td>Modern apps, timestamps in logs or events</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Example table with different storage</span>
+<span class="code-keyword">CREATE TABLE</span> events (
+    id <span class="code-function">INTEGER PRIMARY KEY</span>,
+    event_date <span class="code-function">TEXT</span>,        <span class="code-comment">-- ISO format</span>
+    julian_time <span class="code-function">REAL</span>,       <span class="code-comment">-- Julian day</span>
+    unix_stamp <span class="code-function">INTEGER</span>      <span class="code-comment">-- Unix epoch</span>
+);
+
+<span class="code-comment">-- Insert current time in all formats</span>
+<span class="code-keyword">INSERT INTO</span> events (event_date, julian_time, unix_stamp)
+<span class="code-keyword">VALUES</span> (
+    <span class="code-function">datetime</span>(<span class="code-string">'now'</span>),
+    <span class="code-function">julianday</span>(<span class="code-string">'now'</span>),
+    <span class="code-function">unixepoch</span>(<span class="code-string">'now'</span>)
+);</code>
+        </div>
+
+        <div class="success-box">
+            <strong>✅ Best Practice:</strong><br>
+            • Use TEXT for most cases due to readability and compatibility with ISO standards.<br>
+            • For performance-critical apps with frequent date math, prefer INTEGER (Unix timestamps).<br>
+            • Always store in UTC to avoid timezone confusion; convert to local on display.
+        </div>
+
+        <h2>🛠️ Core Functions</h2>
+
+        <h3>date(timestring, modifiers...)</h3>
+        <div class="concept-box">
+            <div class="concept-title">date Function</div>
+            <div class="concept-description">
+                Returns the date in YYYY-MM-DD format. Useful for extracting or computing dates without time components.
+                Supports all time strings and modifiers.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Basic usage</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">date</span>(<span class="code-string">'2026-01-05 12:34:56'</span>) <span class="code-keyword">AS</span> extracted_date;  <span class="code-comment">-- '2026-01-05'</span>
+
+<span class="code-comment">-- With modifiers</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">date</span>(<span class="code-string">'now'</span>, <span class="code-string">'-3 months'</span>, <span class="code-string">'start of month'</span>) <span class="code-keyword">AS</span> quarter_start;
+
+<span class="code-comment">-- Real-world: Find birthdays this month</span>
+<span class="code-keyword">SELECT</span> name 
+<span class="code-keyword">FROM</span> users 
+<span class="code-keyword">WHERE</span> <span class="code-function">date</span>(birthdate, <span class="code-string">'start of month'</span>) = <span class="code-function">date</span>(<span class="code-string">'now'</span>, <span class="code-string">'start of month'</span>);</code>
+        </div>
+
+        <h3>time(timestring, modifiers...)</h3>
+        <div class="concept-box">
+            <div class="concept-title">time Function</div>
+            <div class="concept-description">
+                Returns the time in HH:MM:SS format. Ideal for time-only extractions or adjustments.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Extract time</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">time</span>(<span class="code-string">'2026-01-05 12:34:56'</span>) <span class="code-keyword">AS</span> extracted_time;  <span class="code-comment">-- '12:34:56'</span>
+
+<span class="code-comment">-- Adjust time</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">time</span>(<span class="code-string">'now'</span>, <span class="code-string">'+2 hours'</span>, <span class="code-string">'localtime'</span>) <span class="code-keyword">AS</span> adjusted_local;
+
+<span class="code-comment">-- Real-world: Schedule reminders</span>
+<span class="code-keyword">SELECT</span> task 
+<span class="code-keyword">FROM</span> reminders 
+<span class="code-keyword">WHERE</span> <span class="code-function">time</span>(reminder_time) BETWEEN <span class="code-function">time</span>(<span class="code-string">'now'</span>, <span class="code-string">'localtime'</span>) AND <span class="code-function">time</span>(<span class="code-string">'now'</span>, <span class="code-string">'+1 hour'</span>, <span class="code-string">'localtime'</span>);</code>
+        </div>
+
+        <h3>datetime(timestring, modifiers...)</h3>
+        <div class="concept-box">
+            <div class="concept-title">datetime Function</div>
+            <div class="concept-description">
+                Returns full datetime in YYYY-MM-DD HH:MM:SS format. Versatile for complete timestamps.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Current datetime</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">datetime</span>(<span class="code-string">'now'</span>, <span class="code-string">'localtime'</span>) <span class="code-keyword">AS</span> local_now;
+
+<span class="code-comment">-- Convert formats</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">datetime</span>(2460825.5, <span class="code-string">'julianday'</span>) <span class="code-keyword">AS</span> from_julian;
+
+<span class="code-comment">-- Real-world: Log entry with offset</span>
+<span class="code-keyword">INSERT INTO</span> logs (timestamp, message)
+<span class="code-keyword">VALUES</span> (<span class="code-function">datetime</span>(<span class="code-string">'now'</span>, <span class="code-string">'+5 hours'</span>), <span class="code-string">'Event in future timezone'</span>);</code>
+        </div>
+
+        <h3>julianday(timestring, modifiers...)</h3>
+        <div class="concept-box">
+            <div class="concept-title">julianday Function</div>
+            <div class="concept-description">
+                Returns Julian day number as REAL. Excellent for precise date differences.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Current Julian day</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">julianday</span>(<span class="code-string">'now'</span>);
+
+<span class="code-comment">-- Difference in days</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">julianday</span>(<span class="code-string">'2026-01-05'</span>) - <span class="code-function">julianday</span>(<span class="code-string">'2000-01-01'</span>) <span class="code-keyword">AS</span> days_diff;
+
+<span class="code-comment">-- Real-world: Project duration</span>
+<span class="code-keyword">SELECT</span> project_name, 
+       <span class="code-function">round</span>(<span class="code-function">julianday</span>(end_date) - <span class="code-function">julianday</span>(start_date)) <span class="code-keyword">AS</span> duration_days
+<span class="code-keyword">FROM</span> projects <span class="code-keyword">WHERE</span> duration_days > <span class="code-number">365</span>;</code>
+        </div>
+
+        <h3>unixepoch(timestring, modifiers...)</h3>
+        <div class="concept-box">
+            <div class="concept-title">unixepoch Function</div>
+            <div class="concept-description">
+                Returns Unix timestamp as INTEGER (seconds since 1970). Supports subsecond with 'subsec'.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Current Unix epoch</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">unixepoch</span>(<span class="code-string">'now'</span>);
+
+<span class="code-comment">-- With subseconds</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">unixepoch</span>(<span class="code-string">'now'</span>, <span class="code-string">'subsec'</span>) <span class="code-keyword">AS</span> precise;
+
+<span class="code-comment">-- Real-world: Session timeout</span>
+<span class="code-keyword">UPDATE</span> sessions 
+<span class="code-keyword">SET</span> expired = 1 
+<span class="code-keyword">WHERE</span> <span class="code-function">unixepoch</span>(<span class="code-string">'now'</span>) - <span class="code-function">unixepoch</span>(last_active) > <span class="code-number">3600</span>;  <span class="code-comment">-- 1 hour</span></code>
+        </div>
+
+        <h3>strftime(format, timestring, modifiers...)</h3>
+        <div class="concept-box">
+            <div class="concept-title">strftime Function</div>
+            <div class="concept-description">
+                Formats timestamps as TEXT. Supports various placeholders for year, month, etc.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Custom format</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">strftime</span>(<span class="code-string">'%d/%m/%Y %H:%M'</span>, <span class="code-string">'now'</span>) <span class="code-keyword">AS</span> eu_format;
+
+<span class="code-comment">-- Extract parts</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">strftime</span>(<span class="code-string">'%Y'</span>, order_date) <span class="code-keyword">AS</span> year <span class="code-keyword">FROM</span> orders;
+
+<span class="code-comment">-- Real-world: Monthly reports</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">strftime</span>(<span class="code-string">'%Y-%m'</span>, order_date) <span class="code-keyword">AS</span> month, 
+       <span class="code-function">SUM</span>(amount) <span class="code-keyword">AS</span> total_sales
+<span class="code-keyword">FROM</span> orders 
+<span class="code-keyword">GROUP BY</span> month <span class="code-keyword">ORDER BY</span> month <span class="code-keyword">DESC</span>;</code>
+        </div>
+
+        <h3>timediff(timestring1, timestring2)</h3>
+        <div class="concept-box">
+            <div class="concept-title">timediff Function</div>
+            <div class="concept-description">
+                Returns human-readable difference as ±YYYY-MM-DD HH:MM:SS.SSS. No modifiers.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Basic diff</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">timediff</span>(<span class="code-string">'2026-01-05 12:00:00'</span>, <span class="code-string">'2000-01-01 00:00:00'</span>);
+
+<span class="code-comment">-- Real-world: Uptime calculation</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">timediff</span>(<span class="code-string">'now'</span>, start_time) <span class="code-keyword">AS</span> uptime <span class="code-keyword">FROM</span> servers;</code>
+        </div>
+
+        <h2>🔧 Time Strings and Modifiers</h2>
+
+        <div class="highlight-box">
+            <strong>Supported Time Strings:</strong><br>
+            • YYYY-MM-DD, YYYY-MM-DD HH:MM, YYYY-MM-DD HH:MM:SS, YYYY-MM-DD HH:MM:SS.SSS<br>
+            • YYYY-MM-DDTHH:MM:SS (ISO with T)<br>
+            • HH:MM, HH:MM:SS, HH:MM:SS.SSS (assumes 2000-01-01)<br>
+            • 'now'<br>
+            • DDDDDDDDDD (Julian day or Unix timestamp with 'auto')<br>
+            • With timezone: ±HH:MM or Z
+        </div>
+
+        <div class="grid">
+            <div class="concept-box">
+                <div class="concept-title">Common Modifiers</div>
+                <div class="concept-description">
+                    ±NNN units (years, months, days, hours, minutes, seconds)<br>
+                    start of year/month/day<br>
+                    weekday N (0=Sunday)<br>
+                    unixepoch, julianday, auto<br>
+                    localtime, utc<br>
+                    subsec<br>
+                    floor/ceiling (for invalid dates)
+                </div>
+            </div>
+
+            <div class="concept-box">
+                <div class="concept-title">Modifier Examples</div>
+                <div class="concept-description">
+                    SELECT datetime('now', '+1 year', 'start of year');<br>
+                    SELECT date('2024-02-30', 'floor'); -- 2024-02-29
+                </div>
+            </div>
+        </div>
+
+        <h2>🎯 Real-World Use Cases</h2>
+
+        <h3>Use Case 1: E-commerce Order Analytics</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Weekly sales report</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">strftime</span>(<span class="code-string">'%Y-W%W'</span>, order_date) <span class="code-keyword">AS</span> week,
+       <span class="code-function">SUM</span>(amount) <span class="code-keyword">AS</span> total
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">GROUP BY</span> week
+<span class="code-keyword">HAVING</span> <span class="code-function">date</span>(order_date) BETWEEN <span class="code-function">date</span>(<span class="code-string">'now'</span>, <span class="code-string">'-1 year'</span>) AND <span class="code-function">date</span>(<span class="code-string">'now'</span>);</code>
+        </div>
+
+        <h3>Use Case 2: User Activity Tracking</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Inactive users (last login > 30 days)</span>
+<span class="code-keyword">SELECT</span> username
+<span class="code-keyword">FROM</span> users
+<span class="code-keyword">WHERE</span> <span class="code-function">julianday</span>(<span class="code-string">'now'</span>) - <span class="code-function">julianday</span>(last_login) > <span class="code-number">30</span>;</code>
+        </div>
+
+        <h3>Use Case 3: Scheduling System</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Next business day (skip weekends)</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">date</span>(<span class="code-string">'now'</span>, <span class="code-string">'+1 day'</span>, 
+       <span class="code-keyword">CASE</span> <span class="code-function">strftime</span>(<span class="code-string">'%w'</span>, <span class="code-string">'now'</span>, <span class="code-string">'+1 day'</span>)
+           <span class="code-keyword">WHEN</span> <span class="code-string">'0'</span> <span class="code-keyword">THEN</span> <span class="code-string">'+1 day'</span>  <span class="code-comment">-- Sunday to Monday</span>
+           <span class="code-keyword">WHEN</span> <span class="code-string">'6'</span> <span class="code-keyword">THEN</span> <span class="code-string">'+2 days'</span> <span class="code-comment">-- Saturday to Monday</span>
+           <span class="code-keyword">ELSE</span> <span class="code-string">'0 days'</span>
+       <span class="code-keyword">END</span>) <span class="code-keyword">AS</span> next_business_day;</code>
+        </div>
+
+        <h2>✅ Best Practices & Optimizations</h2>
+
+        <ul class="checklist">
+            <li>Store in UTC, display in local: Avoid timezone bugs</li>
+            <li>Index temporal columns for range queries</li>
+            <li>Use dedicated functions over strftime for precision</li>
+            <li>Batch computations in views or triggers for efficiency</li>
+            <li>Handle NULLs with COALESCE in queries</li>
+        </ul>
+
+        <h2>⚠️ Troubleshooting</h2>
+
+        <div class="warning-box">
+            <strong>Common Issues:</strong><br>
+            • Invalid formats return NULL: Validate with json_valid or patterns<br>
+            • Timezone mismatches: System-dependent; test across OS<br>
+            • Precision loss: Use 'subsec' for milliseconds<br>
+            • Edge dates: Test leap years, year 2038 for Unix
+        </div>
+
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> Combine with Module 2 for advanced temporal queries or Module 3 for indexing
+            optimizations.
+        </div>
+
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+
+</html>

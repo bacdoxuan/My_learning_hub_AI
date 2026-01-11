@@ -1,77 +1,302 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQLite3 Cheat Sheet #6 - Administration & Integration</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%); color: #e2e8f0; min-height: 100vh; }
-        .hero { background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%); padding: 60px 20px; text-align: center; color: white; }
-        .hero h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 10px; }
-        .hero p { font-size: 1.1em; opacity: 0.95; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-        .concept-box { background: rgba(30, 41, 59, 0.6); border-left: 4px solid #e74c3c; border-radius: 8px; padding: 25px; margin: 20px 0; transition: all 0.3s ease; }
-        .concept-box:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(231, 76, 60, 0.2); }
-        .concept-title { font-size: 1.3em; font-weight: 700; color: #e74c3c; margin-bottom: 12px; }
-        .concept-description { color: #cbd5e1; line-height: 1.6; margin-bottom: 15px; }
-        code { background: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 4px; color: #a8d5ff; font-family: 'Courier New', monospace; font-size: 0.9em; }
-        .code-block { background: rgba(0, 0, 0, 0.4); border: 1px solid #334155; border-radius: 8px; padding: 20px; margin: 20px 0; overflow-x: auto; font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace; white-space: pre; }
-        .code-block code { background: none; padding: 0; color: #e2e8f0; display: block; font-size: 0.9em; line-height: 1.6; font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace; }
-        .code-keyword { color: #ff7675; }
-        .code-string { color: #55efc4; }
-        .code-function { color: #74b9ff; }
-        .code-comment { color: #636e72; }
-        .code-number { color: #ffeaa7; }
-        h2 { font-size: 2em; color: #f1f5f9; margin: 40px 0 20px 0; border-bottom: 2px solid #e74c3c; padding-bottom: 10px; }
-        h3 { font-size: 1.3em; color: #cbd5e1; margin: 25px 0 15px 0; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; background: rgba(30, 41, 59, 0.4); border-radius: 8px; overflow: hidden; }
-        th { background: linear-gradient(135deg, rgba(231, 76, 60, 0.2), rgba(192, 57, 43, 0.2)); color: #e74c3c; padding: 15px; text-align: left; font-weight: 600; border-bottom: 2px solid #e74c3c; }
-        td { padding: 12px 15px; border-bottom: 1px solid #334155; color: #cbd5e1; }
-        tr:hover { background: rgba(231, 76, 60, 0.1); }
-        .highlight-box { background: rgba(231, 76, 60, 0.1); border-left: 4px solid #e74c3c; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .info-box { background: rgba(52, 152, 219, 0.1); border-left: 4px solid #3498db; padding: 20px; border-radius: 8px; margin: 20px 0; color: #85c1e9; }
-        .warning-box { background: rgba(241, 196, 15, 0.1); border-left: 4px solid #f1c40f; padding: 20px; border-radius: 8px; margin: 20px 0; color: #f4d03f; }
-        .success-box { background: rgba(46, 204, 113, 0.1); border-left: 4px solid #2ecc71; padding: 20px; border-radius: 8px; margin: 20px 0; color: #7dcea0; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px; }
-        .checklist { list-style: none; padding: 0; margin: 15px 0; }
-        .checklist li { padding: 10px 0; padding-left: 30px; position: relative; color: #cbd5e1; }
-        .checklist li:before { content: "✓"; position: absolute; left: 0; color: #e74c3c; font-weight: bold; }
-        .back-link { display: inline-block; margin-top: 40px; padding: 12px 24px; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; transition: all 0.3s ease; }
-        .back-link:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3); }
-        .final-banner { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); padding: 40px; border-radius: 12px; text-align: center; margin: 40px 0; color: white; }
-        .final-banner h2 { color: white; border: none; margin: 0 0 20px 0; }
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .hero h1 { font-size: 1.8em; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .concept-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid #e74c3c;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .concept-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(231, 76, 60, 0.2);
+        }
+
+        .concept-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #e74c3c;
+            margin-bottom: 12px;
+        }
+
+        .concept-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a8d5ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+            white-space: pre;
+        }
+
+        .code-block code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+            display: block;
+            font-size: 0.9em;
+            line-height: 1.6;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+        }
+
+        .code-keyword {
+            color: #ff7675;
+        }
+
+        .code-string {
+            color: #55efc4;
+        }
+
+        .code-function {
+            color: #74b9ff;
+        }
+
+        .code-comment {
+            color: #636e72;
+        }
+
+        .code-number {
+            color: #ffeaa7;
+        }
+
+        h2 {
+            font-size: 2em;
+            color: #f1f5f9;
+            margin: 40px 0 20px 0;
+            border-bottom: 2px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.3em;
+            color: #cbd5e1;
+            margin: 25px 0 15px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(231, 76, 60, 0.2), rgba(192, 57, 43, 0.2));
+            color: #e74c3c;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e74c3c;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+
+        tr:hover {
+            background: rgba(231, 76, 60, 0.1);
+        }
+
+        .highlight-box {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #85c1e9;
+        }
+
+        .warning-box {
+            background: rgba(241, 196, 15, 0.1);
+            border-left: 4px solid #f1c40f;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #f4d03f;
+        }
+
+        .success-box {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #7dcea0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(231, 76, 60, 0.3);
+        }
+
+        .final-banner {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 40px 0;
+            color: white;
+        }
+
+        .final-banner h2 {
+            color: white;
+            border: none;
+            margin: 0 0 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 1.8em;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="hero">
         <h1>🛠️ SQLite3 Administration & Integration</h1>
         <p>Master Backup, Encryption, Integration & Security Best Practices</p>
     </div>
-    
+
     <div class="container">
         <h2>📋 Module Overview</h2>
         <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
-            This final module covers database administration, backup strategies, encryption with SQLCipher, 
-            integration with Python and Node.js, security best practices, and data migration techniques. 
+            This final module covers database administration, backup strategies, encryption with SQLCipher,
+            integration with Python and Node.js, security best practices, and data migration techniques.
             You'll learn everything needed to deploy and maintain SQLite in production environments.
         </p>
-        
+
         <h2>💾 Backup & Recovery</h2>
-        
+
         <div class="concept-box">
             <div class="concept-title">Why Backup SQLite?</div>
             <div class="concept-description">
-                SQLite databases are single files, making backups simple. However, proper backup techniques 
-                ensure data consistency, especially for active databases. Choose the right method based on 
+                SQLite databases are single files, making backups simple. However, proper backup techniques
+                ensure data consistency, especially for active databases. Choose the right method based on
                 your requirements: online vs offline, full vs incremental, hot vs cold backup.
             </div>
         </div>
-        
+
         <h3>Method 1: File Copy (Offline Backup)</h3>
         <div class="code-block">
-<code><span class="code-comment"># Linux/Mac - Simple file copy</span>
+            <code><span class="code-comment"># Linux/Mac - Simple file copy</span>
 cp mydb.db mydb_backup_$(date +%Y%m%d).db
 
 <span class="code-comment"># Windows</span>
@@ -83,16 +308,16 @@ tar -czf mydb_backup_$(date +%Y%m%d).tar.gz mydb.db
 <span class="code-comment"># rsync for incremental backups</span>
 rsync -av --progress mydb.db /backup/location/</code>
         </div>
-        
+
         <div class="warning-box">
             <strong>⚠️ File Copy Warning:</strong><br>
-            Only use file copy when database is NOT in use. Copying an active database can result in 
+            Only use file copy when database is NOT in use. Copying an active database can result in
             corrupted backup. For active databases, use <code>.backup</code> command or online backup API.
         </div>
-        
+
         <h3>Method 2: SQLite .backup Command (Online Backup)</h3>
         <div class="code-block">
-<code><span class="code-comment">-- In SQLite CLI</span>
+            <code><span class="code-comment">-- In SQLite CLI</span>
 sqlite> .backup backup.db
 
 <span class="code-comment">-- Backup to different location</span>
@@ -101,10 +326,10 @@ sqlite> .backup /path/to/backup/mydb_backup.db
 <span class="code-comment">-- Restore from backup</span>
 sqlite> .restore backup.db</code>
         </div>
-        
+
         <h3>Method 3: SQL VACUUM INTO (SQLite 3.27.0+)</h3>
         <div class="code-block">
-<code><span class="code-comment">-- Create backup while optimizing database</span>
+            <code><span class="code-comment">-- Create backup while optimizing database</span>
 <span class="code-keyword">VACUUM INTO</span> <span class="code-string">'backup.db'</span>;
 
 <span class="code-comment">-- Benefits:</span>
@@ -113,10 +338,10 @@ sqlite> .restore backup.db</code>
 <span class="code-comment">-- 3. Reclaims unused space</span>
 <span class="code-comment">-- 4. Can be done while database is in use</span></code>
         </div>
-        
+
         <h3>Method 4: SQL .dump Command</h3>
         <div class="code-block">
-<code><span class="code-comment">-- Export as SQL statements</span>
+            <code><span class="code-comment">-- Export as SQL statements</span>
 sqlite> .output backup.sql
 sqlite> .dump
 sqlite> .output stdout
@@ -130,10 +355,10 @@ sqlite3 newdb.db < backup.sql
 <span class="code-comment">-- Dump specific table</span>
 sqlite3 mydb.db ".dump users" > users_backup.sql</code>
         </div>
-        
+
         <h3>Method 5: Online Backup API (Python)</h3>
         <div class="code-block">
-<code><span class="code-keyword">import</span> sqlite3
+            <code><span class="code-keyword">import</span> sqlite3
 
 <span class="code-keyword">def</span> <span class="code-function">backup_database</span>(source_db, backup_db):
     <span class="code-string">"""Online backup using SQLite backup API"""</span>
@@ -163,10 +388,10 @@ backup_database(<span class="code-string">'mydb.db'</span>, <span class="code-st
     source.close()
     backup.close()</code>
         </div>
-        
+
         <h3>Method 6: Online Backup API (Node.js)</h3>
         <div class="code-block">
-<code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
+            <code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
 
 <span class="code-keyword">function</span> <span class="code-function">backupDatabase</span>(sourceFile, backupFile) {
     <span class="code-keyword">const</span> source = <span class="code-keyword">new</span> Database(sourceFile);
@@ -182,7 +407,7 @@ backup_database(<span class="code-string">'mydb.db'</span>, <span class="code-st
 <span class="code-comment">// Usage</span>
 backupDatabase(<span class="code-string">'mydb.db'</span>, <span class="code-string">'backup.db'</span>);</code>
         </div>
-        
+
         <h3>Backup Strategy Comparison</h3>
         <table>
             <thead>
@@ -226,10 +451,10 @@ backupDatabase(<span class="code-string">'mydb.db'</span>, <span class="code-str
                 </tr>
             </tbody>
         </table>
-        
+
         <h3>Automated Backup Script (Python)</h3>
         <div class="code-block">
-<code><span class="code-keyword">import</span> sqlite3
+            <code><span class="code-keyword">import</span> sqlite3
 <span class="code-keyword">import</span> shutil
 <span class="code-keyword">from</span> datetime <span class="code-keyword">import</span> datetime
 <span class="code-keyword">import</span> os
@@ -262,21 +487,21 @@ backupDatabase(<span class="code-string">'mydb.db'</span>, <span class="code-str
 <span class="code-comment"># Usage</span>
 automated_backup(<span class="code-string">'mydb.db'</span>, <span class="code-string">'/backups'</span>, keep_days=<span class="code-number">7</span>)</code>
         </div>
-        
+
         <h2>🔐 Database Encryption (SQLCipher)</h2>
-        
+
         <div class="concept-box">
             <div class="concept-title">What is SQLCipher?</div>
             <div class="concept-description">
-                SQLCipher is an open-source extension that provides transparent 256-bit AES encryption for 
-                SQLite databases. It encrypts the entire database file, including metadata, making it 
+                SQLCipher is an open-source extension that provides transparent 256-bit AES encryption for
+                SQLite databases. It encrypts the entire database file, including metadata, making it
                 essential for applications handling sensitive data.
             </div>
         </div>
-        
+
         <h3>Installing SQLCipher</h3>
         <div class="code-block">
-<code><span class="code-comment"># Linux (Ubuntu/Debian)</span>
+            <code><span class="code-comment"># Linux (Ubuntu/Debian)</span>
 sudo apt-get install sqlcipher libsqlcipher-dev
 
 <span class="code-comment"># macOS</span>
@@ -288,10 +513,10 @@ pip install pysqlcipher3
 <span class="code-comment"># Node.js</span>
 npm install @journeyapps/sqlcipher</code>
         </div>
-        
+
         <h3>Using SQLCipher (CLI)</h3>
         <div class="code-block">
-<code><span class="code-comment"># Create encrypted database</span>
+            <code><span class="code-comment"># Create encrypted database</span>
 sqlcipher encrypted.db
 sqlite> PRAGMA key = <span class="code-string">'your-secret-password'</span>;
 sqlite> CREATE TABLE users (id INTEGER, name TEXT);
@@ -306,10 +531,10 @@ sqlite> SELECT * FROM users;
 <span class="code-comment"># Change password</span>
 sqlite> PRAGMA rekey = <span class="code-string">'new-password'</span>;</code>
         </div>
-        
+
         <h3>SQLCipher with Python</h3>
         <div class="code-block">
-<code><span class="code-keyword">from</span> pysqlcipher3 <span class="code-keyword">import</span> dbapi2 <span class="code-keyword">as</span> sqlite
+            <code><span class="code-keyword">from</span> pysqlcipher3 <span class="code-keyword">import</span> dbapi2 <span class="code-keyword">as</span> sqlite
 
 <span class="code-comment"># Create/open encrypted database</span>
 conn = sqlite.connect(<span class="code-string">'encrypted.db'</span>)
@@ -342,10 +567,10 @@ conn.close()
     plain.execute(<span class="code-string">'DETACH DATABASE encrypted'</span>)
     plain.close()</code>
         </div>
-        
+
         <h3>SQLCipher with Node.js</h3>
         <div class="code-block">
-<code><span class="code-keyword">const</span> SQLite = require(<span class="code-string">'@journeyapps/sqlcipher'</span>).verbose();
+            <code><span class="code-keyword">const</span> SQLite = require(<span class="code-string">'@journeyapps/sqlcipher'</span>).verbose();
 
 <span class="code-comment">// Create/open encrypted database</span>
 <span class="code-keyword">const</span> db = <span class="code-keyword">new</span> SQLite.Database(<span class="code-string">'encrypted.db'</span>);
@@ -365,7 +590,7 @@ db.serialize(() => {
 
 db.close();</code>
         </div>
-        
+
         <div class="warning-box">
             <strong>⚠️ Encryption Best Practices:</strong><br>
             • Never hardcode passwords in source code<br>
@@ -375,12 +600,12 @@ db.close();</code>
             • Backup encrypted databases separately<br>
             • Test recovery procedures regularly
         </div>
-        
+
         <h2>🐍 Python Integration</h2>
-        
+
         <h3>Basic Python sqlite3 Module</h3>
         <div class="code-block">
-<code><span class="code-keyword">import</span> sqlite3
+            <code><span class="code-keyword">import</span> sqlite3
 
 <span class="code-comment"># Connect to database</span>
 conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
@@ -413,10 +638,10 @@ rows = cursor.fetchall()
 <span class="code-comment"># Close connection</span>
 conn.close()</code>
         </div>
-        
+
         <h3>Python Context Manager</h3>
         <div class="code-block">
-<code><span class="code-keyword">import</span> sqlite3
+            <code><span class="code-keyword">import</span> sqlite3
 
 <span class="code-comment"># Automatic commit/rollback and close</span>
 <span class="code-keyword">with</span> sqlite3.connect(<span class="code-string">'mydb.db'</span>) <span class="code-keyword">as</span> conn:
@@ -429,10 +654,10 @@ conn.close()</code>
 
 <span class="code-comment"># Connection automatically closed</span></code>
         </div>
-        
+
         <h3>Python Row Factory (Dict-like Access)</h3>
         <div class="code-block">
-<code><span class="code-keyword">import</span> sqlite3
+            <code><span class="code-keyword">import</span> sqlite3
 
 conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
 
@@ -446,10 +671,10 @@ cursor = conn.execute(<span class="code-string">'SELECT * FROM users'</span>)
 
 conn.close()</code>
         </div>
-        
+
         <h3>Python ORM Example (SQLAlchemy)</h3>
         <div class="code-block">
-<code><span class="code-keyword">from</span> sqlalchemy <span class="code-keyword">import</span> create_engine, Column, Integer, String
+            <code><span class="code-keyword">from</span> sqlalchemy <span class="code-keyword">import</span> create_engine, Column, Integer, String
 <span class="code-keyword">from</span> sqlalchemy.ext.declarative <span class="code-keyword">import</span> declarative_base
 <span class="code-keyword">from</span> sqlalchemy.orm <span class="code-keyword">import</span> sessionmaker
 
@@ -484,12 +709,12 @@ users = session.query(User).filter(User.name == <span class="code-string">'Alice
 
 session.close()</code>
         </div>
-        
+
         <h2>📦 Node.js Integration</h2>
-        
+
         <h3>better-sqlite3 (Recommended)</h3>
         <div class="code-block">
-<code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
+            <code><span class="code-keyword">const</span> Database = require(<span class="code-string">'better-sqlite3'</span>);
 
 <span class="code-comment">// Open database</span>
 <span class="code-keyword">const</span> db = <span class="code-keyword">new</span> Database(<span class="code-string">'mydb.db'</span>);
@@ -536,10 +761,10 @@ console.log(users);
 <span class="code-comment">// Close database</span>
 db.close();</code>
         </div>
-        
+
         <h3>Node.js with TypeScript</h3>
         <div class="code-block">
-<code><span class="code-keyword">import</span> Database <span class="code-keyword">from</span> <span class="code-string">'better-sqlite3'</span>;
+            <code><span class="code-keyword">import</span> Database <span class="code-keyword">from</span> <span class="code-string">'better-sqlite3'</span>;
 
 <span class="code-keyword">interface</span> <span class="code-function">User</span> {
     id: number;
@@ -593,9 +818,9 @@ db.close();</code>
 <span class="code-keyword">const</span> user = repo.findById(userId);
 console.log(user);</code>
         </div>
-        
+
         <h2>🔒 Security Best Practices</h2>
-        
+
         <div class="grid">
             <div class="concept-box">
                 <div class="concept-title">1. Prevent SQL Injection</div>
@@ -604,7 +829,7 @@ console.log(user);</code>
                     <strong style="color: #2ecc71;">✅ Always:</strong> Use parameterized queries
                 </div>
             </div>
-            
+
             <div class="concept-box">
                 <div class="concept-title">2. File Permissions</div>
                 <div class="concept-description">
@@ -613,10 +838,10 @@ console.log(user);</code>
                 </div>
             </div>
         </div>
-        
+
         <h3>SQL Injection Prevention</h3>
         <div class="code-block">
-<code><span class="code-comment"># ❌ DANGEROUS - SQL Injection vulnerability</span>
+            <code><span class="code-comment"># ❌ DANGEROUS - SQL Injection vulnerability</span>
 user_input = <span class="code-string">"Alice'; DROP TABLE users; --"</span>
 query = <span class="code-string">f"SELECT * FROM users WHERE name = '{user_input}'"</span>
 cursor.execute(query)  <span class="code-comment"># NEVER DO THIS!</span>
@@ -628,10 +853,10 @@ cursor.execute(<span class="code-string">'SELECT * FROM users WHERE name = ?'</s
 <span class="code-comment"># ✅ SAFE - Named parameters</span>
 cursor.execute(<span class="code-string">'SELECT * FROM users WHERE name = :name'</span>, {<span class="code-string">'name'</span>: user_input})</code>
         </div>
-        
+
         <h3>File Permissions (Linux/Mac)</h3>
         <div class="code-block">
-<code><span class="code-comment"># Set restrictive permissions</span>
+            <code><span class="code-comment"># Set restrictive permissions</span>
 chmod <span class="code-number">600</span> mydb.db  <span class="code-comment"># Owner read/write only</span>
 chown appuser:appgroup mydb.db
 
@@ -639,7 +864,7 @@ chown appuser:appgroup mydb.db
 ls -l mydb.db
 <span class="code-comment"># Should show: -rw------- 1 appuser appgroup</span></code>
         </div>
-        
+
         <h3>Security Checklist</h3>
         <ul class="checklist">
             <li>Always use parameterized queries (never string concatenation)</li>
@@ -655,12 +880,12 @@ ls -l mydb.db
             <li>Use WAL mode for better concurrency and crash recovery</li>
             <li>Implement rate limiting for API endpoints</li>
         </ul>
-        
+
         <h2>🔄 Migration & Data Import/Export</h2>
-        
+
         <h3>CSV Import</h3>
         <div class="code-block">
-<code><span class="code-comment">-- In SQLite CLI</span>
+            <code><span class="code-comment">-- In SQLite CLI</span>
 sqlite> .mode csv
 sqlite> .import data.csv users
 
@@ -685,10 +910,10 @@ cursor = conn.cursor()
 conn.commit()
 conn.close()</code>
         </div>
-        
+
         <h3>CSV Export</h3>
         <div class="code-block">
-<code><span class="code-comment">-- In SQLite CLI</span>
+            <code><span class="code-comment">-- In SQLite CLI</span>
 sqlite> .mode csv
 sqlite> .output users.csv
 sqlite> SELECT * FROM users;
@@ -708,10 +933,10 @@ cursor = conn.execute(<span class="code-string">'SELECT * FROM users'</span>)
 
 conn.close()</code>
         </div>
-        
+
         <h3>JSON Import/Export</h3>
         <div class="code-block">
-<code><span class="code-comment"># Python JSON export</span>
+            <code><span class="code-comment"># Python JSON export</span>
 <span class="code-keyword">import</span> sqlite3
 <span class="code-keyword">import</span> json
 
@@ -737,10 +962,10 @@ conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
 conn.commit()
 conn.close()</code>
         </div>
-        
+
         <h3>Database Migration (Schema Changes)</h3>
         <div class="code-block">
-<code><span class="code-comment">-- Migration pattern for adding column</span>
+            <code><span class="code-comment">-- Migration pattern for adding column</span>
 <span class="code-keyword">BEGIN TRANSACTION</span>;
 
 <span class="code-comment">-- 1. Create new table with desired schema</span>
@@ -766,12 +991,12 @@ conn.close()</code>
 
 <span class="code-keyword">COMMIT</span>;</code>
         </div>
-        
+
         <h2>📊 Monitoring & Maintenance</h2>
-        
+
         <h3>Database Health Check</h3>
         <div class="code-block">
-<code><span class="code-comment">-- Check database integrity</span>
+            <code><span class="code-comment">-- Check database integrity</span>
 <span class="code-keyword">PRAGMA</span> integrity_check;
 
 <span class="code-comment">-- Quick check (faster)</span>
@@ -794,10 +1019,10 @@ conn.close()</code>
 <span class="code-keyword">GROUP BY</span> name
 <span class="code-keyword">ORDER BY</span> size_bytes <span class="code-keyword">DESC</span>;</code>
         </div>
-        
+
         <h3>Performance Monitoring (Python)</h3>
         <div class="code-block">
-<code><span class="code-keyword">import</span> sqlite3
+            <code><span class="code-keyword">import</span> sqlite3
 <span class="code-keyword">import</span> time
 
 <span class="code-keyword">def</span> <span class="code-function">monitor_query</span>(conn, query, params=()):
@@ -817,26 +1042,7 @@ conn.close()</code>
 conn = sqlite3.connect(<span class="code-string">'mydb.db'</span>)
 monitor_query(conn, <span class="code-string">'SELECT * FROM users WHERE name LIKE ?'</span>, (<span class="code-string">'%Alice%'</span>,))</code>
         </div>
-        
-        <div class="final-banner">
-            <h2>🎉 Congratulations!</h2>
-            <p style="font-size: 1.2em; margin-bottom: 20px;">
-                You've completed the SQLite3 Knowledge Base!
-            </p>
-            <p style="font-size: 1em; line-height: 1.8;">
-                You now have comprehensive knowledge of SQLite from fundamentals to advanced features.<br>
-                You can build production-ready applications with proper security, performance optimization,<br>
-                and best practices for backup, encryption, and integration.
-            </p>
-            <div style="margin-top: 30px; font-size: 1.1em;">
-                <strong>What's Next?</strong><br>
-                • Build real-world projects<br>
-                • Contribute to open-source SQLite projects<br>
-                • Explore SQLite extensions and custom modules<br>
-                • Share your knowledge with others
-            </div>
-        </div>
-        
+
         <h2>✅ Module Checklist</h2>
         <ul class="checklist">
             <li>Implement proper backup strategies (online and offline)</li>
@@ -850,7 +1056,7 @@ monitor_query(conn, <span class="code-string">'SELECT * FROM users WHERE name LI
             <li>Monitor database health and performance</li>
             <li>Implement automated backup with rotation</li>
         </ul>
-        
+
         <div class="highlight-box">
             <strong>🎯 Final Tips:</strong><br>
             • Always test in development before production<br>
@@ -861,8 +1067,9 @@ monitor_query(conn, <span class="code-string">'SELECT * FROM users WHERE name LI
             • Use version control for schema changes<br>
             • Implement proper logging and error handling
         </div>
-        
+
         <a href="index-sqlite.html" class="back-link">← Back to Index</a>
     </div>
 </body>
+
 </html>

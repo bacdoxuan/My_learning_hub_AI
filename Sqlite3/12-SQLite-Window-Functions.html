@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #12 - Window Functions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .concept-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid #6366f1;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .concept-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(99, 102, 241, 0.2);
+        }
+
+        .concept-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #6366f1;
+            margin-bottom: 12px;
+        }
+
+        .concept-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a8d5ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+            white-space: pre;
+        }
+
+        .code-block code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+            display: block;
+            font-size: 0.9em;
+            line-height: 1.6;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+        }
+
+        .code-keyword {
+            color: #ff7675;
+        }
+
+        .code-string {
+            color: #55efc4;
+        }
+
+        .code-function {
+            color: #74b9ff;
+        }
+
+        .code-comment {
+            color: #636e72;
+        }
+
+        .code-number {
+            color: #ffeaa7;
+        }
+
+        h2 {
+            font-size: 2em;
+            color: #f1f5f9;
+            margin: 40px 0 20px 0;
+            border-bottom: 2px solid #6366f1;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.3em;
+            color: #cbd5e1;
+            margin: 25px 0 15px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.2));
+            color: #6366f1;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #6366f1;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+
+        tr:hover {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .highlight-box {
+            background: rgba(99, 102, 241, 0.1);
+            border-left: 4px solid #6366f1;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #85c1e9;
+        }
+
+        .warning-box {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #f1948a;
+        }
+
+        .success-box {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #7dcea0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #6366f1;
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hero">
+        <h1>📊 SQLite Window Functions</h1>
+        <p>Advanced Analytics with Partitions, Ranking & Aggregation</p>
+    </div>
+
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            Window functions (also called analytic functions) allow you to perform calculations across rows related to
+            the current row. Unlike aggregate functions that collapse rows, window functions preserve individual rows
+            while adding computed values. This module covers partitions, ordering, framing, ranking functions, aggregate
+            window functions, offset functions, chaining, and best practices for productive data analysis.
+        </p>
+
+        <h2>🎯 Core Concepts</h2>
+
+        <div class="concept-box">
+            <div class="concept-title">What are Window Functions?</div>
+            <div class="concept-description">
+                Window functions perform calculations across a set of rows (the "window") that are related to the
+                current row. They return a value for each row, unlike aggregate functions which return a single value
+                for a group. Window functions are essential for rankings, running totals, moving averages, and
+                comparative analytics.
+            </div>
+        </div>
+
+        <h3>Basic Syntax</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Window function syntax</span>
+<span class="code-function">function_name</span>(<span class="code-keyword">expression</span>) <span class="code-keyword">OVER</span> (
+    [<span class="code-keyword">PARTITION BY</span> partition_expression]
+    [<span class="code-keyword">ORDER BY</span> sort_expression]
+    [<span class="code-keyword">frame_clause</span>]
+)</code>
+        </div>
+
+        <h3>1. Partitions (PARTITION BY)</h3>
+        <div class="concept-box">
+            <div class="concept-title">Understanding Partitions</div>
+            <div class="concept-description">
+                PARTITION BY divides the result set into partitions (groups). The window function is applied separately
+                to each partition. Think of it like GROUP BY, but without collapsing rows.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Create sample sales table</span>
+<span class="code-keyword">CREATE TABLE</span> sales (
+    id <span class="code-keyword">INTEGER PRIMARY KEY</span>,
+    department <span class="code-keyword">TEXT</span>,
+    employee <span class="code-keyword">TEXT</span>,
+    amount <span class="code-keyword">REAL</span>,
+    sale_date <span class="code-keyword">DATE</span>
+);
+
+<span class="code-keyword">INSERT INTO</span> sales <span class="code-keyword">VALUES</span>
+    (<span class="code-number">1</span>, <span class="code-string">'IT'</span>, <span class="code-string">'Alice'</span>, <span class="code-number">5000</span>, <span class="code-string">'2024-01-15'</span>),
+    (<span class="code-number">2</span>, <span class="code-string">'IT'</span>, <span class="code-string">'Bob'</span>, <span class="code-number">7000</span>, <span class="code-string">'2024-01-20'</span>),
+    (<span class="code-number">3</span>, <span class="code-string">'Sales'</span>, <span class="code-string">'Charlie'</span>, <span class="code-number">9000</span>, <span class="code-string">'2024-01-10'</span>),
+    (<span class="code-number">4</span>, <span class="code-string">'Sales'</span>, <span class="code-string">'David'</span>, <span class="code-number">6000</span>, <span class="code-string">'2024-01-25'</span>),
+    (<span class="code-number">5</span>, <span class="code-string">'IT'</span>, <span class="code-string">'Eve'</span>, <span class="code-number">8000</span>, <span class="code-string">'2024-02-05'</span>);
+
+<span class="code-comment">-- Calculate total sales per department for each employee</span>
+<span class="code-keyword">SELECT</span> 
+    employee,
+    department,
+    amount,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> department) <span class="code-keyword">AS</span> dept_total
+<span class="code-keyword">FROM</span> sales;
+
+<span class="code-comment">/*
+Result:
+employee | department | amount | dept_total
+---------|------------|--------|------------
+Alice    | IT         | 5000   | 20000
+Bob      | IT         | 7000   | 20000
+Eve      | IT         | 8000   | 20000
+Charlie  | Sales      | 9000   | 15000
+David    | Sales      | 6000   | 15000
+*/</span></code>
+        </div>
+
+        <h3>2. Ordering (ORDER BY)</h3>
+        <div class="concept-box">
+            <div class="concept-title">Window Ordering</div>
+            <div class="concept-description">
+                ORDER BY within a window determines the order of rows for the window function. It's separate from the
+                query's main ORDER BY. This is crucial for ranking and running calculations.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Rank employees by sales within each department</span>
+<span class="code-keyword">SELECT</span> 
+    employee,
+    department,
+    amount,
+    <span class="code-function">ROW_NUMBER</span>() <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">PARTITION BY</span> department 
+        <span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>
+    ) <span class="code-keyword">AS</span> rank_in_dept
+<span class="code-keyword">FROM</span> sales;
+
+<span class="code-comment">/*
+Result:
+employee | department | amount | rank_in_dept
+---------|------------|--------|-------------
+Eve      | IT         | 8000   | 1
+Bob      | IT         | 7000   | 2
+Alice    | IT         | 5000   | 3
+Charlie  | Sales      | 9000   | 1
+David    | Sales      | 6000   | 2
+*/</span></code>
+        </div>
+
+        <h3>3. Framing (Frame Clause)</h3>
+        <div class="concept-box">
+            <div class="concept-title">Understanding Frames</div>
+            <div class="concept-description">
+                The frame clause defines which rows around the current row are included in the window. Frames are
+                essential for moving averages, running totals, and calculations relative to the current row.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Frame syntax options</span>
+<span class="code-keyword">ROWS BETWEEN</span> <span class="code-keyword">UNBOUNDED PRECEDING AND CURRENT ROW</span>  <span class="code-comment">-- All rows from start to current</span>
+<span class="code-keyword">ROWS BETWEEN</span> <span class="code-keyword">CURRENT ROW AND UNBOUNDED FOLLOWING</span>  <span class="code-comment">-- Current to end</span>
+<span class="code-keyword">ROWS BETWEEN</span> <span class="code-number">1</span> <span class="code-keyword">PRECEDING AND</span> <span class="code-number">1</span> <span class="code-keyword">FOLLOWING</span>          <span class="code-comment">-- 1 before, current, 1 after</span>
+<span class="code-keyword">ROWS BETWEEN</span> <span class="code-number">2</span> <span class="code-keyword">PRECEDING AND CURRENT ROW</span>            <span class="code-comment">-- 2 before and current</span>
+
+<span class="code-comment">-- Calculate running total of sales</span>
+<span class="code-keyword">SELECT</span> 
+    employee,
+    sale_date,
+    amount,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">ORDER BY</span> sale_date
+        <span class="code-keyword">ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+    ) <span class="code-keyword">AS</span> running_total
+<span class="code-keyword">FROM</span> sales;
+
+<span class="code-comment">-- 3-day moving average</span>
+<span class="code-keyword">SELECT</span> 
+    sale_date,
+    amount,
+    <span class="code-function">AVG</span>(amount) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">ORDER BY</span> sale_date
+        <span class="code-keyword">ROWS BETWEEN</span> <span class="code-number">2</span> <span class="code-keyword">PRECEDING AND CURRENT ROW</span>
+    ) <span class="code-keyword">AS</span> moving_avg_3day
+<span class="code-keyword">FROM</span> sales;</code>
+        </div>
+
+        <h2>📊 Window Function Types</h2>
+
+        <h3>1. Ranking Functions</h3>
+
+        <div class="concept-box">
+            <div class="concept-title">ROW_NUMBER(), RANK(), DENSE_RANK()</div>
+            <div class="concept-description">
+                Ranking functions assign a rank or number to each row within a partition. They differ in how they handle
+                ties.
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Function</th>
+                    <th>Description</th>
+                    <th>Handles Ties</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>ROW_NUMBER()</code></td>
+                    <td>Unique sequential number for each row</td>
+                    <td>No gaps, arbitrary order for ties</td>
+                </tr>
+                <tr>
+                    <td><code>RANK()</code></td>
+                    <td>Rank with gaps after ties</td>
+                    <td>Same rank, skips next numbers</td>
+                </tr>
+                <tr>
+                    <td><code>DENSE_RANK()</code></td>
+                    <td>Rank without gaps</td>
+                    <td>Same rank, no gaps</td>
+                </tr>
+                <tr>
+                    <td><code>NTILE(n)</code></td>
+                    <td>Divide rows into n groups</td>
+                    <td>Distributes evenly</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Compare ranking functions</span>
+<span class="code-keyword">CREATE TABLE</span> scores (
+    student <span class="code-keyword">TEXT</span>,
+    score <span class="code-keyword">INTEGER</span>
+);
+
+<span class="code-keyword">INSERT INTO</span> scores <span class="code-keyword">VALUES</span>
+    (<span class="code-string">'Alice'</span>, <span class="code-number">95</span>),
+    (<span class="code-string">'Bob'</span>, <span class="code-number">90</span>),
+    (<span class="code-string">'Charlie'</span>, <span class="code-number">90</span>),  <span class="code-comment">-- Tie</span>
+    (<span class="code-string">'David'</span>, <span class="code-number">85</span>),
+    (<span class="code-string">'Eve'</span>, <span class="code-number">80</span>);
+
+<span class="code-keyword">SELECT</span> 
+    student,
+    score,
+    <span class="code-function">ROW_NUMBER</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> score <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> row_num,
+    <span class="code-function">RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> score <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> rank,
+    <span class="code-function">DENSE_RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> score <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> dense_rank,
+    <span class="code-function">NTILE</span>(<span class="code-number">2</span>) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> score <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> quartile
+<span class="code-keyword">FROM</span> scores;
+
+<span class="code-comment">/*
+Result:
+student  | score | row_num | rank | dense_rank | quartile
+---------|-------|---------|------|------------|----------
+Alice    | 95    | 1       | 1    | 1          | 1
+Bob      | 90    | 2       | 2    | 2          | 1
+Charlie  | 90    | 3       | 2    | 2          | 1
+David    | 85    | 4       | 4    | 3          | 2
+Eve      | 80    | 5       | 5    | 4          | 2
+*/</span></code>
+        </div>
+
+        <h3>2. Aggregate Window Functions</h3>
+
+        <div class="concept-box">
+            <div class="concept-title">SUM, AVG, COUNT, MIN, MAX as Window Functions</div>
+            <div class="concept-description">
+                Standard aggregate functions can be used as window functions with OVER clause. They calculate across the
+                window frame instead of collapsing rows.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Running total and cumulative average</span>
+<span class="code-keyword">SELECT</span> 
+    sale_date,
+    amount,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">ORDER BY</span> sale_date
+        <span class="code-keyword">ROWS UNBOUNDED PRECEDING</span>
+    ) <span class="code-keyword">AS</span> running_total,
+    <span class="code-function">AVG</span>(amount) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">ORDER BY</span> sale_date
+        <span class="code-keyword">ROWS UNBOUNDED PRECEDING</span>
+    ) <span class="code-keyword">AS</span> cumulative_avg,
+    <span class="code-function">COUNT</span>(*) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">ORDER BY</span> sale_date
+        <span class="code-keyword">ROWS UNBOUNDED PRECEDING</span>
+    ) <span class="code-keyword">AS</span> row_count
+<span class="code-keyword">FROM</span> sales;
+
+<span class="code-comment">-- Percentage of department total</span>
+<span class="code-keyword">SELECT</span> 
+    employee,
+    department,
+    amount,
+    <span class="code-function">ROUND</span>(amount * <span class="code-number">100.0</span> / <span class="code-function">SUM</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> department), <span class="code-number">2</span>) 
+        <span class="code-keyword">AS</span> pct_of_dept
+<span class="code-keyword">FROM</span> sales;
+
+<span class="code-comment">-- Compare to department average</span>
+<span class="code-keyword">SELECT</span> 
+    employee,
+    amount,
+    <span class="code-function">AVG</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> department) <span class="code-keyword">AS</span> dept_avg,
+    amount - <span class="code-function">AVG</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> department) <span class="code-keyword">AS</span> diff_from_avg
+<span class="code-keyword">FROM</span> sales;</code>
+        </div>
+
+        <h3>3. Offset Functions</h3>
+
+        <div class="concept-box">
+            <div class="concept-title">LAG, LEAD, FIRST_VALUE, LAST_VALUE</div>
+            <div class="concept-description">
+                Offset functions access values from other rows relative to the current row without self-joins. Perfect
+                for comparing current vs previous values, trends, and time-series analysis.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- LAG: Access previous row</span>
+<span class="code-keyword">SELECT</span> 
+    sale_date,
+    amount,
+    <span class="code-function">LAG</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> sale_date) <span class="code-keyword">AS</span> prev_amount,
+    amount - <span class="code-function">LAG</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> sale_date) <span class="code-keyword">AS</span> change
+<span class="code-keyword">FROM</span> sales;
+
+<span class="code-comment">-- LEAD: Access next row</span>
+<span class="code-keyword">SELECT</span> 
+    sale_date,
+    amount,
+    <span class="code-function">LEAD</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> sale_date) <span class="code-keyword">AS</span> next_amount,
+    <span class="code-function">LEAD</span>(sale_date) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> sale_date) <span class="code-keyword">AS</span> next_date
+<span class="code-keyword">FROM</span> sales;
+
+<span class="code-comment">-- LAG with offset and default</span>
+<span class="code-keyword">SELECT</span> 
+    sale_date,
+    amount,
+    <span class="code-function">LAG</span>(amount, <span class="code-number">2</span>, <span class="code-number">0</span>) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> sale_date) <span class="code-keyword">AS</span> amount_2_days_ago
+<span class="code-keyword">FROM</span> sales;
+
+<span class="code-comment">-- FIRST_VALUE and LAST_VALUE</span>
+<span class="code-keyword">SELECT</span> 
+    employee,
+    department,
+    amount,
+    <span class="code-function">FIRST_VALUE</span>(amount) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">PARTITION BY</span> department 
+        <span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>
+    ) <span class="code-keyword">AS</span> highest_in_dept,
+    <span class="code-function">LAST_VALUE</span>(amount) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">PARTITION BY</span> department 
+        <span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>
+        <span class="code-keyword">ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</span>
+    ) <span class="code-keyword">AS</span> lowest_in_dept
+<span class="code-keyword">FROM</span> sales;</code>
+        </div>
+
+        <h3>4. Window Function Chaining</h3>
+
+        <div class="concept-box">
+            <div class="concept-title">Combining Multiple Window Functions</div>
+            <div class="concept-description">
+                You can use multiple window functions in the same query, or use window functions on top of other window
+                functions via subqueries for complex analytics.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Multiple window functions in one query</span>
+<span class="code-keyword">SELECT</span> 
+    employee,
+    department,
+    amount,
+    <span class="code-function">RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> department <span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> dept_rank,
+    <span class="code-function">RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> overall_rank,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> department) <span class="code-keyword">AS</span> dept_total,
+    <span class="code-function">AVG</span>(amount) <span class="code-keyword">OVER</span> () <span class="code-keyword">AS</span> company_avg
+<span class="code-keyword">FROM</span> sales;
+
+<span class="code-comment">-- Nested window functions via subquery</span>
+<span class="code-keyword">WITH</span> ranked_sales <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> 
+        employee,
+        department,
+        amount,
+        <span class="code-function">RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> department <span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>) <span class="code-keyword">AS</span> dept_rank
+    <span class="code-keyword">FROM</span> sales
+)
+<span class="code-keyword">SELECT</span> 
+    employee,
+    department,
+    amount,
+    dept_rank,
+    <span class="code-function">AVG</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> dept_rank) <span class="code-keyword">AS</span> avg_for_same_rank
+<span class="code-keyword">FROM</span> ranked_sales;</code>
+        </div>
+
+        <h2>🎯 Real-World Use Cases</h2>
+
+        <h3>Use Case 1: Top N per Group</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Find top 2 salespeople in each department</span>
+<span class="code-keyword">WITH</span> ranked <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> 
+        employee,
+        department,
+        amount,
+        <span class="code-function">ROW_NUMBER</span>() <span class="code-keyword">OVER</span> (
+            <span class="code-keyword">PARTITION BY</span> department 
+            <span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>
+        ) <span class="code-keyword">AS</span> rn
+    <span class="code-keyword">FROM</span> sales
+)
+<span class="code-keyword">SELECT</span> employee, department, amount
+<span class="code-keyword">FROM</span> ranked
+<span class="code-keyword">WHERE</span> rn <= <span class="code-number">2</span>;</code>
+        </div>
+
+        <h3>Use Case 2: Running Statistics Dashboard</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Sales dashboard with multiple metrics</span>
+<span class="code-keyword">SELECT</span> 
+    sale_date,
+    amount,
+    <span class="code-comment">-- Running total</span>
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">ORDER BY</span> sale_date
+        <span class="code-keyword">ROWS UNBOUNDED PRECEDING</span>
+    ) <span class="code-keyword">AS</span> ytd_total,
+    <span class="code-comment">-- 7-day moving average</span>
+    <span class="code-function">AVG</span>(amount) <span class="code-keyword">OVER</span> (
+        <span class="code-keyword">ORDER BY</span> sale_date
+        <span class="code-keyword">ROWS BETWEEN</span> <span class="code-number">6</span> <span class="code-keyword">PRECEDING AND CURRENT ROW</span>
+    ) <span class="code-keyword">AS</span> moving_avg_7d,
+    <span class="code-comment">-- Day-over-day change</span>
+    amount - <span class="code-function">LAG</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> sale_date) <span class="code-keyword">AS</span> daily_change,
+    <span class="code-comment">-- Percentage change</span>
+    <span class="code-function">ROUND</span>(
+        (amount - <span class="code-function">LAG</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> sale_date)) * <span class="code-number">100.0</span> / 
+        <span class="code-function">LAG</span>(amount) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> sale_date),
+        <span class="code-number">2</span>
+    ) <span class="code-keyword">AS</span> pct_change
+<span class="code-keyword">FROM</span> sales;</code>
+        </div>
+
+        <h3>Use Case 3: Gap Analysis</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Find gaps in sequential data</span>
+<span class="code-keyword">WITH</span> sequenced <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> 
+        id,
+        <span class="code-function">LAG</span>(id) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> id) <span class="code-keyword">AS</span> prev_id
+    <span class="code-keyword">FROM</span> sales
+)
+<span class="code-keyword">SELECT</span> 
+    prev_id + <span class="code-number">1</span> <span class="code-keyword">AS</span> gap_start,
+    id - <span class="code-number">1</span> <span class="code-keyword">AS</span> gap_end
+<span class="code-keyword">FROM</span> sequenced
+<span class="code-keyword">WHERE</span> id - prev_id > <span class="code-number">1</span>;</code>
+        </div>
+
+        <h3>Use Case 4: Percentile Analysis</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Divide into quartiles and analyze</span>
+<span class="code-keyword">SELECT</span> 
+    employee,
+    amount,
+    <span class="code-function">NTILE</span>(<span class="code-number">4</span>) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> amount) <span class="code-keyword">AS</span> quartile,
+    <span class="code-keyword">CASE</span> <span class="code-function">NTILE</span>(<span class="code-number">4</span>) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> amount)
+        <span class="code-keyword">WHEN</span> <span class="code-number">1</span> <span class="code-keyword">THEN</span> <span class="code-string">'Bottom 25%'</span>
+        <span class="code-keyword">WHEN</span> <span class="code-number">2</span> <span class="code-keyword">THEN</span> <span class="code-string">'2nd Quartile'</span>
+        <span class="code-keyword">WHEN</span> <span class="code-number">3</span> <span class="code-keyword">THEN</span> <span class="code-string">'3rd Quartile'</span>
+        <span class="code-keyword">WHEN</span> <span class="code-number">4</span> <span class="code-keyword">THEN</span> <span class="code-string">'Top 25%'</span>
+    <span class="code-keyword">END</span> <span class="code-keyword">AS</span> performance_tier
+<span class="code-keyword">FROM</span> sales;</code>
+        </div>
+
+        <h2>✅ Best Practices for Productive Analysis</h2>
+
+        <div class="success-box">
+            <strong>✅ Window Function Best Practices:</strong><br><br>
+
+            <strong>1. Performance Optimization:</strong><br>
+            • Create indexes on columns used in PARTITION BY and ORDER BY<br>
+            • Use PARTITION BY to limit window size<br>
+            • Avoid unnecessary window functions—materialize results in CTEs if reused<br>
+            • Use specific frame clauses instead of default to improve performance<br><br>
+
+            <strong>2. Code Clarity:</strong><br>
+            • Use CTEs to break complex window function queries into readable steps<br>
+            • Name window functions descriptively (running_total vs rt)<br>
+            • Add comments for complex frame definitions<br>
+            • Reuse window definitions with WINDOW clause<br><br>
+
+            <strong>3. Correctness:</strong><br>
+            • Remember LAST_VALUE needs explicit frame to UNBOUNDED FOLLOWING<br>
+            • Be careful with NULL handling in ORDER BY (NULLs sort first by default)<br>
+            • Test edge cases: empty partitions, single-row partitions, all NULLs<br>
+            • Verify frame boundaries match your analytical intent<br><br>
+
+            <strong>4. Maintainability:</strong><br>
+            • Use named windows for repeated window specifications<br>
+            • Document business logic in comments<br>
+            • Create views for commonly used window calculations<br>
+            • Test with small datasets before production
+        </div>
+
+        <h3>Using WINDOW Clause (Named Windows)</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Define reusable window specifications</span>
+<span class="code-keyword">SELECT</span> 
+    employee,
+    department,
+    amount,
+    <span class="code-function">RANK</span>() <span class="code-keyword">OVER</span> w <span class="code-keyword">AS</span> dept_rank,
+    <span class="code-function">SUM</span>(amount) <span class="code-keyword">OVER</span> w <span class="code-keyword">AS</span> running_total,
+    <span class="code-function">AVG</span>(amount) <span class="code-keyword">OVER</span> w <span class="code-keyword">AS</span> running_avg
+<span class="code-keyword">FROM</span> sales
+<span class="code-keyword">WINDOW</span> w <span class="code-keyword">AS</span> (<span class="code-keyword">PARTITION BY</span> department <span class="code-keyword">ORDER BY</span> sale_date);</code>
+        </div>
+
+        <h2>⚠️ Common Pitfalls & Troubleshooting</h2>
+
+        <div class="warning-box">
+            <strong>Common Window Function Mistakes:</strong><br><br>
+
+            <strong>1. LAST_VALUE doesn't show expected result:</strong><br>
+            Problem: Default frame is RANGE UNBOUNDED PRECEDING AND CURRENT ROW<br>
+            Solution: Explicitly use ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING<br><br>
+
+            <strong>2. Unexpected ordering with NULLs:</strong><br>
+            Problem: NULLs sort first in ascending order<br>
+            Solution: Use NULLS LAST in ORDER BY clause<br><br>
+
+            <strong>3. Performance degradation:</strong><br>
+            Problem: Large windows without proper indexing<br>
+            Solution: Add indexes on PARTITION BY and ORDER BY columns<br><br>
+
+            <strong>4. Confusion between ROWS and RANGE:</strong><br>
+            • ROWS: Physical rows based on position<br>
+            • RANGE: Logical range based on value (default)<br>
+            Use ROWS for most cases unless you need value-based framing<br><br>
+
+            <strong>5. Mixing window and non-window columns:</strong><br>
+            Problem: All columns must be either aggregated or in GROUP BY<br>
+            Solution: Use window functions OR aggregates, wrap in CTEs if combining
+        </div>
+
+        <h2>📊 Performance Tips</h2>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Create indexes for better performance</span>
+<span class="code-keyword">CREATE INDEX</span> idx_sales_dept_date <span class="code-keyword">ON</span> sales(department, sale_date);
+<span class="code-keyword">CREATE INDEX</span> idx_sales_date <span class="code-keyword">ON</span> sales(sale_date);
+
+<span class="code-comment">-- Materialize intermediate results in CTE</span>
+<span class="code-keyword">WITH</span> daily_stats <span class="code-keyword">AS</span> (
+    <span class="code-keyword">SELECT</span> 
+        sale_date,
+        <span class="code-function">SUM</span>(amount) <span class="code-keyword">AS</span> daily_total
+    <span class="code-keyword">FROM</span> sales
+    <span class="code-keyword">GROUP BY</span> sale_date
+)
+<span class="code-keyword">SELECT</span> 
+    sale_date,
+    daily_total,
+    <span class="code-function">SUM</span>(daily_total) <span class="code-keyword">OVER</span> (<span class="code-keyword">ORDER BY</span> sale_date) <span class="code-keyword">AS</span> running_total
+<span class="code-keyword">FROM</span> daily_stats;
+
+<span class="code-comment">-- Use EXPLAIN QUERY PLAN to understand execution</span>
+<span class="code-keyword">EXPLAIN QUERY PLAN</span>
+<span class="code-keyword">SELECT</span> 
+    employee,
+    <span class="code-function">RANK</span>() <span class="code-keyword">OVER</span> (<span class="code-keyword">PARTITION BY</span> department <span class="code-keyword">ORDER BY</span> amount <span class="code-keyword">DESC</span>)
+<span class="code-keyword">FROM</span> sales;</code>
+        </div>
+
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Understand the three core concepts: Partitions, Ordering, Framing</li>
+            <li>Master ranking functions: ROW_NUMBER, RANK, DENSE_RANK, NTILE</li>
+            <li>Use aggregate functions as window functions</li>
+            <li>Apply offset functions: LAG, LEAD, FIRST_VALUE, LAST_VALUE</li>
+            <li>Chain multiple window functions for complex analytics</li>
+            <li>Create indexes for window function performance</li>
+            <li>Use named windows (WINDOW clause) for clarity</li>
+            <li>Implement real-world use cases: running totals, rankings, trends</li>
+            <li>Understand frame clauses and when to use ROWS vs RANGE</li>
+            <li>Apply best practices for maintainable analytical queries</li>
+        </ul>
+
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> Combine window functions with CTEs (Module 2), Views (Module 10), and other
+            analytical techniques for powerful business intelligence queries. Practice with real datasets to master
+            complex analytical patterns.
+        </div>
+
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+
+</html>

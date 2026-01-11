@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #10 - Views</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .concept-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .concept-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.2);
+        }
+
+        .concept-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 12px;
+        }
+
+        .concept-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a8d5ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+            white-space: pre;
+        }
+
+        .code-block code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+            display: block;
+            font-size: 0.9em;
+            line-height: 1.6;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+        }
+
+        .code-keyword {
+            color: #ff7675;
+        }
+
+        .code-string {
+            color: #55efc4;
+        }
+
+        .code-function {
+            color: #74b9ff;
+        }
+
+        .code-comment {
+            color: #636e72;
+        }
+
+        .code-number {
+            color: #ffeaa7;
+        }
+
+        h2 {
+            font-size: 2em;
+            color: #f1f5f9;
+            margin: 40px 0 20px 0;
+            border-bottom: 2px solid #10b981;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.3em;
+            color: #cbd5e1;
+            margin: 25px 0 15px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.2));
+            color: #10b981;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #10b981;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+
+        tr:hover {
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .highlight-box {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #85c1e9;
+        }
+
+        .warning-box {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #f1948a;
+        }
+
+        .success-box {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #7dcea0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hero">
+        <h1>👁️ SQLite3 Views</h1>
+        <p>Simplify Queries with Virtual Tables & Data Abstraction</p>
+    </div>
+
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module explores SQLite views—virtual tables defined by SELECT queries. You'll learn how to create,
+            modify, and drop views, use them to simplify complex queries, implement security through restricted access,
+            create updatable views with INSTEAD OF triggers, optimize performance with materialized view patterns, and
+            apply best practices for maintainability and troubleshooting.
+        </p>
+
+        <h2>🛠️ View Fundamentals</h2>
+
+        <div class="concept-box">
+            <div class="concept-title">What are Views?</div>
+            <div class="concept-description">
+                A view is a saved SELECT query that acts like a virtual table. Unlike tables, views don't store data
+                themselves—they dynamically retrieve data from underlying tables. Views simplify complex queries,
+                enforce security, and provide a clean abstraction layer.
+            </div>
+        </div>
+
+        <h3>Basic View Syntax</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Basic CREATE VIEW syntax</span>
+<span class="code-keyword">CREATE VIEW</span> view_name <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> column1, column2, ...
+<span class="code-keyword">FROM</span> table_name
+<span class="code-keyword">WHERE</span> condition;</code>
+        </div>
+
+        <h3>Simple View Example</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Create a view for active users</span>
+<span class="code-keyword">CREATE VIEW</span> active_users <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> id, username, email, created_at
+<span class="code-keyword">FROM</span> users
+<span class="code-keyword">WHERE</span> is_active = <span class="code-number">1</span> <span class="code-keyword">AND</span> deleted_at <span class="code-keyword">IS NULL</span>;
+
+<span class="code-comment">-- Query the view like a table</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> active_users <span class="code-keyword">WHERE</span> <span class="code-function">lower</span>(username) <span class="code-keyword">LIKE</span> <span class="code-string">'%admin%'</span>;</code>
+        </div>
+
+        <h2>🎯 Creating Views</h2>
+
+        <h3>Join-Based Views</h3>
+        <div class="concept-box">
+            <div class="concept-title">Simplify Complex Joins</div>
+            <div class="concept-description">
+                Encapsulate multi-table joins in a view for easier querying and consistent data access.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- View combining orders with customer information</span>
+<span class="code-keyword">CREATE VIEW</span> order_details <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> 
+    o.id <span class="code-keyword">AS</span> order_id,
+    o.order_date,
+    o.total_amount,
+    c.id <span class="code-keyword">AS</span> customer_id,
+    c.name <span class="code-keyword">AS</span> customer_name,
+    c.email <span class="code-keyword">AS</span> customer_email
+<span class="code-keyword">FROM</span> orders o
+<span class="code-keyword">JOIN</span> customers c <span class="code-keyword">ON</span> o.customer_id = c.id;
+
+<span class="code-comment">-- Now query is simple</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> order_details 
+<span class="code-keyword">WHERE</span> customer_email <span class="code-keyword">LIKE</span> <span class="code-string">'%@example.com'</span>;</code>
+        </div>
+
+        <h3>Aggregated Views</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- View with aggregated data</span>
+<span class="code-keyword">CREATE VIEW</span> customer_summary <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> 
+    c.id,
+    c.name,
+    <span class="code-keyword">COUNT</span>(o.id) <span class="code-keyword">AS</span> total_orders,
+    <span class="code-keyword">SUM</span>(o.total_amount) <span class="code-keyword">AS</span> total_spent,
+    <span class="code-keyword">MAX</span>(o.order_date) <span class="code-keyword">AS</span> last_order_date
+<span class="code-keyword">FROM</span> customers c
+<span class="code-keyword">LEFT JOIN</span> orders o <span class="code-keyword">ON</span> c.id = o.customer_id
+<span class="code-keyword">GROUP BY</span> c.id, c.name;</code>
+        </div>
+
+        <h3>Filtered Views for Security</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Restrict sensitive data access</span>
+<span class="code-keyword">CREATE VIEW</span> public_user_info <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> 
+    id,
+    username,
+    created_at
+<span class="code-keyword">FROM</span> users;
+<span class="code-comment">-- Email, password_hash, and other sensitive fields are hidden</span></code>
+        </div>
+
+        <h2>🔄 Updatable Views</h2>
+
+        <div class="info-box">
+            <strong>Understanding View Updates:</strong><br>
+            • Simple views (single table, no aggregation) can be updated directly<br>
+            • Complex views (joins, aggregations) are read-only by default<br>
+            • Use INSTEAD OF triggers to make complex views updatable
+        </div>
+
+        <h3>INSTEAD OF Triggers</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Create a view</span>
+<span class="code-keyword">CREATE VIEW</span> user_profile <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> id, username, email <span class="code-keyword">FROM</span> users;
+
+<span class="code-comment">-- Make it updatable with INSTEAD OF trigger</span>
+<span class="code-keyword">CREATE TRIGGER</span> update_user_profile
+<span class="code-keyword">INSTEAD OF UPDATE ON</span> user_profile
+<span class="code-keyword">BEGIN</span>
+  <span class="code-keyword">UPDATE</span> users 
+  <span class="code-keyword">SET</span> 
+    username = <span class="code-keyword">NEW</span>.username,
+    email = <span class="code-keyword">NEW</span>.email,
+    updated_at = <span class="code-function">datetime</span>(<span class="code-string">'now'</span>)
+  <span class="code-keyword">WHERE</span> id = <span class="code-keyword">OLD</span>.id;
+<span class="code-keyword">END</span>;
+
+<span class="code-comment">-- Now you can update through the view</span>
+<span class="code-keyword">UPDATE</span> user_profile 
+<span class="code-keyword">SET</span> email = <span class="code-string">'newemail@example.com'</span> 
+<span class="code-keyword">WHERE</span> username = <span class="code-string">'john_doe'</span>;</code>
+        </div>
+
+        <h2>🎯 Real-World Use Cases</h2>
+
+        <h3>Use Case 1: Reporting Dashboard</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Sales report view</span>
+<span class="code-keyword">CREATE VIEW</span> sales_report <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> 
+    <span class="code-function">strftime</span>(<span class="code-string">'%Y-%m'</span>, order_date) <span class="code-keyword">AS</span> month,
+    <span class="code-keyword">COUNT</span>(*) <span class="code-keyword">AS</span> total_orders,
+    <span class="code-keyword">SUM</span>(total_amount) <span class="code-keyword">AS</span> revenue,
+    <span class="code-keyword">AVG</span>(total_amount) <span class="code-keyword">AS</span> avg_order_value
+<span class="code-keyword">FROM</span> orders
+<span class="code-keyword">WHERE</span> status = <span class="code-string">'completed'</span>
+<span class="code-keyword">GROUP BY</span> <span class="code-function">strftime</span>(<span class="code-string">'%Y-%m'</span>, order_date);</code>
+        </div>
+
+        <h3>Use Case 2: API Response Layer</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Product catalog view for API</span>
+<span class="code-keyword">CREATE VIEW</span> product_catalog <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> 
+    p.id,
+    p.name,
+    p.description,
+    p.price,
+    c.name <span class="code-keyword">AS</span> category,
+    <span class="code-keyword">COUNT</span>(r.id) <span class="code-keyword">AS</span> review_count,
+    <span class="code-keyword">AVG</span>(r.rating) <span class="code-keyword">AS</span> avg_rating
+<span class="code-keyword">FROM</span> products p
+<span class="code-keyword">LEFT JOIN</span> categories c <span class="code-keyword">ON</span> p.category_id = c.id
+<span class="code-keyword">LEFT JOIN</span> reviews r <span class="code-keyword">ON</span> p.id = r.product_id
+<span class="code-keyword">WHERE</span> p.is_active = <span class="code-number">1</span>
+<span class="code-keyword">GROUP BY</span> p.id;</code>
+        </div>
+
+        <h3>Use Case 3: Data Versioning</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Current version view (excludes historical records)</span>
+<span class="code-keyword">CREATE VIEW</span> current_products <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> products
+<span class="code-keyword">WHERE</span> version_number = (
+  <span class="code-keyword">SELECT MAX</span>(version_number) 
+  <span class="code-keyword">FROM</span> products p2 
+  <span class="code-keyword">WHERE</span> p2.product_code = products.product_code
+);</code>
+        </div>
+
+        <h2>🔧 Managing Views</h2>
+
+        <h3>List All Views</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- View all views in database</span>
+<span class="code-keyword">SELECT</span> name, sql 
+<span class="code-keyword">FROM</span> sqlite_master 
+<span class="code-keyword">WHERE</span> type = <span class="code-string">'view'</span>;</code>
+        </div>
+
+        <h3>View Definition</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Get the CREATE statement for a view</span>
+<span class="code-keyword">SELECT</span> sql 
+<span class="code-keyword">FROM</span> sqlite_master 
+<span class="code-keyword">WHERE</span> type = <span class="code-string">'view'</span> <span class="code-keyword">AND</span> name = <span class="code-string">'view_name'</span>;</code>
+        </div>
+
+        <h3>Modify Views</h3>
+        <div class="warning-box">
+            <strong>Note:</strong> SQLite doesn't have ALTER VIEW. To modify a view, you must DROP and recreate it.
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Drop existing view</span>
+<span class="code-keyword">DROP VIEW IF EXISTS</span> active_users;
+
+<span class="code-comment">-- Recreate with new definition</span>
+<span class="code-keyword">CREATE VIEW</span> active_users <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> id, username, email, created_at, last_login
+<span class="code-keyword">FROM</span> users
+<span class="code-keyword">WHERE</span> is_active = <span class="code-number">1</span>;</code>
+        </div>
+
+        <h2>⚡ Performance Considerations</h2>
+
+        <div class="concept-box">
+            <div class="concept-title">Materialized Views Pattern</div>
+            <div class="concept-description">
+                SQLite doesn't have built-in materialized views, but you can simulate them with tables and triggers for
+                expensive queries.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Create a table to cache view results</span>
+<span class="code-keyword">CREATE TABLE</span> materialized_sales_summary <span class="code-keyword">AS</span>
+<span class="code-keyword">SELECT</span> 
+    product_id,
+    <span class="code-keyword">SUM</span>(quantity) <span class="code-keyword">AS</span> total_sold,
+    <span class="code-keyword">SUM</span>(total_price) <span class="code-keyword">AS</span> total_revenue
+<span class="code-keyword">FROM</span> order_items
+<span class="code-keyword">GROUP BY</span> product_id;
+
+<span class="code-comment">-- Create trigger to refresh on changes</span>
+<span class="code-keyword">CREATE TRIGGER</span> refresh_sales_summary
+<span class="code-keyword">AFTER INSERT ON</span> order_items
+<span class="code-keyword">BEGIN</span>
+  <span class="code-keyword">DELETE FROM</span> materialized_sales_summary;
+  <span class="code-keyword">INSERT INTO</span> materialized_sales_summary
+  <span class="code-keyword">SELECT</span> product_id, <span class="code-keyword">SUM</span>(quantity), <span class="code-keyword">SUM</span>(total_price)
+  <span class="code-keyword">FROM</span> order_items
+  <span class="code-keyword">GROUP BY</span> product_id;
+<span class="code-keyword">END</span>;</code>
+        </div>
+
+        <h2>✅ Best Practices & Optimizations</h2>
+
+        <div class="success-box">
+            <strong>✅ Key Recommendations:</strong><br>
+            • Clear naming: Use descriptive names that indicate the view's purpose<br>
+            • Document views: Add comments explaining complex logic<br>
+            • Limit complexity: Deep nesting of views can hurt performance<br>
+            • Index base tables: Views benefit from indexes on underlying tables<br>
+            • Avoid SELECT *: Specify only needed columns for clarity<br>
+            • Security layer: Use views to restrict access to sensitive columns<br>
+            • Test performance: Compare view queries with direct table queries for bottlenecks
+        </div>
+
+        <h2>⚠️ Troubleshooting</h2>
+
+        <div class="warning-box">
+            <strong>Common Issues:</strong><br>
+            • Read-only views: Remember that complex views can't be updated without INSTEAD OF triggers<br>
+            • Performance degradation: Views don't cache—each query re-executes the SELECT<br>
+            • Dependency chains: Dropping base tables breaks dependent views<br>
+            • No ALTER VIEW: Must drop and recreate to modify; ensure dependent objects still work<br>
+            • Stale results: Views always show current data, which can be slow for expensive queries<br>
+            • Debugging: Use EXPLAIN QUERY PLAN to analyze view performance
+        </div>
+
+        <h2>📊 View Types Comparison</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Definition</th>
+                    <th>Updatable</th>
+                    <th>Use Case</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Simple View</td>
+                    <td>Single table, no aggregation</td>
+                    <td>Yes (directly)</td>
+                    <td>Security, column filtering</td>
+                </tr>
+                <tr>
+                    <td>Join View</td>
+                    <td>Multiple tables with JOIN</td>
+                    <td>With INSTEAD OF triggers</td>
+                    <td>Simplify complex queries</td>
+                </tr>
+                <tr>
+                    <td>Aggregate View</td>
+                    <td>GROUP BY, aggregation functions</td>
+                    <td>With INSTEAD OF triggers</td>
+                    <td>Reporting, analytics</td>
+                </tr>
+                <tr>
+                    <td>Materialized (simulated)</td>
+                    <td>Table + triggers for refresh</td>
+                    <td>Table is updatable</td>
+                    <td>Performance optimization</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Understand view fundamentals and syntax</li>
+            <li>Create simple and complex views (joins, aggregations)</li>
+            <li>Use views for security and data abstraction</li>
+            <li>Implement updatable views with INSTEAD OF triggers</li>
+            <li>Manage views: list, drop, recreate</li>
+            <li>Apply performance optimization patterns</li>
+            <li>Follow best practices for maintainability</li>
+        </ul>
+
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> Combine Views with Triggers (Module 9) for powerful automated data
+            abstraction layers, and use Indexing (Module 3) to optimize view performance.
+        </div>
+
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+
+</html>

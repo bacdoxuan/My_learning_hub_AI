@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLite3 Cheat Sheet #7 - String Functions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1a1f3a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            padding: 60px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        .hero h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .hero p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .concept-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-left: 4px solid #f39c12;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .concept-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(243, 156, 18, 0.2);
+        }
+
+        .concept-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #f39c12;
+            margin-bottom: 12px;
+        }
+
+        .concept-description {
+            color: #cbd5e1;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #a8d5ff;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+            white-space: pre;
+        }
+
+        .code-block code {
+            background: none;
+            padding: 0;
+            color: #e2e8f0;
+            display: block;
+            font-size: 0.9em;
+            line-height: 1.6;
+            font-family: 'Monaco', 'Courier New', 'Consolas', 'Fira Code', monospace;
+        }
+
+        .code-keyword {
+            color: #ff7675;
+        }
+
+        .code-string {
+            color: #55efc4;
+        }
+
+        .code-function {
+            color: #74b9ff;
+        }
+
+        .code-comment {
+            color: #636e72;
+        }
+
+        .code-number {
+            color: #ffeaa7;
+        }
+
+        h2 {
+            font-size: 2em;
+            color: #f1f5f9;
+            margin: 40px 0 20px 0;
+            border-bottom: 2px solid #f39c12;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            font-size: 1.3em;
+            color: #cbd5e1;
+            margin: 25px 0 15px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: linear-gradient(135deg, rgba(243, 156, 18, 0.2), rgba(230, 126, 34, 0.2));
+            color: #f39c12;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #f39c12;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #334155;
+            color: #cbd5e1;
+        }
+
+        tr:hover {
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .highlight-box {
+            background: rgba(243, 156, 18, 0.1);
+            border-left: 4px solid #f39c12;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .info-box {
+            background: rgba(52, 152, 219, 0.1);
+            border-left: 4px solid #3498db;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #85c1e9;
+        }
+
+        .warning-box {
+            background: rgba(231, 76, 60, 0.1);
+            border-left: 4px solid #e74c3c;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #f1948a;
+        }
+
+        .success-box {
+            background: rgba(46, 204, 113, 0.1);
+            border-left: 4px solid #2ecc71;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: #7dcea0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 15px 0;
+        }
+
+        .checklist li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #cbd5e1;
+        }
+
+        .checklist li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(243, 156, 18, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="hero">
+        <h1>🧰 SQLite3 String Functions</h1>
+        <p>Master String Manipulation, Formatting & Best Practices</p>
+    </div>
+
+    <div class="container">
+        <h2>📋 Module Overview</h2>
+        <p style="color: #cbd5e1; line-height: 1.8; font-size: 1.05em;">
+            This module dives deep into SQLite's built-in string functions for manipulating TEXT data. You'll learn
+            about concatenation, case conversion, trimming, substring extraction, searching, replacing, formatting, and
+            advanced utilities like hex encoding and soundex. With detailed code examples, real-world use cases, best
+            practices for performance and security, troubleshooting tips, and optimizations, you'll be equipped to
+            handle string operations efficiently in your SQLite applications.
+        </p>
+
+        <h2>🛠️ Core String Functions</h2>
+
+        <div class="concept-box">
+            <div class="concept-title">Understanding String Handling in SQLite</div>
+            <div class="concept-description">
+                Strings in SQLite are stored as TEXT with UTF-8 encoding by default. Functions operate on Unicode
+                characters, but performance can vary with large strings or complex operations. Always consider collation
+                (case sensitivity) when searching or comparing—use NOCASE for case-insensitive indexes.
+            </div>
+        </div>
+
+        <h3>Concatenation</h3>
+        <div class="concept-box">
+            <div class="concept-title">concat & || Operator</div>
+            <div class="concept-description">
+                Joins multiple strings. The || operator is binary; concat() (SQLite 3.44+) handles multiple arguments.
+                Useful for building full names, paths, or dynamic queries.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Using || operator</span>
+<span class="code-keyword">SELECT</span> first_name || <span class="code-string">' '</span> || last_name <span class="code-keyword">AS</span> full_name <span class="code-keyword">FROM</span> employees;
+
+<span class="code-comment">-- Using concat() for multiple strings</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">concat</span>(street, <span class="code-string">', '</span>, city, <span class="code-string">', '</span>, state, <span class="code-string">' '</span>, zip) <span class="code-keyword">AS</span> address <span class="code-keyword">FROM</span> customers;
+
+<span class="code-comment">-- Real-world: Generating URLs</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">concat</span>(<span class="code-string">'https://example.com/user/'</span>, id, <span class="code-string">'/'</span>, <span class="code-function">lower</span>(username)) <span class="code-keyword">AS</span> profile_url <span class="code-keyword">FROM</span> users;</code>
+        </div>
+
+        <h3>Case Conversion</h3>
+        <div class="concept-box">
+            <div class="concept-title">upper & lower</div>
+            <div class="concept-description">
+                Converts strings to uppercase or lowercase. Essential for normalization in searches or comparisons.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Normalize emails</span>
+<span class="code-keyword">UPDATE</span> users <span class="code-keyword">SET</span> email = <span class="code-function">lower</span>(email);
+
+<span class="code-comment">-- Case-insensitive search</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> products <span class="code-keyword">WHERE</span> <span class="code-function">lower</span>(name) <span class="code-keyword">LIKE</span> <span class="code-string">'%widget%'</span>;
+
+<span class="code-comment">-- Real-world: Standardizing tags</span>
+<span class="code-keyword">INSERT INTO</span> tags (tag_name) <span class="code-keyword">VALUES</span> (<span class="code-function">upper</span>(<span class="code-string">'Important'</span>));</code>
+        </div>
+
+        <h3>Length & Trimming</h3>
+        <div class="concept-box">
+            <div class="concept-title">length, trim, ltrim, rtrim</div>
+            <div class="concept-description">
+                length returns character count; trim removes characters from both ends (default spaces). ltrim/rtrim for
+                one side. Great for data cleaning.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Get string length</span>
+<span class="code-keyword">SELECT</span> name, <span class="code-function">length</span>(name) <span class="code-keyword">AS</span> name_length <span class="code-keyword">FROM</span> users <span class="code-keyword">WHERE</span> <span class="code-function">length</span>(name) > <span class="code-number">20</span>;
+
+<span class="code-comment">-- Trim spaces</span>
+<span class="code-keyword">UPDATE</span> addresses <span class="code-keyword">SET</span> street = <span class="code-function">trim</span>(street);
+
+<span class="code-comment">-- Custom trim (remove prefixes/suffixes)</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">ltrim</span>(phone, <span class="code-string">'+1-'</span>) <span class="code-keyword">AS</span> cleaned_phone <span class="code-keyword">FROM</span> contacts;
+
+<span class="code-comment">-- Real-world: Validate input length after trim</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> comments <span class="code-keyword">WHERE</span> <span class="code-function">length</span>(<span class="code-function">trim</span>(text)) < <span class="code-number">5</span>;  <span class="code-comment">-- Find short comments</span></code>
+        </div>
+
+        <h3>Substring Extraction & Search</h3>
+        <div class="concept-box">
+            <div class="concept-title">substr & instr</div>
+            <div class="concept-description">
+                substr extracts parts; instr finds position of substring. Combine for parsing.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Extract domain from email</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">substr</span>(email, <span class="code-function">instr</span>(email, <span class="code-string">'@'</span>) + 1) <span class="code-keyword">AS</span> domain <span class="code-keyword">FROM</span> users;
+
+<span class="code-comment">-- Parse log messages</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">substr</span>(message, 1, <span class="code-function">instr</span>(message, <span class="code-string">':'</span>) - 1) <span class="code-keyword">AS</span> level <span class="code-keyword">FROM</span> logs;
+
+<span class="code-comment">-- Real-world: Extract year from date string</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">substr</span>(publish_date, 1, 4) <span class="code-keyword">AS</span> year <span class="code-keyword">FROM</span> articles <span class="code-keyword">GROUP BY</span> year;</code>
+        </div>
+
+        <h3>Replacement</h3>
+        <div class="concept-box">
+            <div class="concept-title">replace</div>
+            <div class="concept-description">
+                Replaces all occurrences of a substring. Useful for sanitization or formatting.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Clean phone numbers</span>
+<span class="code-keyword">UPDATE</span> contacts <span class="code-keyword">SET</span> phone = <span class="code-function">replace</span>(<span class="code-function">replace</span>(phone, <span class="code-string">'-'</span>, <span class="code-string">''</span>), <span class="code-string">' '</span>, <span class="code-string">''</span>);
+
+<span class="code-comment">-- Censor words</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">replace</span>(content, <span class="code-string">'badword'</span>, <span class="code-string">'***'</span>) <span class="code-keyword">AS</span> censored <span class="code-keyword">FROM</span> posts;
+
+<span class="code-comment">-- Real-world: Normalize paths</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">replace</span>(file_path, <span class="code-string">'\\'</span>, <span class="code-string">'/'</span>) <span class="code-keyword">AS</span> unix_path <span class="code-keyword">FROM</span> files;</code>
+        </div>
+
+        <h3>Formatting</h3>
+        <div class="concept-box">
+            <div class="concept-title">printf</div>
+            <div class="concept-description">
+                Formats strings with placeholders. Like C's printf, for precise output.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Format numbers</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">printf</span>(<span class="code-string">'%.2f USD'</span>, amount) <span class="code-keyword">AS</span> formatted_amount <span class="code-keyword">FROM</span> transactions;
+
+<span class="code-comment">-- Padded strings</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">printf</span>(<span class="code-string">'%010d'</span>, id) <span class="code-keyword">AS</span> padded_id <span class="code-keyword">FROM</span> invoices;
+
+<span class="code-comment">-- Real-world: Generate codes</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">printf</span>(<span class="code-string">'ORD-%s-%04d'</span>, <span class="code-function">strftime</span>(<span class="code-string">'%Y'</span>, order_date), id) <span class="code-keyword">AS</span> order_code <span class="code-keyword">FROM</span> orders;</code>
+        </div>
+
+        <h3>Advanced Utilities</h3>
+        <div class="concept-box">
+            <div class="concept-title">hex, quote, unicode, soundex</div>
+            <div class="concept-description">
+                hex for binary to hex; quote escapes for SQL; unicode gets code point; soundex for phonetic matching.
+            </div>
+        </div>
+
+        <div class="code-block">
+            <code><span class="code-comment">-- Hex encoding</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">hex</span>(blob_data) <span class="code-keyword">AS</span> hex_string <span class="code-keyword">FROM</span> binaries;
+
+<span class="code-comment">-- Safe quoting</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">quote</span>(user_input) <span class="code-keyword">AS</span> safe_input;
+
+<span class="code-comment">-- Unicode point</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">unicode</span>(substr(name, 1, 1)) <span class="code-keyword">AS</span> first_char_code <span class="code-keyword">FROM</span> names;
+
+<span class="code-comment">-- Soundex matching</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> names <span class="code-keyword">WHERE</span> <span class="code-function">soundex</span>(name) = <span class="code-function">soundex</span>(<span class="code-string">'Smith'</span>);</code>
+        </div>
+
+        <h2>🎯 Real-World Use Cases</h2>
+
+        <h3>Use Case 1: User Data Cleaning</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Clean and normalize user profiles</span>
+<span class="code-keyword">UPDATE</span> profiles 
+<span class="code-keyword">SET</span> bio = <span class="code-function">trim</span>(<span class="code-function">replace</span>(bio, <span class="code-string">'\n'</span>, <span class="code-string">' '</span>)),
+    display_name = <span class="code-function">concat</span>(<span class="code-function">upper</span>(substr(first_name, 1, 1)), <span class="code-function">lower</span>(substr(first_name, 2)));</code>
+        </div>
+
+        <h3>Use Case 2: Log Parsing</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Extract IP from log</span>
+<span class="code-keyword">SELECT</span> <span class="code-function">substr</span>(log_line, <span class="code-function">instr</span>(log_line, <span class="code-string">'IP:'</span>) + 3, 15) <span class="code-keyword">AS</span> ip <span class="code-keyword">FROM</span> access_logs;</code>
+        </div>
+
+        <h3>Use Case 3: Search Optimization</h3>
+        <div class="code-block">
+            <code><span class="code-comment">-- Phonetic search for names</span>
+<span class="code-keyword">SELECT</span> * <span class="code-keyword">FROM</span> contacts <span class="code-keyword">WHERE</span> <span class="code-function">soundex</span>(last_name) = <span class="code-function">soundex</span>(<span class="code-string">'Smyth'</span>);</code>
+        </div>
+
+        <h2>✅ Best Practices & Optimizations</h2>
+
+        <div class="success-box">
+            <strong>✅ Key Recommendations:</strong><br>
+            • Normalize data early: Apply lower/trim on insert/update to avoid repeated computations.<br>
+            • Avoid functions in WHERE for indexed columns: Pre-compute if possible (e.g., stored columns).<br>
+            • Use parameterized queries: Prevent injection when building strings dynamically.<br>
+            • Batch operations: Wrap multiple string updates in transactions for speed.<br>
+            • Collation awareness: Use COLLATE NOCASE for case-insensitive comparisons.<br>
+            • Performance: For very large strings, consider application-side processing.
+        </div>
+
+        <h2>⚠️ Troubleshooting</h2>
+
+        <div class="warning-box">
+            <strong>Common Issues:</strong><br>
+            • Unicode handling: Ensure database encoding is UTF-8; test with non-ASCII.<br>
+            • Index prevention: Functions like upper() disable indexes—use views or computed columns.<br>
+            • NULL propagation: Most functions return NULL on NULL input—use COALESCE.<br>
+            • Length vs bytes: length() counts characters, not bytes—use octet_length for bytes.
+        </div>
+
+        <h2>✅ Module Checklist</h2>
+        <ul class="checklist">
+            <li>Master concatenation and case conversion</li>
+            <li>Use trimming and length for data validation</li>
+            <li>Extract and search substrings efficiently</li>
+            <li>Apply replacements for cleaning and censoring</li>
+            <li>Format strings with printf for precision</li>
+            <li>Leverage advanced utils like hex and soundex</li>
+            <li>Implement best practices in real-world scenarios</li>
+        </ul>
+
+        <div class="highlight-box">
+            <strong>🎯 Next Steps:</strong> Combine string functions with querying (Module 2) or advanced features
+            (Module 4) for powerful data processing.
+        </div>
+
+        <a href="index-sqlite.html" class="back-link">← Back to Index</a>
+    </div>
+</body>
+
+</html>
